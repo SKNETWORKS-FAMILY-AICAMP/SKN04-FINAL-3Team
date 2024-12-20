@@ -1,0 +1,125 @@
+/* static/css/style.css */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+}
+
+@font-face {
+    font-family: 'Maruburi';
+    src: url('/static/fonts/maruburi-regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 채팅창 입력란 스타일 */
+.input-bar {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 2px solid #4caf50;  /* 초록색 border */
+    border-radius: 20px;  /* 끝이 뭉툭한 형태 */
+    font-family: 'Maruburi', sans-serif; /* 폰트 설정 */
+    resize: none;  /* 높이 조정 불가 */
+    overflow-y: hidden; /* 내용이 넘칠 때 스크롤 숨기기 */
+    min-height: 40px; /* 최소 높이 (1줄 크기) */
+    height: auto; /* 높이는 자동 */
+    transition: border-color 0.3s; /* border 색상 전환 효과 */
+    padding-right: 30px; /* X 버튼이 오른쪽에 있기 때문에 오른쪽 여백 추가 */
+}
+
+/* X 버튼 스타일 */
+.clear-btn {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #4caf50;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: none; /* 기본적으로 숨김 */
+}
+
+/* X 버튼이 보일 때 */
+.input-bar:not(:empty) + .clear-btn {
+    display: block;
+}
+
+/* X 버튼이 보이도록 부모 컨테이너 설정 */
+.input-container {
+    position: relative;
+    width: 100%;  /* 컨테이너 크기 */
+}
+
+/* 스크롤바 위치 왼쪽으로 조정 */
+.input-bar::-webkit-scrollbar {
+    width: 8px;
+    position: absolute;
+    left: 0; /* 스크롤바를 왼쪽에 위치 */
+}
+
+.input-bar::-webkit-scrollbar-thumb {
+    background-color: #4caf50;
+    border-radius: 10px;
+}
+
+.input-bar::-webkit-scrollbar-track {
+    background-color: #f0f0f0;
+}
+
+
+
+
+.container {
+    display: flex;
+}
+
+.sidebar {
+    width: 67px;
+    background: #f4f4f4;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0;
+    border-right: 2px solid #ddd;
+}
+
+.sidebar button {
+    width: 100%;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: transparent;
+    text-align: center;
+    transition: background-color 0.3s, color 0.3s;
+    cursor: pointer;
+}
+
+.sidebar button:hover {
+    background-color: #ddd;
+}
+
+.sidebar button.active {
+    background-color: rgb(4, 117, 244);
+    color: rgb(255, 255, 255);
+}
+
+.sidebar .icon {
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+.content {
+    flex-grow: 1;
+    padding: 10px;
+    border-left: 1px solid #ddd;
+}
+
+#map {
+    width: 100%;
+    height: 500px; 
+}

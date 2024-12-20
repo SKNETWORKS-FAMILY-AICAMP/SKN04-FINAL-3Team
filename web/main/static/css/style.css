@@ -1,0 +1,162 @@
+/* static/css/style.css */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+}
+
+@font-face {
+    font-family: 'Maruburi';
+    src: url('/static/fonts/maruburi-regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 채팅창 입력란 스타일 */
+.input-bar {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 2px solid #4caf50;  /* 초록색 border */
+    border-radius: 5px;  /* 덜 둥근 네모 모양 */
+    font-family: 'Maruburi', sans-serif; /* 폰트 설정 */
+    resize: none;  /* 높이 조정 불가 */
+    min-height: 40px; /* 최소 높이 (1줄 크기) */
+    max-height: 120px; /* 최대 높이 (6줄 기준) */
+    overflow-y: auto; /* 스크롤바 표시 */
+    transition: border-color 0.3s; /* border 색상 전환 효과 */
+}
+
+/* X 버튼이 보일 때 */
+.input-bar:not(:empty) + .clear-btn {
+    display: block;
+}
+
+.input-container {
+    position: absolute; /* 절대 위치 지정 */
+    bottom: 20px; /* 화면 아래에서 20px 띄우기 */
+    width: 400px; /* 원하는 너비 설정 */
+    padding: 10px;
+    box-sizing: border-box;
+    z-index: 100; /* 지도 위에 표시되도록 */
+}
+
+/* 스크롤바 위치 왼쪽으로 조정 */
+.input-bar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.input-bar::-webkit-scrollbar-thumb {
+    background-color: #4caf50; /* 스크롤바 색상 */
+    border-radius: 5px; /* 스크롤바 둥글게 */
+}
+
+.input-bar::-webkit-scrollbar-track {
+    background-color: #f0f0f0; /* 스크롤 트랙 색상 */
+}
+
+/* 말풍선 스타일 */
+.bubble {
+    max-width: 100%;
+    background-color: #e6f4ea;
+    border: 2px solid #4caf50;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 5px 0;
+    word-wrap: break-word;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    align-self: flex-end; /* 말풍선을 오른쪽 정렬 */
+}
+
+/* 사용자 메시지는 추가적인 스타일 */
+.bubble.user {
+    background-color: #4caf50;
+    color: white;
+}
+
+.container {
+    display: flex;
+}
+
+.sidebar {
+    width: 67px;
+    background: #f4f4f4;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0;
+    border-right: 2px solid #ddd;
+}
+
+.sidebar button {
+    width: 100%;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: transparent;
+    text-align: center;
+    transition: background-color 0.3s, color 0.3s;
+    cursor: pointer;
+}
+
+.sidebar button:hover {
+    background-color: #ddd;
+}
+
+.sidebar button.active {
+    background-color: rgb(4, 117, 244);
+    color: rgb(255, 255, 255);
+}
+
+.sidebar .icon {
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+.content {
+    flex-grow: 1;
+    border-left: 1px solid #ddd;
+}
+
+#map {
+    display: block;
+    position: relative;
+    width: 100%;
+}
+
+#chat-header {
+    position: sticky; /* 스크롤 시 고정 */
+    top: 0; /* 컨테이너의 맨 위에 고정 */
+    font-size: 1.2rem;
+    font-weight: bold;
+    z-index: 1; /* 다른 요소 위에 표시되도록 설정 */
+}
+
+/* 메시지 목록 컨테이너 스타일 */
+#chat-messages {
+    max-height: 550px; 
+    overflow-y: auto; /* 높이를 초과하면 스크롤바 표시 */
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px; /* 입력창과 간격 */
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* 메시지 간 간격 */
+    padding: 5px;
+}
+
+/* 스크롤바 커스터마이징 */
+#chat-messages::-webkit-scrollbar {
+    width: 8px; /* 스크롤바 너비 */
+}
+
+#chat-messages::-webkit-scrollbar-thumb {
+    background-color: #4caf50; /* 스크롤바 색상 */
+    border-radius: 5px; /* 스크롤바 모서리 둥글게 */
+}
+
+#chat-messages::-webkit-scrollbar-track {
+    background-color: #f0f0f0; /* 스크롤 트랙 색상 */
+}
