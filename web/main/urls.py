@@ -2,10 +2,10 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # path('', views.home, name='home'),
-    path('', views.map_view, name='map_view'),
-    path('planner/', views.planner, name='planner'),
-    path('profile/', views.profile, name='profile'),
-    path('settings/', views.settings, name='settings'),
-    path('myplace/', views.myplace, name='myplace'),
+    path('', views.main, name='main'),  # 독립적인 메인 페이지
+    path('app/', views.spa, name='spa'),  # SPA 시작 페이지
+    path('app/planner/', views.planner, name='planner'),
+    path('app/profile/', views.profile, name='profile'),
+    path('app/settings/', views.settings, name='settings'),
+    path('app/myplace/', views.myplace, name='myplace'),
 ]

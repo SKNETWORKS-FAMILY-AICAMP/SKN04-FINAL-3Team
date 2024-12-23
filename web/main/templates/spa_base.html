@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SPA Example{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <!-- 네비게이션 바 -->
+        <div class="sidebar">
+            <button id="homeBtn" onclick="window.location.href='/'">Home</button>
+            <button id="plannerBtn" onclick="window.location.href='/app/planner/'">Planner</button>
+            <button id="myplaceBtn" onclick="window.location.href='/app/myplace/'">My Place</button>
+            <button id="settingsBtn" onclick="window.location.href='/app/settings/'">Settings</button>
+            <button id="profileBtn" onclick="window.location.href='/app/profile/'">Profile</button>
+        </div>
+
+        <!-- 메인 콘텐츠 -->
+        <div class="content">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+</body>
+</html>

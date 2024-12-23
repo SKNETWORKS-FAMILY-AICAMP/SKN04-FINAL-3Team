@@ -123,7 +123,6 @@ body {
 #map {
     display: block;
     position: relative;
-    width: 100%;
 }
 
 #chat-header {
