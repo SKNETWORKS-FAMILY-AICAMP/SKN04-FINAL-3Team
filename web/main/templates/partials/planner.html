@@ -1,57 +1,17 @@
-{% extends 'spa_base.html' %}
-
-{% block title %}Planner{% endblock %}
-
-{% block content %}
 <div class="container" style="display: flex; height: 100vh; overflow: hidden;">
     <!-- 채팅창 -->
-    <div class="content1" style="width: 400px; height: 100%; display: flex; flex-direction: column; border-right: 1px solid #ddd;">
-        <div id="chat-header" style="padding: 10px; background: #f4f4f4; border-bottom: 1px solid #ddd; font-weight: bold;">
+    <div class="content1">
+        <div id="chat-header">
             Chat
         </div>
-        <div id="chat-messages" style="flex-grow: 1; overflow-y: auto; padding: 10px;">
+        <div id="chat-messages">
             <!-- 메시지가 여기에 추가됩니다 -->
         </div>
-        <div class="input-container" style="padding: 10px; border-top: 1px solid #ddd;">
-            <textarea id="input_bar" class="input-bar" autocomplete="off" maxlength="255" rows="1" placeholder="Type your message..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: none;"></textarea>
+        <div class="input-container">
+            <textarea id="input_bar" class="input-bar" autocomplete="off" maxlength="255" rows="6" placeholder="Type your message..."></textarea>
         </div>
     </div>
 
     <!-- 지도 -->
-    <div id="map" style="flex-grow: 1; height: 100%;"></div>
+    <div id="map"></div>
 </div>
-
-<script>
-    const ncpClientId = "{{ ncp_client_id }}";
-
-    // 네이버 지도 스크립트 로드
-    const mapScript = document.createElement('script');
-    mapScript.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${ncpClientId}`;
-    mapScript.onload = function () {
-        console.log("Naver Map Script Loaded");
-        loadMap(); // 지도 초기화
-    };
-    mapScript.onerror = function () {
-        console.error("Failed to load Naver Map Script");
-    };
-    document.head.appendChild(mapScript);
-
-    // 지도 초기화 함수
-    function loadMap() {
-        if (!window.naver || !naver.maps) {
-            console.error("Naver Maps is not loaded");
-            return;
-        }
-        const mapOptions = {
-            center: new naver.maps.LatLng(37.5665, 126.9780), // 서울
-            zoom: 10,
-        };
-        const map = new naver.maps.Map('map', mapOptions);
-    }
-
-    $(document).ready(function () {
-        // 지도 로드
-        loadMap();
-    });
-</script>
-{% endblock %}

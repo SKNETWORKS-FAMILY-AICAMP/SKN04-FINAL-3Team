@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
@@ -8,4 +8,5 @@ urlpatterns = [
     path('app/profile/', views.profile, name='profile'),
     path('app/settings/', views.settings, name='settings'),
     path('app/myplace/', views.myplace, name='myplace'),
+    path('app/chatting/', views.chatting, name='chatting'),
 ]

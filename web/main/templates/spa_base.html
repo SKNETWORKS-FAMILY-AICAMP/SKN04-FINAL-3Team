@@ -3,26 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SPA Example{% endblock %}</title>
+    <title>SPA Example</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/settings.css' %}">
+    <style>
+        .nav-btn br {
+            font-size: 24px; /* 아이콘 크기만 조정 */
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- 네비게이션 바 -->
-        <div class="sidebar">
-            <button id="homeBtn" onclick="window.location.href='/'">Home</button>
-            <button id="plannerBtn" onclick="window.location.href='/app/planner/'">Planner</button>
-            <button id="myplaceBtn" onclick="window.location.href='/app/myplace/'">My Place</button>
-            <button id="settingsBtn" onclick="window.location.href='/app/settings/'">Settings</button>
-            <button id="profileBtn" onclick="window.location.href='/app/profile/'">Profile</button>
+    <div class="container" style="display: flex; height: 100vh; overflow: hidden;">
+        <div class="sidebar" id="sidebar" style="width: 100px; border-right: 1px solid #ddd;">
+            <button class="nav-btn" id="home-btn">Home
+                <span>⚙️</span>
+            </button>
+            <button class="nav-btn" data-url="/app/planner/">Planner
+                <span>🗺️</span>
+            </button>
+            <button class="nav-btn" data-url="/app/myplace/">My Place
+                <span>⭐</span>
+            </button>
+            <button class="nav-btn" data-url="/app/chatting/">Chatting
+                <span>💬</span>
+            </button>
+            <button class="nav-btn" data-url="/app/settings/">Settings
+                <span>⚙️</span>
+            </button>
+            <button class="nav-btn" data-url="/app/profile/">Profile
+                <span>⚙️</span>
+            </button>
         </div>
 
-        <!-- 메인 콘텐츠 -->
-        <div class="content">
-            {% block content %}
-            {% endblock %}
+        <!-- 동적 콘텐츠 영역 -->
+        <div id="content1">
+            <!-- Planner 콘텐츠가 기본으로 로드됩니다 -->
+            <div id="chat-header">
+                Chat
+            </div>
+            <div id="chat-messages">
+                <!-- 메시지가 여기에 추가됩니다 -->
+            </div>
+            <div class="input-container">
+                <textarea id="input_bar" class="input-bar" autocomplete="off" maxlength="255" rows="1" placeholder="Type your message..."></textarea>
+            </div>
+        </div>
+
+        <!-- 지도 영역 -->
+        <div id="map" style="flex-grow: 1; height: 100%;"></div>
+    </div>
+
+    <!-- 팝업 창 -->
+    <div id="popup" class="popup hidden">
+        <div class="popup-content">
+            <h3>Are you sure you want to delete your account?</h3>
+            <div class="popup-buttons">
+                <button id="confirm-delete" class="popup-button">Yes, Delete</button>
+                <button id="cancel-delete" class="popup-button">Cancel</button>
+            </div>
         </div>
     </div>
+
+    <script>
+        const ncpClientId = "{{ ncp_client_id|default:'' }}";
+        let isMapInitialized = false;
+        let map = null;
+        console.log("ncpClientId:" + ncpClientId);
+        // 지도 초기화 함수
+        function initializeMap() {
+            if (isMapInitialized) return;
+
+            const mapScript = document.createElement('script');
+            mapScript.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${ncpClientId}`;
+            mapScript.onload = function () {
+                map = new naver.maps.Map('map', {
+                    center: new naver.maps.LatLng(37.5665, 126.9780), // 서울
+                    zoom: 10,
+                });
+                isMapInitialized = true;
+            };
+            mapScript.onerror = function () {
+                console.error("Failed to load Naver Map script.");
+            };
+            document.head.appendChild(mapScript);
+        }
+
+        // SPA 콘텐츠 로드 함수
+        function loadContent(url) {
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('content1').innerHTML = html;
+
+                    // 콘텐츠 로드 후 이벤트 트리거
+                    document.dispatchEvent(new Event("spaContentLoaded"));
+                })
+                .catch(error => console.error('Error loading content:', error));
+        }
+
+        // 팝업 열기/닫기
+        function showPopup() {
+            document.getElementById('popup').classList.remove('hidden');
+        }
+
+        function closePopup() {
+            document.getElementById('popup').classList.add('hidden');
+        }
+
+        // SPA 초기화
+        document.addEventListener("DOMContentLoaded", function () {
+            // 지도 초기화
+            initializeMap();
+
+            // 기본 콘텐츠 로드
+            loadContent('/app/planner/');
+
+            // 네비게이션 버튼 이벤트 처리
+            document.querySelectorAll('.nav-btn').forEach(button => {
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const url = this.getAttribute('data-url');
+                    history.pushState(null, '', url); // URL 변경
+                    loadContent(url); // 콘텐츠 로드
+                });
+            });
+
+            // Home 버튼 처리
+            document.getElementById('home-btn').addEventListener('click', function () {
+                window.location.href = '/'; // 메인 페이지로 이동
+            });
+
+            document.getElementById('cancel-delete').addEventListener('click', closePopup);
+            document.getElementById('confirm-delete').addEventListener('click', function () {
+                alert('Account deleted!');
+                closePopup();
+            });
+
+            // 뒤로가기/앞으로가기 처리
+            window.addEventListener('popstate', function () {
+                loadContent(window.location.pathname);
+            });
+        });
+
+        // SPA 콘텐츠 로드 후 이벤트 연결
+        document.addEventListener("spaContentLoaded", function () {
+            const inputBar = document.getElementById("input_bar");
+            const chatMessages = document.getElementById("chat-messages");
+            const deleteBtn = document.querySelector('.delete-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', showPopup);
+            }
+
+            if (!inputBar || !chatMessages) return; // 필요한 요소가 없으면 종료
+
+            // 메시지 전송 함수
+            function sendMessage() {
+                const message = inputBar.value.trim();
+                if (message === "") return;
+
+                // 메시지를 채팅창에 추가
+                const newMessage = document.createElement("div");
+                newMessage.className = "bubble user"; // 사용자 메시지 스타일
+                newMessage.innerHTML = message.replace(/\n/g, "<br>"); // 줄 바꿈 처리
+
+                // 텍스트 크기에 맞게 조정
+                newMessage.style.display = "inline-block";
+                newMessage.style.maxWidth = "80%";
+                newMessage.style.wordWrap = "break-word";
+                newMessage.style.lineHeight = "1.4"; // 줄 간격 조정
+
+                chatMessages.prepend(newMessage); // 최신 메시지를 위로 추가
+
+                // 채팅창 스크롤을 맨 아래로
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                // 입력창 초기화 및 높이 조정
+                inputBar.value = "";
+                resizeInput();
+            }
+
+            // 입력창 높이 조정 함수
+            function resizeInput() {
+                inputBar.style.height = "auto"; // 높이를 초기화한 뒤
+                const scrollHeight = inputBar.scrollHeight;
+                const maxHeight = 120; // 최대 높이 (6줄 기준)
+                inputBar.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+
+                // 스크롤바 표시 여부 제어
+                if (scrollHeight >= maxHeight) {
+                    inputBar.style.overflowY = "auto"; // 6줄 이상이면 스크롤바 표시
+                } else {
+                    inputBar.style.overflowY = "hidden"; // 6줄 이하이면 스크롤바 숨김
+                }
+            }
+
+            // Enter와 Shift+Enter 동작 처리
+            inputBar.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault(); // 기본 Enter 동작 방지
+                    sendMessage();
+                } 
+                else if (e.key === "Enter" && e.shiftKey) {
+                    // Shift + Enter 동작: 줄 바꿈 허용
+                    e.preventDefault();
+                    const cursorPosition = inputBar.selectionStart;
+                    inputBar.value = inputBar.value.slice(0, cursorPosition) + "\n" + inputBar.value.slice(cursorPosition);
+                    resizeInput(); // 높이 조정
+                }
+            });
+
+            // 입력창 내용 변경 시 높이 조정
+            inputBar.addEventListener("input", resizeInput);
+
+            // 초기 입력창 높이 설정
+            resizeInput();
+        });
+    </script>
 </body>
 </html>

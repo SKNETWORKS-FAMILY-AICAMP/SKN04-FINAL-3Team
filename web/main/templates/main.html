@@ -8,10 +8,12 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <div class="main-container">
-        <h1>Welcome to the Main Page</h1>
-        <p>클릭하면 Planner 페이지로 이동합니다.</p>
-        <a href="/app/planner/">Go to Planner</a>
+    <div class="main-container" style="display: flex; justify-content: center; align-items: center; height: 100vh; text-align: center;">
+        <div>
+            <h1>Welcome to the Main Page</h1>
+            <p>Click the button below to start exploring.</p>
+            <a href="/app/" style="text-decoration: none; padding: 10px 20px; background-color: #4caf50; color: white; border-radius: 5px;">Enter</a>
+        </div>
     </div>
 </body>
 </html>
