@@ -9,36 +9,49 @@ from time import sleep
 
 def home_crawling(driver, business_hours):
     title = driver.find_element(By.XPATH,'//div[@class="zD5Nm undefined"]')
-    store_info = title.find_elements(By.XPATH,'//div[@class="YouOG DZucB"]/div/span')
+
+    try:
+        store_info = title.find_elements(By.XPATH,'//div[@class="YouOG DZucB"]/div/span')
+
+        if(len(store_info) > 2):
+            # 새로 오픈
+            new_open = title.find_element(By.XPATH,'.//div[1]/div[1]/span[3]').text
+
+        else:
+            new_open = ' '
+    except:
+        new_open = '정보없음'
 
 
-    # 가게 이름
-    store_name = title.find_element(By.XPATH,'.//div[1]/div[1]/span[1]').text
-
+    try:
+        # 가게 이름
+        store_name = title.find_element(By.XPATH,'.//div[1]/div[1]/span[1]').text
+    except:
+        store_name = '정보없음'
     # 카테고리
-    category = title.find_element(By.XPATH,'.//div[1]/div[1]/span[2]').text
+    try:
+        category = title.find_element(By.XPATH,'.//div[1]/div[1]/span[2]').text
+    except:
+        category = '정보없음'
 
-    if(len(store_info) > 2):
-        # 새로 오픈
-        new_open = title.find_element(By.XPATH,'.//div[1]/div[1]/span[3]').text
-
-    new_open = ' '
     ###############################
+    try:
+        review = title.find_elements(By.XPATH,'.//div[2]/span')
+        _index = 1
 
-    review = title.find_elements(By.XPATH,'.//div[2]/span')
+        # 리뷰 ROW의 갯수가 3개 이상일 경우 [별점, 방문자 리뷰, 블로그 리뷰]
+        if len(review) > 2:
+            rating_xpath = f'.//div[2]/span[{_index}]'
+            rating_element = title.find_element(By.XPATH, rating_xpath)
+            rating = rating_element.text.replace("\n", " ")
+
+            _index += 1
+        else:
+            rating = '정보없음' #별점 정보가 없을 경우
+    except:
+        review = '정보없음'
 
     # 인덱스 변수 값
-    _index = 1
-
-    # 리뷰 ROW의 갯수가 3개 이상일 경우 [별점, 방문자 리뷰, 블로그 리뷰]
-    if len(review) > 2:
-        rating_xpath = f'.//div[2]/span[{_index}]'
-        rating_element = title.find_element(By.XPATH, rating_xpath)
-        rating = rating_element.text.replace("\n", " ")
-
-        _index += 1
-    else:
-        rating = '정보없음' #별점 정보가 없을 경우
     try:
         # 방문자 리뷰 수수
         visited_review = title.find_element(By.XPATH,f'.//div[2]/span[{_index}]/a').text
@@ -50,13 +63,21 @@ def home_crawling(driver, business_hours):
         # 블로그 리뷰 수수
         blog_review = title.find_element(By.XPATH,f'.//div[2]/span[{_index}]/a').text
     except:
-        print('------------ 리뷰 부분 오류 ------------')
+        print('------------ 리뷰 수 부분 오류 ------------')
+        visited_review = '정보없음'
+        blog_review = '정보없음'
 
     # 가게 id
-    store_id = driver.find_element(By.XPATH,'//div[@class="flicking-camera"]/a').get_attribute('href').split('/')[4]
+    try:
+        store_id = driver.find_element(By.XPATH,'//div[@class="flicking-camera"]/a').get_attribute('href').split('/')[4]
+    except:
+        store_id = '정보없음'
 
+    try:
     # 가게 주소
-    address = driver.find_element(By.XPATH,'//span[@class="LDgIH"]').text
+        address = driver.find_element(By.XPATH,'//span[@class="LDgIH"]').text
+    except:
+        address = '정보없음'
 
     # 오시는 길
     directions = driver.find_elements(By.CLASS_NAME,'xHaT3')
@@ -87,11 +108,15 @@ def home_crawling(driver, business_hours):
                 actions.move_to_element(span).perform()  # 요소로 스크롤 이동
                 business_hours.append(span)
         business_hours_texts = [i.text for i in business_hours]
-        
+    except :
+        print('------------ 영업시간 부분 오류 ------------')   
+        business_hours_texts = ['정보없음']
         # 가게 전화번호
+
+    try:
         phone_num = driver.find_element(By.XPATH,'//span[@class="xlx7Q"]').text
     except:
-        print(print('------------ 영업시간 / 전화번호 부분 오류 ------------'))
+        print(print('------------ 전화번호 부분 오류 ------------'))
         phone_num = ''
     
     return store_name, category, new_open, rating, visited_review, directions_text, store_id, address,blog_review , phone_num, business_hours_texts

@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 
 
 def review_like_this_part_crawling(driver):
+    sleep(1)
     navbar_review = driver.find_elements(By.XPATH,'//*[@id="app-root"]/div/div/div/div[4]/div/div/div/div')[0].find_elements(By.CLASS_NAME, 'veBoZ')
     for index, e in enumerate(navbar_review, start=1):
         if e.text == '리뷰':
