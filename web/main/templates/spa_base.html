@@ -89,22 +89,21 @@
             document.head.appendChild(mapScript);
         }
 
-        // SPA 콘텐츠 로드 함수
         function loadContent(url) {
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    document.getElementById('content1').innerHTML = html;
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(html => {
+                document.getElementById('content1').innerHTML = html;
 
-                    // 콘텐츠 로드 후 이벤트 트리거
-                    document.dispatchEvent(new Event("spaContentLoaded"));
-                })
-                .catch(error => console.error('Error loading content:', error));
+                // 콘텐츠 로드 후 이벤트 트리거
+                document.dispatchEvent(new Event("spaContentLoaded"));
+            })
+            .catch(error => console.error('Error loading content:', error));
         }
 
         // 팝업 열기/닫기
@@ -120,17 +119,18 @@
         document.addEventListener("DOMContentLoaded", function () {
             // 지도 초기화
             initializeMap();
-
-            // 기본 콘텐츠 로드
-            loadContent('/app/planner/');
-
+             
+            // 기본적으로 planner 페이지를 로드
+            const initialPage = window.location.pathname === '/app/' ? '/app/planner/' : window.location.pathname;
+            loadContent(initialPage);
+            
             // 네비게이션 버튼 이벤트 처리
             document.querySelectorAll('.nav-btn').forEach(button => {
                 button.addEventListener('click', function (event) {
                     event.preventDefault();
                     const url = this.getAttribute('data-url');
                     history.pushState(null, '', url); // URL 변경
-                    loadContent(url); // 콘텐츠 로드
+                    loadContent(url); // 동적 콘텐츠 로드
                 });
             });
 
@@ -139,6 +139,7 @@
                 window.location.href = '/'; // 메인 페이지로 이동
             });
 
+            // 팝업 창 기능
             document.getElementById('cancel-delete').addEventListener('click', closePopup);
             document.getElementById('confirm-delete').addEventListener('click', function () {
                 alert('Account deleted!');
@@ -149,6 +150,15 @@
             window.addEventListener('popstate', function () {
                 loadContent(window.location.pathname);
             });
+
+            // localStorage에서 메시지를 읽어와 채팅창에 표시
+            const savedMessage = localStorage.getItem('chatMessage');
+            if (savedMessage) {
+                localStorage.removeItem('chatMessage'); // 메시지를 사용 후 제거
+                setTimeout(() => {
+                    document.dispatchEvent(new CustomEvent("newChatMessage", { detail: savedMessage }));
+                }, 100);
+            }
         });
 
         // SPA 콘텐츠 로드 후 이벤트 연결
@@ -159,6 +169,14 @@
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', showPopup);
             }
+
+            // newChatMessage 이벤트 처리
+            document.addEventListener("newChatMessage", function (e) {
+                const newMessage = document.createElement('div');
+                newMessage.className = 'bubble user'; // 사용자 메시지 스타일
+                newMessage.innerHTML = e.detail.replace(/\n/g, "<br>"); // 줄 바꿈 처리
+                chatMessages.prepend(newMessage);
+            });
 
             if (!inputBar || !chatMessages) return; // 필요한 요소가 없으면 종료
 

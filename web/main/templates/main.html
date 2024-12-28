@@ -3,17 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Main Page</title>
+    <title>Styled Layout</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
 </head>
 <body>
-    <div class="main-container" style="display: flex; justify-content: center; align-items: center; height: 100vh; text-align: center;">
-        <div>
-            <h1>Welcome to the Main Page</h1>
-            <p>Click the button below to start exploring.</p>
-            <a href="/app/" style="text-decoration: none; padding: 10px 20px; background-color: #4caf50; color: white; border-radius: 5px;">Enter</a>
+    <!-- 프로필 섹션 -->
+    <div class="profile-section">
+        <div class="profile-badge">5</div>
+        <span>My Profile</span>
+    </div>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container">
+        <!-- 타이틀 -->
+        <div class="title">Title</div>
+
+        <!-- 입력 섹션 -->
+        <div class="input-wrapper">
+            <!-- 텍스트 입력란 -->
+            <textarea 
+                class="input-box" 
+                placeholder="일정을 만들거나 장소를 검색해 보세요"
+                rows="2"
+            ></textarea>
+            <!-- 검은색 버튼 -->
+            <button class="send-button" onclick="goToEnterPage()">🔍</button>
         </div>
     </div>
+
+    <script>
+        function goToEnterPage() {
+            const inputBox = document.querySelector('.input-box');
+            const userInput = inputBox.value.trim();
+
+            if (userInput === "") {
+                alert("내용을 입력해주세요!");
+                return;
+            }
+
+            // 입력 데이터를 localStorage에 저장
+            localStorage.setItem('chatMessage', userInput);
+
+            // SPA 페이지로 이동
+            window.location.href = "/app/";
+        }
+
+        // 입력창 자동 높이 조정 및 버튼 위치 유지
+        document.querySelector('.input-box').addEventListener('input', function () {
+            this.style.height = "auto";
+            const scrollHeight = this.scrollHeight;
+            const maxHeight = 120; // 6줄 높이 제한
+            this.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+
+            if (scrollHeight > maxHeight) {
+                this.style.overflowY = "scroll";
+            } else {
+                this.style.overflowY = "hidden";
+            }
+        });
+
+        // Enter 및 Shift+Enter 처리
+        document.querySelector('.input-box').addEventListener('keydown', function (e) {
+            if (e.key === "Enter" && e.shiftKey) {
+                e.preventDefault();
+                const cursorPosition = this.selectionStart;
+                this.value = this.value.slice(0, cursorPosition) + "\n" + this.value.slice(cursorPosition);
+            } else if (e.key === "Enter") {
+                e.preventDefault();
+                document.querySelector('.send-button').click();
+            }
+        });
+    </script>
 </body>
 </html>

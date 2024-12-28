@@ -1,0 +1,106 @@
+/* 전체 화면 배경 설정 */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #A8E6CF; /* 연한 초록색 배경 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* 컨테이너 스타일 */
+.container {
+    text-align: center;
+    max-width: 800px;
+}
+
+/* 타이틀 스타일 */
+.title {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 20px;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 600px; /* 채팅창 너비 설정 */
+    margin: 0 auto;
+}
+
+.input-box {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 15px;
+    font-size: 1rem;
+    resize: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.input-box:focus {
+    outline: none;
+}
+
+.send-button {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: black;
+    color: white;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.send-button:hover {
+    background-color: #444;
+}
+
+/* 프로필 섹션 스타일 */
+.profile-section {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-section span {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #000;
+}
+
+.profile-badge {
+    background-color: #FFA726; /* 주황색 배경 */
+    color: #fff;
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chat-bubble {
+    background-color: #f1f1f1;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px 0;
+    max-width: 80%;
+    word-wrap: break-word;
+    text-align: left;
+}
