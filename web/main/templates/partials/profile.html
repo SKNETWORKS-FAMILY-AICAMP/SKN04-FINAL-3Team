@@ -1,20 +1,49 @@
 <head>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
 </head>
-<div class="container" style="display: flex; height: 100vh; overflow: hidden;">
-    <!-- 채팅창 -->
-    <div class="content1">
-        <!-- <div id="chat-header">
-            Chat
+<div class="container">
+    <div class="panel" id="profilePanel">
+        <h2>Profile</h2>
+        <!-- 테마 선택 -->
+        <div class="section">
+            <div class="section-child">
+                <!-- 프로필 이미지 -->
+                <div class="profile-image">
+                    <!-- 실제 이미지가 있다면 src 경로 지정 -->
+                    <img src="{% static 'images/profile.png' %}" alt="Profile Image">
+                </div>
+                <!-- 닉네임 -->
+                <div class="nickname-container">
+                    <div class="nickname-wrapper">
+                        <span id="nickname-text" class="nickname">Nickname</span>
+                        <input id="nickname-input" class="nickname hidden" type="text" value="nickname" maxlength="10">
+                    </div>
+                    <button id="edit-btn" class="edit-btn">
+                        <img src="{% static 'images/edit.png' %}" alt="Edit" width="16px" height="16px">
+                    </button>
+                </div>
+            </div>            
         </div>
-        <div id="chat-messages">
-        </div>
-        <div class="input-container">
-            <textarea id="input_bar" class="input-bar" autocomplete="off" maxlength="255" rows="6" placeholder="Type your message..."></textarea>
-        </div> -->
-    </div>
 
-    <!-- 지도 -->
-    <div id="map"></div>
+        <div class="section">   
+            <label>Birthday</label>
+            <p>1998.11.07</p>
+        </div>
+        <div class="section">
+            <label>Nationality</label>
+            <p>Korea</p>
+        </div>
+        <div class="section">
+            <label>Sex</label>
+            <p>Man</p>
+        </div>
+        
+        <div class="section" style="height: 450px;">
+        </div>
+
+        <div class="section">
+            <span class="logout-btn" onclick="onLogout()">Logout</span>
+        </div>
+    </div>
 </div>
