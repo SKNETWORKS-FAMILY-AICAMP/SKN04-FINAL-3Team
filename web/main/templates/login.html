@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8" />
+    <title>Login</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body>
+    <div class="login-container">
+        <h2>로그인</h2>
+
+        <form action="{% url 'login_process' %}" method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="username">아이디</label>
+                <input
+                  type="text"
+                  name="username"
+                  id="username"
+                  placeholder="아이디를 입력하세요"
+                  required
+                />
+            </div>
+            
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input
+                  type="password"
+                  name="password"
+                  id="password"
+                  placeholder="비밀번호를 입력하세요"
+                  required
+                />
+            </div>
+
+            <button type="submit" class="login-button">로그인</button>
+        </form>
+
+        <div class="oauth-section">
+            <p>또는</p>
+            <a href="/accounts/google/login/" class="google-login-btn">
+                <img src="{% static 'images/google_logo.png' %}" alt="Google Logo" />
+                <span>구글 계정으로 로그인</span>
+            </a>
+        </div>
+
+        {% if error %}
+          <p style="color:red;">{{ error }}</p>
+        {% endif %}
+    </div>
+</body>
+</html>

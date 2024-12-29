@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import render, redirect
 from dotenv import load_dotenv
 import os
 
@@ -14,17 +15,52 @@ def spa(request):
 def main(request):
     return render(request, 'main.html')  
 
+# (1) login_view: GET이면 login.html 렌더링
+def login_view(request):
+    if request.method == 'GET':
+        return render(request, 'login.html')
+    else:
+        # 혹시 POST로 왔다면 login_process로 넘긴다
+        return redirect('login_process')
+
+# (2) login_process: 아이디/비번 둘 다 있으면 /app/profile/로 리다이렉트
+def login_process(request):
+    if request.method == 'POST':
+        username = request.POST.get('username','').strip()
+        password = request.POST.get('password','').strip()
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)  # 세션에 로그인 상태 기록
+            return redirect('/app/profile/')
+        else:
+            # 로그인 실패 -> 다시 login.html
+            return render(request, 'login.html', {
+                'error': '아이디나 비밀번호가 올바르지 않습니다.'
+            })
+    else:
+        return redirect('login')
+
+def logout_view(request):
+    logout(request)  # 세션에서 사용자 정보 삭제
+    return redirect('login')  # 로그아웃 후 로그인 페이지로 리다이렉트
+
 def planner(request):
     return render(request, 'partials/planner.html')  
-
+    
 def profile(request):
-    return render(request, 'partials/profile.html')  
+    if not request.user.is_authenticated:
+        return render(request, 'login.html') 
+    return render(request, 'partials/profile.html')
 
 def settings(request):
     return render(request, 'partials/settings.html')  
 
-def myplace(request):
-    return render(request, 'partials/myplace.html')  
+def favorites_places(request):
+    return render(request, 'partials/favorites_places.html')
+
+def favorites_schedules(request):
+    return render(request, 'partials/favorites_schedules.html') 
 
 def chatting(request):
     return render(request, 'partials/chatting.html')  
