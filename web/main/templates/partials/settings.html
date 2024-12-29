@@ -1,6 +1,6 @@
 <head>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/settings.css' %}">
 </head>
 <script>
     // DOMContentLoaded 내부에서 함수와 이벤트 리스너를 설정
@@ -27,8 +27,8 @@
         darkBox.addEventListener('click', () => selectTheme('dark'));
     });
 </script>
-<div class="container" style="display: flex; height: 100vh; overflow: hidden;">
-    <div class="settings-panel">
+<div class="container">
+    <div class="panel">
         <h2>Settings</h2>
         <!-- 테마 선택 -->
         <div class="section">
