@@ -1,20 +1,28 @@
+<!-- chatting.html -->
 <head>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>Chattings</title>
+    <link rel="stylesheet" href="{% static 'css/chatting.css' %}">
 </head>
-<div class="container" style="display: flex; height: 100vh; overflow: hidden;">
-    <!-- 채팅창 -->
-    <div class="content1">
-        <!-- <div id="chat-header">
-            Chat
-        </div>
-        <div id="chat-messages">
-        </div>
-        <div class="input-container">
-            <textarea id="input_bar" class="input-bar" autocomplete="off" maxlength="255" rows="6" placeholder="Type your message..."></textarea>
-        </div> -->
-    </div>
 
-    <!-- 지도 -->
-    <div id="map"></div>
+<div class="container" id="chattingPanel">
+    <div class="panel">
+        <h2>Chattings</h2>
+        <div class="top-menu"></div>
+
+        <div id="chattingsSection" style="display: block;">
+            <div class="chat-list">
+                <!-- data-chat-id 로 구분 -->
+                <div class="chat-item" data-chat-id="1">
+                    <img src="{% static 'images/chat.png' %}" alt="chat" width="50px" height="50px">&nbsp;1번 채팅
+                </div>
+                <div class="chat-item" data-chat-id="2">
+                    <img src="{% static 'images/chat.png' %}" alt="chat" width="50px" height="50px">&nbsp;2번 채팅
+                </div>
+                <div class="chat-item" data-chat-id="3">
+                    <img src="{% static 'images/chat.png' %}" alt="chat" width="50px" height="50px">&nbsp;3번 채팅
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
