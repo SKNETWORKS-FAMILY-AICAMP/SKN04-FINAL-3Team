@@ -44,7 +44,7 @@
     <div class="sidebar">
         <button id="homeBtn"><span class="icon">&#127968;</span> LOGO</button>
         <button id="plannerBtn"><span class="icon">&#128747;</span> Planner</button>
-        <button id="myplaceBtn"><span class="icon">&#127775;</span> My</button>
+        <button id="favoritesBtn"><span class="icon">&#127775;</span> Favorites</button>
         <button id="settingsBtn"><span class="icon">&#128303;</span> Settings</button>
         <button id="profileBtn"><span class="icon">&#128589;</span> Profile</button>
     </div>
@@ -125,8 +125,8 @@
             $(this).addClass('active');
         });
 
-        $('#myplaceBtn').click(function() {
-            loadContent('/myplace/');
+        $('#favoritesBtn').click(function() {
+            loadContent('/favorites/');
             $('.sidebar button').removeClass('active');
             $(this).addClass('active');
         });

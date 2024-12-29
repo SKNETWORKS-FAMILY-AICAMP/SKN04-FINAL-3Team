@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Styled Layout</title>
-    {% load static %}
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
 </head>
 <body>
     <!-- 프로필 섹션 -->
+    <!-- 클릭 시 이동: id="profileLink" -->
     <div class="profile-section">
-        <div class="profile-badge">5</div>
-        <span>My Profile</span>
+        <span id="profileLink">My Profile</span>
     </div>
 
     <!-- 메인 컨테이너 -->
@@ -32,7 +32,28 @@
         </div>
     </div>
 
+    <!-- (A) Django에서 로그인 여부를 JS 변수로 넘김 -->
     <script>
+        // user.is_authenticated는 True 또는 False를 파이썬 부울형으로 가지므로,
+        // 템플릿 필터 yesno:"true,false"를 사용해 JS에서 쓸 수 있도록 변환
+        const isLoggedIn = {{ user.is_authenticated|yesno:"true,false" }};
+
+        // (B) "My Profile" 클릭 시 처리
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileLink = document.getElementById('profileLink');
+            if (profileLink) {
+                profileLink.addEventListener('click', function() {
+                    if (isLoggedIn) {
+                        // 로그인이 되어 있다면 프로필 페이지로 이동
+                        window.location.href = "/app/profile/";
+                    } else {
+                        // 안 되어 있다면 로그인 페이지로 이동
+                        window.location.href = "/login/";
+                    }
+                });
+            }
+        });
+
         function goToEnterPage() {
             const inputBox = document.querySelector('.input-box');
             const userInput = inputBox.value.trim();
