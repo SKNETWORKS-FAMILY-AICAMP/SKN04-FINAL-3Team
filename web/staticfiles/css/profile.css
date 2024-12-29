@@ -1,0 +1,121 @@
+.container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* 제목 스타일 */
+.panel {
+    width: 400px; /* 고정된 너비 */
+    height: 100%; /* 화면 전체 높이 */
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #ddd;
+    background-color: #ffffff;
+}
+
+/* 제목 스타일 */
+.panel h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding-left: 10px;
+    color: #333;
+}
+
+/* 프로필 이미지 영역 */
+.profile-image {
+    display: flex;
+    justify-content: center;  /* 가로 가운데 정렬 */
+    align-items: center;      /* 세로 가운데 정렬 (필요 시) */
+    margin-top: 30px;         /* 위쪽 여백 */
+}
+
+/* 실제 이미지 스타일 */
+.profile-image img {
+    width: 80px;              /* 크기를 살짝 키운 예시 */
+    height: 80px;
+    border-radius: 50%;       /* 동그랗게 표시 (필요하면 유지) */
+}
+
+.nickname-container {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 닉네임 텍스트와 버튼을 중앙 배치 */
+    width: 100%; /* 전체 너비 유지 */
+    margin-top: 10px; /* 위쪽 간격 */
+}
+
+.nickname-wrapper {
+    text-align: center; /* 닉네임 텍스트 중앙 정렬 */
+}
+
+.nickname {
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1.5; /* 닉네임 텍스트 세로 정렬 */
+    max
+}
+
+/* 라벨 + 텍스트 형태 (Theme, Language처럼) */
+.section {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 25px;
+}
+
+.section label {
+    font-size: 1rem;          /* 볼드 라벨 (Theme, Language 참고) */
+    font-weight: bold;
+    color: #555;
+    padding: 10px;
+    margin-bottom: 5px;       /* 라벨과 텍스트 사이 간격 */
+}
+
+.section p {
+    font-size: 0.9rem;        /* 실제 텍스트는 라벨보다 조금 작게 */
+    color: #333;
+    padding-left: 15px;
+    font-size: 15px;
+}
+
+.section-child {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    margin-bottom: 25px;
+}
+
+/* 로그아웃 버튼 (작고 빨간 글씨, 가운데 정렬) */
+.logout-container {
+    display: flex;
+    justify-content: center;  /* 가로 중앙정렬 */
+    margin-top: auto;         /* 밑으로 밀기 */
+    margin-bottom: 30px;      /* 아래쪽 여백 */
+}
+
+/* 삭제 버튼 */
+.logout-btn {
+    color: red;
+    cursor: pointer;
+    font-size: 1rem;
+    text-decoration: underline;
+    text-align: center;
+}
+
+/* hover 시 살짝 다른 효과를 주고 싶다면 */
+.logout-btn:hover {
+    color: #d32f2f;
+}
+
+.hidden {
+    display: none;
+}
+
+.edit-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 4px; /* 닉네임 텍스트와의 간격 최소화 */
+    padding: 0; /* 불필요한 여백 제거 */
+    align-self: center; /* 세로 중앙 정렬 */
+}

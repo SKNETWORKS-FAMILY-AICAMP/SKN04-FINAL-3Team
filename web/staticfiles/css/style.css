@@ -51,16 +51,18 @@ body {
     background-color: #f4f4f4;
 }
 
-/* 말풍선 크기를 내용에 맞게 조정 */
+/* 채팅 말풍선 */
 .bubble {
+    width: fit-content;
     display: inline-block;
-    max-width: calc(100% - 20px); /* 부모 요소의 너비를 기준으로 조정 */
-    background-color: #e6f4ea;
-    border: 2px solid #4caf50;
+    background-color: #4caf50; /* 초록색 배경 */
+    color: white;
     border-radius: 10px;
     padding: 10px;
     margin: 5px 0;
-    word-wrap: break-word; /* 긴 단어를 다음 줄로 */
+    word-wrap: break-word; /* 긴 단어가 줄 바꿈되도록 */
+    max-width: 80%; /* 최대 너비 제한 */
+    white-space: pre-wrap; /* 줄 바꿈을 유지 */
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -71,15 +73,19 @@ body {
 
 .container {
     display: flex;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .sidebar {
-    width: 67px;
+    width: 100px; 
+    border-right: 1px solid #ddd;
     background: #f4f4f4;
     display: flex;
     flex-direction: column;
     padding: 10px 0;
-    border-right: 2px solid #ddd;
+    /* width: 67px; */
+    /* border-right: 2px solid #ddd; */
 }
 
 .sidebar button {
@@ -115,14 +121,24 @@ body {
     border-left: 1px solid #ddd;
 }
 
-/* 채팅 영역 컨테이너 */
 .content1 {
-    width: 400px; /* 고정된 너비 */
-    height: 100%; /* 화면 전체 높이 */
+    width: 400px;
+    height: 100%;
     display: flex;
     flex-direction: column;
     border-right: 1px solid #ddd;
     background-color: #ffffff;
+}
+
+.nav-btn.active {
+    background-color: #ccc;  /* 더 짙은 회색 */
+    cursor: default;         /* 일반 화살표로 */
+    pointer-events: none;    /* 클릭 불가 */
+    opacity: 0.8;            /* 살짝 투명도 줄여도 됨 */
+}
+
+.nav-btn br {
+    font-size: 24px; /* 아이콘 크기만 조정 */
 }
 
 /* 채팅 헤더 */
