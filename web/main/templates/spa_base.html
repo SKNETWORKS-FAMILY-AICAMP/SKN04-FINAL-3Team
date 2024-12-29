@@ -1,3 +1,4 @@
+<!-- spa_base.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,48 +7,39 @@
     <title>SPA Example</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'css/settings.css' %}">
-    <style>
-        .nav-btn br {
-            font-size: 24px; /* 아이콘 크기만 조정 */
-        }
-    </style>
 </head>
 <body>
-    <div class="container" style="display: flex; height: 100vh; overflow: hidden;">
+    <div class="container">
         <div class="sidebar" id="sidebar" style="width: 100px; border-right: 1px solid #ddd;">
-            <button class="nav-btn" id="home-btn">Home
-                <span>⚙️</span>
+            <button class="nav-btn" id="home-btn">
+                <img src="{% static 'images/nav/nav_home.png' %}" style="width: 30px; height: 30px;"></img>
+                <br>Home
             </button>
-            <button class="nav-btn" data-url="/app/planner/">Planner
-                <span>🗺️</span>
+            <button class="nav-btn" data-url="/app/planner/">
+                <img src="{% static 'images/nav/nav_planner.png' %}" style="width: 30px; height: 30px;"></img>
+                <br>Planner
             </button>
-            <button class="nav-btn" data-url="/app/myplace/">My Place
-                <span>⭐</span>
+            <button class="nav-btn" data-url="/app/chatting/">
+                <img src="{% static 'images/nav/nav_chattings.png' %}" style="width: 30px; height: 30px;"></img>
+                <br>Chatting
             </button>
-            <button class="nav-btn" data-url="/app/chatting/">Chatting
-                <span>💬</span>
+            <button class="nav-btn" data-url="/app/favorites/">
+                <img src="{% static 'images/nav/nav_favorites.png' %}" style="width: 30px; height: 30px;"></img>
+                <br>Favorites
             </button>
-            <button class="nav-btn" data-url="/app/settings/">Settings
-                <span>⚙️</span>
+            <button class="nav-btn" data-url="/app/settings/">
+                <img src="{% static 'images/nav/nav_settings.png' %}" style="width: 30px; height: 30px;"></img>
+                <br>Settings
             </button>
-            <button class="nav-btn" data-url="/app/profile/">Profile
-                <span>⚙️</span>
+            <button class="nav-btn" data-url="/app/profile/">
+                <img src="{% static 'images/nav/nav_profile.png' %}" style="width: 30px; height: 30px;"></img>
+                <br>Profile
             </button>
         </div>
 
         <!-- 동적 콘텐츠 영역 -->
         <div id="content1">
-            <!-- Planner 콘텐츠가 기본으로 로드됩니다 -->
-            <div id="chat-header">
-                Chat
-            </div>
-            <div id="chat-messages">
-                <!-- 메시지가 여기에 추가됩니다 -->
-            </div>
-            <div class="input-container">
-                <textarea id="input_bar" class="input-bar" autocomplete="off" maxlength="255" rows="1" placeholder="Type your message..."></textarea>
-            </div>
+            <!-- AJAX로 불러온 partial HTML이 여기 들어감 -->
         </div>
 
         <!-- 지도 영역 -->
@@ -69,8 +61,10 @@
         const ncpClientId = "{{ ncp_client_id|default:'' }}";
         let isMapInitialized = false;
         let map = null;
-        console.log("ncpClientId:" + ncpClientId);
-        // 지도 초기화 함수
+
+        // ---------------------------
+        // (1) 지도 초기화 함수
+        // ---------------------------
         function initializeMap() {
             if (isMapInitialized) return;
 
@@ -89,54 +83,92 @@
             document.head.appendChild(mapScript);
         }
 
-        function loadContent(url) {
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+        // ---------------------------
+        // (2) /app/* -> /app/partials/* 치환 함수
+        // ---------------------------
+        function toPartialUrl(spaPath) {
+            // 예: /app/planner/ -> /app/partials/planner/
+            return spaPath.replace(/^\/app/, '/app/partials');
+        }
+
+        // 현재 활성화된 nav-btn 표시 함수
+        function highlightActiveLink(spaPath) {
+            // 모든 .nav-btn 순회
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const url = btn.getAttribute('data-url');
+                
+                // Home 버튼(id="home-btn")은 data-url이 없으므로 별도 처리 가능.
+                // 여기서는 url가 null이면 건너뛴다고 가정.
+                if (!url) return; 
+
+                // 만약 url == 현재 spaPath라면 활성화
+                if (url === spaPath) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
                 }
-                return response.text();
-            })
-            .then(html => {
-                document.getElementById('content1').innerHTML = html;
-
-                // 콘텐츠 로드 후 이벤트 트리거
-                document.dispatchEvent(new Event("spaContentLoaded"));
-            })
-            .catch(error => console.error('Error loading content:', error));
+            });
         }
 
-        // 팝업 열기/닫기
-        function showPopup() {
-            document.getElementById('popup').classList.remove('hidden');
+        // ---------------------------
+        // (3) 부분 템플릿 로딩 함수
+        // ---------------------------
+        function loadContent(spaPath) {
+            highlightActiveLink(spaPath);
+            
+            const partialUrl = toPartialUrl(spaPath);
+            fetch(partialUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('content1').innerHTML = html;
+                    // 콘텐츠 로드 후 이벤트 트리거
+                    document.dispatchEvent(new Event("spaContentLoaded"));
+                })
+                .catch(error => console.error('Error loading content:', error));
         }
 
-        function closePopup() {
-            document.getElementById('popup').classList.add('hidden');
-        }
-
-        // SPA 초기화
+        // ---------------------------
+        // (4) 페이지 로드 시 동작
+        // ---------------------------
         document.addEventListener("DOMContentLoaded", function () {
             // 지도 초기화
             initializeMap();
-             
-            // 기본적으로 planner 페이지를 로드
-            const initialPage = window.location.pathname === '/app/' ? '/app/planner/' : window.location.pathname;
-            loadContent(initialPage);
-            
-            // 네비게이션 버튼 이벤트 처리
+
+            // 현재 주소가 /app/, /app/profile/, /app/... 일 수 있으므로, 그에 맞춰 partial 불러오기
+            // 만약 /app/ 이라면 /app/planner/ 로 디폴트 이동할 수도 있음
+            let currentPath = window.location.pathname;
+
+            // /app/ 만 입력되었다면 디폴트: /app/planner/ 로 가정
+            if (currentPath === '/app/') {
+                currentPath = '/app/planner/';
+                history.replaceState(null, '', currentPath);
+            }
+            loadContent(currentPath);
+
+            // -------------------------
+            // 네비게이션 버튼(사이드바) 클릭 처리
+            // -------------------------
             document.querySelectorAll('.nav-btn').forEach(button => {
                 button.addEventListener('click', function (event) {
                     event.preventDefault();
-                    const url = this.getAttribute('data-url');
-                    history.pushState(null, '', url); // URL 변경
-                    loadContent(url); // 동적 콘텐츠 로드
+                    const spaPath = this.getAttribute('data-url'); // 예: "/app/planner/"
+
+                    // 히스토리 변경(주소창만 변경)
+                    history.pushState(null, '', spaPath);
+
+                    // 실제 partial 로드
+                    loadContent(spaPath);
                 });
             });
 
-            // Home 버튼 처리
+            // Home 버튼 처리 (메인 페이지로 이동)
             document.getElementById('home-btn').addEventListener('click', function () {
-                window.location.href = '/'; // 메인 페이지로 이동
+                window.location.href = '/';
             });
 
             // 팝업 창 기능
@@ -148,24 +180,397 @@
 
             // 뒤로가기/앞으로가기 처리
             window.addEventListener('popstate', function () {
+                // 브라우저 주소창이 바뀌었을 때 해당 경로 불러오기
                 loadContent(window.location.pathname);
             });
 
             // localStorage에서 메시지를 읽어와 채팅창에 표시
             const savedMessage = localStorage.getItem('chatMessage');
             if (savedMessage) {
-                localStorage.removeItem('chatMessage'); // 메시지를 사용 후 제거
+                localStorage.removeItem('chatMessage');
                 setTimeout(() => {
-                    document.dispatchEvent(new CustomEvent("newChatMessage", { detail: savedMessage }));
+                    document.dispatchEvent(
+                        new CustomEvent("newChatMessage", { detail: savedMessage })
+                    );
                 }, 100);
             }
         });
 
-        // SPA 콘텐츠 로드 후 이벤트 연결
+        // 팝업 열기/닫기
+        function showPopup() {
+            document.getElementById('popup').classList.remove('hidden');
+        }
+        function closePopup() {
+            document.getElementById('popup').classList.add('hidden');
+        }
+
+        // ---------------------------
+        // (5) spaContentLoaded 이후 로직
+        // ---------------------------
+        
         document.addEventListener("spaContentLoaded", function () {
-            const inputBar = document.getElementById("input_bar");
+            const chattingPanel = document.getElementById("chattingPanel");
+            if (chattingPanel) {
+                console.log("[Chatting] panel detected!");
+
+                // 모든 chat-item 에 이벤트 등록
+                document.querySelectorAll(".chat-item").forEach(item => {
+                    item.addEventListener("click", function() {
+                        // data-chat-id 읽기
+                        const chatId = this.getAttribute("data-chat-id");
+                        
+                        // localStorage 에 저장 (또는 sessionStorage)
+                        localStorage.setItem("selectedChatId", chatId);
+
+                        // "/app/planner/" 로 SPA 이동
+                        history.pushState(null, '', '/app/planner/');
+                        loadContent('/app/planner/'); 
+                    });
+                });
+            }
+
+            const plannerPanel = document.getElementById("plannerPanel");
+            if (plannerPanel) {
+                console.log("[Planner] panel detected!");
+
+                // localStorage 에서 'selectedChatId' 꺼내기
+                const chatId = localStorage.getItem("selectedChatId");
+                if (chatId) {
+                    // 예: chatId에 따라 채팅 내용 표시
+                    const chatMessages = document.getElementById("chat-messages");
+                    if (chatMessages) {
+                        // 간단하게 "N번 채팅 내역" 메세지를 추가해보자
+                        const newMsg = document.createElement("div");
+                        newMsg.className = "bubble user"; // 임의 스타일
+                        newMsg.style.color = "blue";      // 예시
+                        newMsg.innerHTML = `${chatId}번 채팅 내역 로드 완료!`;
+
+                        chatMessages.appendChild(newMsg);
+
+                        // 필요하다면 localStorage.removeItem("selectedChatId"); 
+                        // (한번만 표시하고 싶다면 제거)
+                    }
+                }
+            }
+
+            const profilePanel = document.getElementById("profilePanel");
+            if (profilePanel) {
+                console.log("[profile] panel detected!");
+
+                // 1) 닉네임 수정
+                const nicknameText  = document.getElementById('nickname-text');
+                const nicknameInput = document.getElementById('nickname-input');
+                const editButton    = document.getElementById('edit-btn');
+                const logoutBtn     = document.getElementById("logout-btn");
+
+                let oldNickname = nicknameText ? nicknameText.textContent : "";
+
+                let escNote = document.createElement("div");
+                escNote.style.color = "#999";      // 예시 스타일
+                escNote.style.fontSize = "0.9rem"; // 예시
+                escNote.textContent = "(ENTER: edit / ESC: cancel)";
+
+                if (editButton && nicknameText && nicknameInput) {
+                    editButton.addEventListener("click", function() {
+                        // 연필 버튼 클릭 시
+                        oldNickname = nicknameText.textContent; // 현재 닉네임 저장
+                        nicknameText.classList.add("hidden");   // 숨김
+                        nicknameInput.classList.remove("hidden");
+                        nicknameInput.value = oldNickname;      // 입력창 초기값
+                        nicknameInput.focus();
+
+                        const wrapper = document.querySelector(".nickname-wrapper");
+                        if (wrapper) {
+                            wrapper.appendChild(escNote);
+                        }
+                    });
+
+                    // (1) Enter -> 저장
+                    nicknameInput.addEventListener("keydown", function(e) {
+                        if (e.key === "Enter") {
+                            const newNickname = nicknameInput.value.trim();
+                            if (newNickname) {
+                                nicknameText.textContent = newNickname;
+                            }
+                            nicknameText.classList.remove("hidden");
+                            nicknameInput.classList.add("hidden");
+
+                            // 안내 문구 제거
+                            removeEscNote();
+                        }
+                        // (2) ESC -> 취소 (원래 닉네임 복원)
+                        else if (e.key === "Escape") {
+                            nicknameInput.value = oldNickname;
+                            nicknameText.classList.remove("hidden");
+                            nicknameInput.classList.add("hidden");
+
+                            // 안내 문구 제거
+                            removeEscNote();
+                        }
+                    });
+                }
+
+                // (4) 안내 문구 제거 함수
+                function removeEscNote() {
+                    if (escNote && escNote.parentNode) {
+                        escNote.parentNode.removeChild(escNote);
+                    }
+                }
+
+                // (5) 로그아웃 버튼
+                if (logoutBtn) {
+                    logoutBtn.addEventListener("click", function() {
+                        alert("로그아웃 처리 로직을 구현해주세요.");
+                        window.location.href = "/";
+                    });
+                }
+
+                // 로그아웃 버튼 예시
+                if (logoutBtn) {
+                    logoutBtn.addEventListener("click", function() {
+                        alert("로그아웃 처리 로직을 구현해주세요.");
+                        window.location.href = "/";
+                    });
+                }
+            }
+
+            // [1] favorites_places.html 로드 여부 확인
+            const favoritesPanel = document.getElementById("favoritesPanel");
+            if (favoritesPanel) {
+                console.log("[Favorites] favoritesPanel detected!");
+
+                // --------------------------------
+                // (A) 탭 전환 로직
+                // --------------------------------
+                const placeBtn = document.getElementById('placeBtn');
+                const scheduleBtn = document.getElementById('scheduleBtn');
+                const placesSection = document.getElementById('placesSection');
+                const scheduleSection = document.getElementById('scheduleSection');
+                if (placeBtn && scheduleBtn && placesSection && scheduleSection) {
+                    placeBtn.addEventListener('click', function() {
+                        placesSection.style.display = 'block';
+                        scheduleSection.style.display = 'none';
+                    });
+                    scheduleBtn.addEventListener('click', function() {
+                        placesSection.style.display = 'none';
+                        scheduleSection.style.display = 'block';
+                    });
+                }
+
+                // --------------------------------
+                // (B) 중복 입력창 방지용 플래그
+                // --------------------------------
+                let isPlaceInputOpen = false;
+                let isScheduleInputOpen = false;
+
+                // --------------------------------
+                // (C) 장소 폴더 만들기 로직
+                // --------------------------------
+                const plusPlace = document.getElementById("plus-place");
+                if (plusPlace) {
+                    plusPlace.addEventListener('click', function() {
+
+                        // 이미 입력창이 열려있으면 무시
+                        if (isPlaceInputOpen) return;
+                        isPlaceInputOpen = true;
+
+                        const folderList = document.querySelector("#placesSection .folder-list");
+                        if (!folderList) return;
+
+                        // 새 입력창 아이템
+                        const inputItem = document.createElement("div");
+                        inputItem.className = "folder-item";
+
+                        const inputElem = document.createElement("input");
+                        inputElem.type = "text";
+                        inputElem.placeholder = "새 폴더 이름 입력 (Enter)";
+                        inputElem.style.width = "200px";
+
+                        inputItem.appendChild(inputElem);
+
+                        folderList.insertBefore(inputItem, plusPlace);
+
+                        // 스크롤/버튼활성화 상태 갱신
+                        updateFolderListUI(folderList, plusPlace);
+
+                        inputElem.focus();
+
+                        // Enter로 확정
+                        inputElem.addEventListener("keydown", function(e) {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                const textValue = inputElem.value.trim();
+
+                                isPlaceInputOpen = false;
+
+                                if (textValue === "") {
+                                    // 입력 없으면 취소
+                                    folderList.removeChild(inputItem);
+                                    updateFolderListUI(folderList, plusPlace);
+                                    return;
+                                }
+
+                                // 새 폴더 아이템 생성
+                                const newItem = document.createElement("div");
+                                newItem.className = "folder-item";
+                                newItem.innerHTML = `
+                                    <img src="{% static 'images/folder.png' %}" width="50px" height="50px">
+                                    &nbsp;&nbsp;${textValue}
+                                    <img 
+                                    src="{% static 'images/delete.png' %}" 
+                                    alt="delete" 
+                                    class="delete-icon"
+                                    >
+                                `;
+                                folderList.replaceChild(newItem, inputItem);
+
+                                // 삭제 이벤트 연결
+                                attachDeleteEvent(newItem, folderList, plusPlace);
+
+                                // 스크롤/버튼활성화 갱신
+                                updateFolderListUI(folderList, plusPlace);
+                            }
+                        });
+                    });
+                }
+
+                // --------------------------------
+                // (D) 일정 만들기 로직
+                // --------------------------------
+                const plusSchedule = document.getElementById("plus-schedule");
+                if (plusSchedule) {
+                    plusSchedule.addEventListener('click', function() {
+
+                        // 이미 입력창이 열려있으면 무시
+                        if (isScheduleInputOpen) return;
+                        isScheduleInputOpen = true;
+
+                        const scheduleList = document.querySelector("#scheduleSection .folder-list");
+                        if (!scheduleList) return;
+
+                        // 새 입력창 아이템
+                        const inputItem = document.createElement("div");
+                        inputItem.className = "folder-item";
+
+                        const inputElem = document.createElement("input");
+                        inputElem.type = "text";
+                        inputElem.placeholder = "새 일정 이름 입력 (Enter)";
+                        inputElem.style.width = "200px";
+
+                        inputItem.appendChild(inputElem);
+
+                        scheduleList.insertBefore(inputItem, plusSchedule);
+
+                        updateFolderListUI(scheduleList, plusSchedule);
+
+                        inputElem.focus();
+
+                        // Enter로 확정
+                        inputElem.addEventListener("keydown", function(e) {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                const textValue = inputElem.value.trim();
+
+                                isScheduleInputOpen = false;
+
+                                if (textValue === "") {
+                                    scheduleList.removeChild(inputItem);
+                                    updateFolderListUI(scheduleList, plusSchedule);
+                                    return;
+                                }
+
+                                // 새 일정 아이템 생성
+                                const newItem = document.createElement("div");
+                                newItem.className = "folder-item";
+                                newItem.innerHTML = `
+                                    <img src="{% static 'images/schedule.png' %}" width="50px" height="50px">
+                                    &nbsp;&nbsp;${textValue}
+                                    <img 
+                                    src="{% static 'images/delete.png' %}" 
+                                    alt="delete" 
+                                    class="delete-icon"
+                                    >
+                                `;
+                                scheduleList.replaceChild(newItem, inputItem);
+
+                                attachDeleteEvent(newItem, scheduleList, plusSchedule);
+
+                                updateFolderListUI(scheduleList, plusSchedule);
+                            }
+                        });
+                    });
+                }
+
+                // --------------------------------------------------------
+                // (E) 페이지 로드 시, 기존 아이템들에도 삭제 이벤트 연결
+                // --------------------------------------------------------
+                // 만약 "기존 아이템"에도 삭제 아이콘이 있다면 적용
+                const allFolderLists = favoritesPanel.querySelectorAll('.folder-list');
+                allFolderLists.forEach(listEl => {
+                    // 해당 섹션이 "장소" 섹션이면 plusPlace를, 
+                    // "일정" 섹션이면 plusSchedule을 연결해야 함
+                    let plusBtn = null;
+                    if (listEl.closest('#placesSection')) {
+                        plusBtn = plusPlace;
+                    } else if (listEl.closest('#scheduleSection')) {
+                        plusBtn = plusSchedule;
+                    }
+                    // 아이템 스캔
+                    const items = listEl.querySelectorAll('.folder-item');
+                    items.forEach(item => attachDeleteEvent(item, listEl, plusBtn));
+
+                    // 초기 스크롤/버튼상태 갱신
+                    updateFolderListUI(listEl, plusBtn);
+                });
+
+            } // if (favoritesPanel)
+
+            // -----------------------------------
+            // (F) 헬퍼 함수들
+            // -----------------------------------
+            function attachDeleteEvent(folderItem, parentList, plusButton) {
+                const deleteIcon = folderItem.querySelector('.delete-icon');
+                if (!deleteIcon) return;
+
+                deleteIcon.addEventListener('click', function() {
+                    parentList.removeChild(folderItem);
+                    updateFolderListUI(parentList, plusButton);
+                });
+            }
+
+            // (F-1) 아이템 개수에 따라 스크롤 및 버튼 활성/비활성
+            function updateFolderListUI(folderList, plusButton) {
+                if (!folderList) return;
+
+                const items = folderList.querySelectorAll('.folder-item');
+                const count = items.length;
+
+                // 스크롤
+                if (count >= 10) {
+                    folderList.classList.add('scrollable');
+                } else {
+                    folderList.classList.remove('scrollable');
+                }
+
+                // 버튼 비활성화: 10개 이상이면 disabled
+                if (plusButton) {
+                    if (count >= 11) {
+                        plusButton.style.pointerEvents = 'none';
+                        plusButton.style.opacity = '0.4';
+                        // 또는 plusButton.setAttribute('disabled', true);
+                    } else {
+                        plusButton.style.pointerEvents = 'auto';
+                        plusButton.style.opacity = '1';
+                        // plusButton.removeAttribute('disabled');
+                    }
+                }
+            }
+            
+            // 2) 채팅 입력창 로직 (이미 있는 부분)
+            const inputBar = document.getElementById("input_bar");            
             const chatMessages = document.getElementById("chat-messages");
             const deleteBtn = document.querySelector('.delete-btn');
+
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', showPopup);
             }
@@ -174,74 +579,67 @@
             document.addEventListener("newChatMessage", function (e) {
                 const newMessage = document.createElement('div');
                 newMessage.className = 'bubble user'; // 사용자 메시지 스타일
-                newMessage.innerHTML = e.detail.replace(/\n/g, "<br>"); // 줄 바꿈 처리
-                chatMessages.prepend(newMessage);
+                newMessage.innerHTML = e.detail.replace(/\n/g, "<br>");
+                if (chatMessages) chatMessages.prepend(newMessage);
             });
 
-            if (!inputBar || !chatMessages) return; // 필요한 요소가 없으면 종료
+            // 만약 inputBar, chatMessages가 없으면 채팅 로직 패스
+            if (!inputBar || !chatMessages) return;
 
-            // 메시지 전송 함수
             function sendMessage() {
                 const message = inputBar.value.trim();
                 if (message === "") return;
 
-                // 메시지를 채팅창에 추가
                 const newMessage = document.createElement("div");
-                newMessage.className = "bubble user"; // 사용자 메시지 스타일
-                newMessage.innerHTML = message.replace(/\n/g, "<br>"); // 줄 바꿈 처리
+                newMessage.className = "bubble user";
+                newMessage.innerHTML = message.replace(/\n/g, "<br>");
 
-                // 텍스트 크기에 맞게 조정
                 newMessage.style.display = "inline-block";
                 newMessage.style.maxWidth = "80%";
                 newMessage.style.wordWrap = "break-word";
-                newMessage.style.lineHeight = "1.4"; // 줄 간격 조정
+                newMessage.style.lineHeight = "1.4";
 
-                chatMessages.prepend(newMessage); // 최신 메시지를 위로 추가
-
-                // 채팅창 스크롤을 맨 아래로
+                chatMessages.prepend(newMessage); 
                 chatMessages.scrollTop = chatMessages.scrollHeight;
 
-                // 입력창 초기화 및 높이 조정
                 inputBar.value = "";
                 resizeInput();
             }
 
-            // 입력창 높이 조정 함수
             function resizeInput() {
-                inputBar.style.height = "auto"; // 높이를 초기화한 뒤
+                inputBar.style.height = "auto"; 
                 const scrollHeight = inputBar.scrollHeight;
-                const maxHeight = 120; // 최대 높이 (6줄 기준)
+                const maxHeight = 120; 
                 inputBar.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
 
-                // 스크롤바 표시 여부 제어
                 if (scrollHeight >= maxHeight) {
-                    inputBar.style.overflowY = "auto"; // 6줄 이상이면 스크롤바 표시
+                    inputBar.style.overflowY = "auto";
                 } else {
-                    inputBar.style.overflowY = "hidden"; // 6줄 이하이면 스크롤바 숨김
+                    inputBar.style.overflowY = "hidden";
                 }
             }
 
-            // Enter와 Shift+Enter 동작 처리
+            // Enter / Shift+Enter 처리
             inputBar.addEventListener("keydown", function (e) {
                 if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault(); // 기본 Enter 동작 방지
+                    e.preventDefault();
                     sendMessage();
                 } 
                 else if (e.key === "Enter" && e.shiftKey) {
-                    // Shift + Enter 동작: 줄 바꿈 허용
                     e.preventDefault();
                     const cursorPosition = inputBar.selectionStart;
-                    inputBar.value = inputBar.value.slice(0, cursorPosition) + "\n" + inputBar.value.slice(cursorPosition);
-                    resizeInput(); // 높이 조정
+                    inputBar.value =
+                        inputBar.value.slice(0, cursorPosition) + "\n" 
+                        + inputBar.value.slice(cursorPosition);
+                    resizeInput();
                 }
             });
 
-            // 입력창 내용 변경 시 높이 조정
             inputBar.addEventListener("input", resizeInput);
-
-            // 초기 입력창 높이 설정
             resizeInput();
         });
+
+        
     </script>
 </body>
 </html>
