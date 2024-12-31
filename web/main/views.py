@@ -1,3 +1,4 @@
+from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from dotenv import load_dotenv
@@ -24,6 +25,7 @@ def login_view(request):
         return redirect('login_process')
 
 # (2) login_process: 아이디/비번 둘 다 있으면 /app/profile/로 리다이렉트
+@csrf_protect
 def login_process(request):
     if request.method == 'POST':
         username = request.POST.get('username','').strip()
