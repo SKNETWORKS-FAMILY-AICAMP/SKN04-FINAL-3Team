@@ -41,7 +41,9 @@ class Settings(models.Model):
 
 
 class Place(models.Model):
-    place_id = models.CharField(max_length=50, primary_key=True)
+    place_id = models.CharField(max_length=10, primary_key=True)
+    name = models.CharField(max_length=30)
+    category = models.CharField(max_length=30)
     longitude = models.FloatField()
     latitude = models.FloatField()
     overview = models.TextField(null=True, blank=True)
