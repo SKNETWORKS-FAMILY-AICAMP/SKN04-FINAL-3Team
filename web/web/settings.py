@@ -42,7 +42,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -105,7 +104,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "web.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
@@ -126,6 +124,7 @@ DATABASES = {
         'PORT': '5432',                # 기본값
     }
 }
+
 
 
 # Password validation
