@@ -7,7 +7,10 @@ django.setup()
 
 from main.models import Country
 
-# Country 레코드 추가
+# 기존 데이터를 삭제
+Country.objects.all().delete()
+
+# 새로운 데이터 삽입
 countries = [
     Country(country_id="KR", country_name="대한민국", language="한국어"),
     Country(country_id="US", country_name="미국", language="영어"),
@@ -16,5 +19,4 @@ countries = [
 ]
 
 Country.objects.bulk_create(countries)
-
 print("Country 데이터 추가 완료!")
