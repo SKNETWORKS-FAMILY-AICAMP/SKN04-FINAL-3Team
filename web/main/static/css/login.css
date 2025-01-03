@@ -47,6 +47,7 @@ body {
     cursor: pointer;
     font-size: 16px;
 }
+
 .login-button:hover {
     background: #777;
 }
@@ -65,11 +66,33 @@ body {
     text-decoration: none;
     border-radius: 4px;
 }
+
 .google-login-btn:hover {
     background: #357ae8;
 }
+
 .google-login-btn img {
     width: 20px;
     height: 20px;
     margin-right: 8px;
+}
+
+.signup-section {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.signup-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.signup-button:hover {
+    background-color: #0056b3;
 }

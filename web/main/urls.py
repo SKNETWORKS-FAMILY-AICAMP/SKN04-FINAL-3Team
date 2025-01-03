@@ -8,7 +8,8 @@ urlpatterns = [
     # 로그인
     path('login/', views.login_view, name='login'),
     path('login_process/', views.login_process, name='login_process'),
-    
+    path('signup/', views.signup, name='signup'),
+
     # (2) Partial 전용 라우트: SPA에서 Ajax로 불러오는 템플릿들
     path('app/partials/planner/', views.planner, name='planner'),
     path('app/partials/profile/', views.profile, name='profile'),

@@ -1,3 +1,4 @@
+from django.http import HttpResponseForbidden
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
@@ -23,6 +24,9 @@ def login_view(request):
     else:
         # 혹시 POST로 왔다면 login_process로 넘긴다
         return redirect('login_process')
+
+def signup(request):
+    return render(request, 'signup.html')
 
 # (2) login_process: 아이디/비번 둘 다 있으면 /app/profile/로 리다이렉트
 @csrf_protect
@@ -66,3 +70,11 @@ def favorites_schedules(request):
 
 def chatting(request):
     return render(request, 'partials/chatting.html')  
+
+def admin_required(view_func):
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated or not getattr(request.user, 'is_admin', False):
+            return HttpResponseForbidden("You do not have admin access.")
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
