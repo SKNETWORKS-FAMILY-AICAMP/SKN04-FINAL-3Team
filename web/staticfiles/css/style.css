@@ -51,26 +51,6 @@ body {
     background-color: #f4f4f4;
 }
 
-/* 채팅 말풍선 */
-.bubble {
-    width: fit-content;
-    display: inline-block;
-    background-color: #4caf50; /* 초록색 배경 */
-    color: white;
-    border-radius: 10px;
-    padding: 10px;
-    margin: 5px 0;
-    word-wrap: break-word; /* 긴 단어가 줄 바꿈되도록 */
-    max-width: 80%; /* 최대 너비 제한 */
-    white-space: pre-wrap; /* 줄 바꿈을 유지 */
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.bubble.user {
-    background-color: #4caf50;
-    color: white;
-}
-
 .container {
     display: flex;
     height: 100vh;
@@ -122,6 +102,7 @@ body {
 }
 
 .content1 {
+    position: relative;
     width: 400px;
     height: 100%;
     display: flex;
@@ -149,16 +130,6 @@ body {
     font-weight: bold;
 }
 
-/* 채팅 메시지 영역 */
-#chat-messages {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 10px;
-    background-color: #ffffff;
-    width: 100%; /* 부모 요소(content1)의 너비에 맞춤 */
-    box-sizing: border-box;
-}
-
 #map {
     display: block;
     position: relative;
@@ -178,10 +149,12 @@ body {
     flex-grow: 1; /* 채팅창이 유동적으로 늘어나도록 */
     overflow-y: auto; /* 메시지가 많아지면 스크롤 */
     display: flex;
-    flex-direction: column-reverse; /* 메시지가 아래에서 위로 추가되도록 */
+    flex-direction: column;
     gap: 5px; /* 메시지 간격 */
     padding: 5px;
+    width: 100%; /* 부모 요소(content1)의 너비에 맞춤 */
     border: 1px solid #ddd;
+    box-sizing: border-box;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     background-color: white; /* 채팅창 배경 */
 }
@@ -248,7 +221,54 @@ body {
     background-color: #ccc;
 }
 
-/* 팝업 숨김 상태 */
+.bubble {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 6px;
+    border-radius: 12px;
+    width: fit-content;
+    word-wrap: break-word;
+}
+
+.bubble.user {
+    background-color: #4caf50;
+    color: white;
+}
+
+/* 왼쪽 (사용자) */
+.left-bubble {
+    background-color: #4caf50; /* 초록색 */
+    color: #fff;
+    margin-right: auto;   /* 왼쪽 정렬 */
+}
+
+/* 오른쪽 (봇) */
+.right-bubble {
+    background-color: #eee;
+    color: #333;
+    margin-left: auto;    /* 오른쪽 정렬 */
+}
+
+/* 아래로 이동 버튼 */
+.scroll-to-bottom {
+    position: absolute;      /* 위치를 자유롭게 조정할 수 있도록 absolute/fixed */
+    bottom: 100px;          /* 화면 아래에서 100px 떨어짐 (입력창 위로) */
+    width: 40px;
+    height: 40px;
+    background-color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255); 
+    border-radius: 50%;      /* 둥근 원 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    margin-bottom: 40px;
+}
+
+/* 숨김 토글용 */
 .hidden {
-    display: none;
+    display: none !important;
 }

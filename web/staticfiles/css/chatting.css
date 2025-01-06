@@ -58,3 +58,25 @@
 .chat-item:hover {
     background-color: #f0f0f0;
 }
+
+.left-bubble {
+    margin-right: auto;
+    background-color: #4caf50; /* 초록색 */
+    color: white;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 8px;
+    max-width: 80%;
+    white-space: pre-wrap;
+}
+
+.right-bubble {
+    margin-left: auto;
+    background-color: #ddd;
+    color: #333;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 8px;
+    max-width: 80%;
+    white-space: pre-wrap;
+}
