@@ -169,24 +169,28 @@ def update_nickname(request):
 
 @login_required
 def settings(request):
+    """
+    Settings 페이지 렌더링. 현재 사용자와 연결된 Settings 데이터를 가져와서
+    라디오 버튼 및 드롭다운 초기값 설정.
+    """
+    user = request.user
+
     try:
-        user = request.user
-        print(f"User: {user}, Country ID: {user.country_id}")  # 디버깅 출력
-
-        settings = Settings.objects.filter(profile=user).first()
-        print(f"Settings: {settings}")  # 디버깅 출력
-
-        country = Country.objects.filter(country_id=user.country_id).first()
-        print(f"Country: {country}")  # 디버깅 출력
+        # 현재 사용자와 연결된 Settings 객체 가져오기
+        settings = Settings.objects.select_related('country').get(profile=user)
 
         return render(request, 'partials/settings.html', {
             'settings': settings,
-            'language': country.language if country else None,
-            'country_id': user.country_id,
+            'language': settings.country.language,  # Settings에서 연결된 Country의 언어
+            'country_id': settings.country.country_id,  # Settings에서 연결된 Country의 ID
         })
-    except Exception as e:
-        print(f"Error in settings view: {e}")  # 오류 출력
-        return JsonResponse({"error": str(e)}, status=500)
+    except Settings.DoesNotExist:
+        # Settings가 없는 경우 기본값 전달
+        return render(request, 'partials/settings.html', {
+            'settings': None,
+            'language': None,
+            'country_id': None,
+        })
  
 
 @csrf_exempt
