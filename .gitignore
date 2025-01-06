@@ -162,3 +162,9 @@ cython_debug/
 #.idea/
 faiss_index_jg/index.faiss
 faiss_index_jg/index.pkl
+faiss_index_naver_total/index.faiss
+faiss_index_naver_total/index.pkl
+faiss_index_test/index.faiss
+faiss_index_test/index.pkl
+faiss_opendata_index_combined/index.faiss
+faiss_opendata_index_combined/index.pkl
