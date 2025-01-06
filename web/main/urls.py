@@ -2,21 +2,29 @@ from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
-    # 메인 페이지(독립적인 화면)
+    # 메인 페이지
     path('', views.main, name='main'),
 
     # 로그인
     path('login/', views.login_view, name='login'),
     path('login_process/', views.login_process, name='login_process'),
+    path('logout/', views.logout_view, name='logout_view'),
     path('signup/', views.signup, name='signup'),
 
-    # (2) Partial 전용 라우트: SPA에서 Ajax로 불러오는 템플릿들
+    # Partial 전용 라우트
     path('app/partials/planner/', views.planner, name='planner'),
-    path('app/partials/profile/', views.profile, name='profile'),
-    path('app/partials/settings/', views.settings, name='settings'),
-    path('app/partials/favorites/', views.favorites_places, name='favorites_places'),
     path('app/partials/chatting/', views.chatting, name='chatting'),
+    path('app/partials/favorites/', views.favorites_places, name='favorites_places'),
+    path('app/partials/favorites/add/', views.add_folder, name='add_folder'),
+    path('app/partials/favorites/delete/', views.delete_favorite, name='delete_favorite'),
+    path('add_folder/', views.add_folder, name='add_folder'),  # 폴더 생성용 엔드포인트
+    path('app/partials/settings/', views.settings, name='settings'),
+    path('app/partials/settings/update_theme/', views.update_theme, name='update_theme'),
+    path('app/partials/settings/update_language/', views.update_language, name='update_language'),
+    path('app/partials/profile/', views.profile, name='profile'),
+    path('app/partials/profile/update_thumbnail/', views.update_thumbnail, name='update_thumbnail'),
+    path('app/partials/profile/update_nickname/', views.update_nickname, name='update_nickname'),
 
-    # (1) SPA Fallback: /app/ 이하 모든 경로 -> spa_base.html 리턴
+    # SPA Fallback
     re_path(r'^app(?:/.*)?$', views.spa, name='spa'),
 ]

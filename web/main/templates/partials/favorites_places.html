@@ -1,4 +1,3 @@
-<!-- favorites_places.html -->
 <head>
     {% load static %}
     <title>Favorites</title>
@@ -18,25 +17,19 @@
         <!-- (A) 장소 UI -->
         <div id="placesSection" style="display: block;">
             <div class="folder-list">
+                {% for place in places %}
                 <div class="folder-item">
-                    <img src="{% static 'images/folder.png' %}" alt="folder" width="50px" height="50px">&nbsp;&nbsp;&nbsp;&nbsp;카페
-                    <img src="{% static 'images/delete.png' %}" alt="delete" width="50px" height="50px" class="delete-icon">
+                    <img src="{% static 'images/folder.png' %}" alt="folder" width="50px" height="50px">
+                    &nbsp;&nbsp;&nbsp;&nbsp;{{ place.title }}
+                    <img src="{% static 'images/delete.png' %}" alt="delete" width="50px" height="50px" class="delete-icon" data-id="{{ place.bookmark }}">
                 </div>
-                <div class="folder-item">
-                    <img src="{% static 'images/folder.png' %}" alt="folder" width="50px" height="50px">&nbsp;&nbsp;&nbsp;&nbsp;법원
-                    <img src="{% static 'images/delete.png' %}" alt="delete" width="50px" height="50px" class="delete-icon">
-                </div>
-                <div class="folder-item">
-                    <img src="{% static 'images/folder.png' %}" alt="folder" width="50px" height="50px">&nbsp;&nbsp;&nbsp;&nbsp;술집
-                    <img src="{% static 'images/delete.png' %}" alt="delete" width="50px" height="50px" class="delete-icon">
-                </div>
-                <div class="folder-item">
-                    <img src="{% static 'images/folder.png' %}" alt="folder" width="50px" height="50px">&nbsp;&nbsp;&nbsp;&nbsp;좋아하는 장소
-                    <img src="{% static 'images/delete.png' %}" alt="delete" width="50px" height="50px" class="delete-icon">
-                </div>
+                {% empty %}
+                <p>저장된 장소가 없습니다.</p>
+                {% endfor %}
                 <!-- 새로운 폴더 만들기 버튼 -->
                 <div class="folder-item" id="plus-place">
-                    <img src="{% static 'images/plus.png' %}" alt="plus" width="50px" height="50px">&nbsp;&nbsp;&nbsp;&nbsp;폴더 만들기
+                    <img src="{% static 'images/plus.png' %}" alt="plus" width="50px" height="50px">
+                    &nbsp;&nbsp;&nbsp;&nbsp;새 폴더
                 </div>
             </div>
         </div>
@@ -44,21 +37,19 @@
         <!-- (B) 일정 UI -->
         <div id="scheduleSection" style="display: none;">
             <div class="folder-list">
+                {% for schedule in schedules %}
                 <div class="folder-item">
-                    <img src="{% static 'images/schedule.png' %}" alt="schedule" width="50px" height="50px">&nbsp;&nbsp;&nbsp;&nbsp;독산 일정
-                    <img src="{% static 'images/delete.png' %}" alt="delete" width="50px" height="50px" class="delete-icon">
+                    <img src="{% static 'images/schedule.png' %}" alt="schedule" width="50px" height="50px">
+                    &nbsp;&nbsp;&nbsp;&nbsp;{{ schedule.title }}
+                    <img src="{% static 'images/delete.png' %}" alt="delete" width="50px" height="50px" class="delete-icon" data-id="{{ schedule.bookmark }}">
                 </div>
-                <div class="folder-item">
-                    <img src="{% static 'images/schedule.png' %}" alt="schedule" width="50px" height="50px">&nbsp;&nbsp;&nbsp;&nbsp;서울 을지로 일정
-                    <img src="{% static 'images/delete.png' %}" alt="delete" width="50px" height="50px" class="delete-icon">
-                </div>
-                <div class="folder-item">
-                    <img src="{% static 'images/schedule.png' %}" alt="schedule" width="50px" height="50px">&nbsp;&nbsp;&nbsp;&nbsp;서울 용산구 일정
-                    <img src="{% static 'images/delete.png' %}" alt="delete" width="50px" height="50px" class="delete-icon">
-                </div>
+                {% empty %}
+                <p>저장된 일정이 없습니다.</p>
+                {% endfor %}
                 <!-- 새로운 일정 만들기 버튼 -->
                 <div class="folder-item" id="plus-schedule">
-                    <img src="{% static 'images/plus.png' %}" alt="plus" width="50px" height="50px">&nbsp;&nbsp;&nbsp;&nbsp;일정 만들기
+                    <img src="{% static 'images/plus.png' %}" alt="plus" width="50px" height="50px">
+                    &nbsp;&nbsp;&nbsp;&nbsp;새 폴더
                 </div>
             </div>
         </div>

@@ -1,82 +1,55 @@
-<head>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/settings.css' %}">
-</head>
-<script>
-    // DOMContentLoaded 내부에서 함수와 이벤트 리스너를 설정
-    document.addEventListener('DOMContentLoaded', () => {
-        const lightBox = document.getElementById('light');
-        const darkBox = document.getElementById('dark');
+    <head>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'css/settings.css' %}">
+        <script src="{% static 'js/settings.js' %}" defer></script>
+    </head>
+    <div class="container" id="settingsPanel">
+        <div class="panel">
+            <h2>Settings</h2>
 
-        // 테마 선택 함수
-        function selectTheme(theme) {
-            // 모든 박스의 'selected' 클래스를 제거
-            lightBox.classList.remove('selected');
-            darkBox.classList.remove('selected');
-
-            // 선택된 박스에 'selected' 클래스 추가
-            if (theme === 'light') {
-                lightBox.classList.add('selected');
-            } else if (theme === 'dark') {
-                darkBox.classList.add('selected');
-            }
-        }
-
-        // 클릭 이벤트 리스너를 직접 추가
-        lightBox.addEventListener('click', () => selectTheme('light'));
-        darkBox.addEventListener('click', () => selectTheme('dark'));
-    });
-</script>
-<div class="container">
-    <div class="panel">
-        <h2>Settings</h2>
-        <!-- 테마 선택 -->
-        <div class="section">
-            <label>Theme</label>
-            <div class="theme-options">
-                <!-- Light Theme -->
-                <div class="theme-item">
-                    <div id="light" class="theme-box selected" onclick="selectTheme('light')"></div>
-                    <label>
-                        <input type="radio" name="theme" value="light" checked>
-                        Light
-                    </label>
-                </div>
-                <!-- Dark Theme -->
-                <div class="theme-item">
-                    <div id="dark" class="theme-box" onclick="selectTheme('dark')"></div>
-                    <label>
-                        <input type="radio" name="theme" value="dark">
-                        Dark
-                    </label>
+            <!-- 테마 선택 -->
+            <div class="section">
+                <label>Theme</label>
+                <div class="theme-options">
+                    <!-- Light Theme -->
+                    <div class="theme-item">
+                        <div id="light" class="theme-box {% if settings and settings.is_white_theme %}selected{% endif %}"></div>
+                        <label>
+                            <input type="radio" name="theme" value="light" {% if settings and settings.is_white_theme %}checked{% endif %}>
+                            Light
+                        </label>
+                    </div>
+                    <!-- Dark Theme -->
+                    <div class="theme-item">
+                        <div id="dark" class="theme-box {% if settings and not settings.is_white_theme %}selected{% endif %}"></div>
+                        <label>
+                            <input type="radio" name="theme" value="dark" {% if settings and not settings.is_white_theme %}checked{% endif %}>
+                            Dark
+                        </label>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 언어 선택 -->
-        <div class="section">
-            <label for="language">Language</label>
-            <select id="language">
-                <option value="en">English</option>
-                <option value="kr">Korean</option>
-                <option value="jp">Japanese</option>
-            </select>
-        </div>
+            <!-- 언어 선택 -->
+            <div class="section">
+                <label for="language">Language</label>
+                <select id="language">
+                    <option value="US" {% if country_id == 'US' %}selected{% endif %}>English</option> 
+                    <option value="KR" {% if country_id == 'KR' %}selected{% endif %}>한국어</option> 
+                    <option value="JP" {% if country_id == 'JP' %}selected{% endif %}>日本語</option> 
+                    <option value="CN" {% if country_id == 'CN' %}selected{% endif %}>简体字</option> 
+                </select>
+            </div>
 
-        <!-- 연락처 -->
-        <div class="section">
-            <label>Contact Us</label>
-            <p>dinosaur@gmail.com</p>
-        </div>
+            <!-- 연락처 -->
+            <div class="section">
+                <label>Contact Us</label>
+                <p>dinosaur@gmail.com</p>
+            </div>
 
-        <!-- 연락처 -->
-        <div class="section" style="height: 450px;">
-        </div>
-
-        <!-- 계정 삭제 -->
-        <div class="section">
-            <span class="delete-btn" onclick="showPopup()">Delete Account</span>
+            <!-- 계정 삭제 -->
+            <div class="section">
+                <span class="delete-btn" onclick="showPopup()">Delete Account</span>
+            </div>
         </div>
     </div>
-</div>
-

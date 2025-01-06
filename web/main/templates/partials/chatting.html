@@ -12,16 +12,19 @@
 
         <div id="chattingsSection" style="display: block;">
             <div class="chat-list">
-                <!-- data-chat-id 로 구분 -->
-                <div class="chat-item" data-chat-id="1">
-                    <img src="{% static 'images/chat.png' %}" alt="chat" width="50px" height="50px">&nbsp;1번 채팅
-                </div>
-                <div class="chat-item" data-chat-id="2">
-                    <img src="{% static 'images/chat.png' %}" alt="chat" width="50px" height="50px">&nbsp;2번 채팅
-                </div>
-                <div class="chat-item" data-chat-id="3">
-                    <img src="{% static 'images/chat.png' %}" alt="chat" width="50px" height="50px">&nbsp;3번 채팅
-                </div>
+                <!-- chattings 쿼리셋을 순회하며 각 chat에 대한 div 생성 -->
+                {% for chat in chattings %}
+                    <div class="chat-item" data-chat-id="{{ chat.chatting_id }}">
+                        <img src="{% static 'images/chat.png' %}"
+                             alt="chat" width="50px" height="50px">
+                        &nbsp;{{ forloop.counter }}번 채팅
+                    </div>
+                {% empty %}
+                    <!-- 사용자의 채팅 데이터가 없을 경우 표시 -->
+                    <p style="color: #888; text-align:center;">
+                        채팅 목록이 없습니다.
+                    </p>
+                {% endfor %}
             </div>
         </div>
     </div>

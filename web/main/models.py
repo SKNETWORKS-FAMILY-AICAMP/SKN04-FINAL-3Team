@@ -28,6 +28,7 @@ class CustomUser(AbstractUser):
         db_table = 'main_customuser'  # 데이터베이스 테이블 이름
         managed = True
 
+
 class Country(models.Model):
     country_id = models.CharField(max_length=50, primary_key=True)
     country_name = models.CharField(max_length=100)

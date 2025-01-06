@@ -12,27 +12,27 @@
     <div class="container">
         <div class="sidebar" id="sidebar" style="width: 100px; border-right: 1px solid #ddd;">
             <button class="nav-btn" id="home-btn">
-                <img src="{% static 'images/nav/nav_home.png' %}" style="width: 30px; height: 30px;"></img>
+                <img src="{% static 'images/nav/nav_home.png' %}" style="width: 30px; height: 30px;">
                 <br>Home
             </button>
             <button class="nav-btn" data-url="/app/planner/">
-                <img src="{% static 'images/nav/nav_planner.png' %}" style="width: 30px; height: 30px;"></img>
+                <img src="{% static 'images/nav/nav_planner.png' %}" style="width: 30px; height: 30px;">
                 <br>Planner
             </button>
             <button class="nav-btn" data-url="/app/chatting/">
-                <img src="{% static 'images/nav/nav_chattings.png' %}" style="width: 30px; height: 30px;"></img>
+                <img src="{% static 'images/nav/nav_chattings.png' %}" style="width: 30px; height: 30px;">
                 <br>Chatting
             </button>
             <button class="nav-btn" data-url="/app/favorites/">
-                <img src="{% static 'images/nav/nav_favorites.png' %}" style="width: 30px; height: 30px;"></img>
+                <img src="{% static 'images/nav/nav_favorites.png' %}" style="width: 30px; height: 30px;">
                 <br>Favorites
             </button>
             <button class="nav-btn" data-url="/app/settings/">
-                <img src="{% static 'images/nav/nav_settings.png' %}" style="width: 30px; height: 30px;"></img>
+                <img src="{% static 'images/nav/nav_settings.png' %}" style="width: 30px; height: 30px;">
                 <br>Settings
             </button>
             <button class="nav-btn" data-url="/app/profile/">
-                <img src="{% static 'images/nav/nav_profile.png' %}" style="width: 30px; height: 30px;"></img>
+                <img src="{% static 'images/nav/nav_profile.png' %}" style="width: 30px; height: 30px;">
                 <br>Profile
             </button>
         </div>
@@ -93,15 +93,10 @@
 
         // 현재 활성화된 nav-btn 표시 함수
         function highlightActiveLink(spaPath) {
-            // 모든 .nav-btn 순회
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 const url = btn.getAttribute('data-url');
-                
-                // Home 버튼(id="home-btn")은 data-url이 없으므로 별도 처리 가능.
-                // 여기서는 url가 null이면 건너뛴다고 가정.
-                if (!url) return; 
+                if (!url) return;  // home-btn이 data-url이 없으므로 건너뜀
 
-                // 만약 url == 현재 spaPath라면 활성화
                 if (url === spaPath) {
                     btn.classList.add('active');
                 } else {
@@ -115,7 +110,7 @@
         // ---------------------------
         function loadContent(spaPath) {
             highlightActiveLink(spaPath);
-            
+
             const partialUrl = toPartialUrl(spaPath);
             fetch(partialUrl)
                 .then(response => {
@@ -139,8 +134,6 @@
             // 지도 초기화
             initializeMap();
 
-            // 현재 주소가 /app/, /app/profile/, /app/... 일 수 있으므로, 그에 맞춰 partial 불러오기
-            // 만약 /app/ 이라면 /app/planner/ 로 디폴트 이동할 수도 있음
             let currentPath = window.location.pathname;
 
             // /app/ 만 입력되었다면 디폴트: /app/planner/ 로 가정
@@ -150,23 +143,33 @@
             }
             loadContent(currentPath);
 
-            // -------------------------
-            // 네비게이션 버튼(사이드바) 클릭 처리
-            // -------------------------
+            // 임시: chat-item 클릭 -> planner 이동
+            const chatItems = document.querySelectorAll(".chat-item");
+            chatItems.forEach(item => {
+                item.addEventListener("click", function() {
+                    const chatId = this.getAttribute("data-chat-id");
+                    localStorage.setItem("selectedChatId", chatId);
+        
+                    history.pushState(null, '', '/app/planner/');
+                    if (typeof loadContent === 'function') {
+                        loadContent('/app/planner/');
+                    }
+                });
+            });
+
+            // 네비게이션 버튼 클릭 시
             document.querySelectorAll('.nav-btn').forEach(button => {
                 button.addEventListener('click', function (event) {
                     event.preventDefault();
-                    const spaPath = this.getAttribute('data-url'); // 예: "/app/planner/"
+                    const spaPath = this.getAttribute('data-url');
+                    if (!spaPath) return;
 
-                    // 히스토리 변경(주소창만 변경)
                     history.pushState(null, '', spaPath);
-
-                    // 실제 partial 로드
                     loadContent(spaPath);
                 });
             });
 
-            // Home 버튼 처리 (메인 페이지로 이동)
+            // Home 버튼 처리
             document.getElementById('home-btn').addEventListener('click', function () {
                 window.location.href = '/';
             });
@@ -180,7 +183,6 @@
 
             // 뒤로가기/앞으로가기 처리
             window.addEventListener('popstate', function () {
-                // 브라우저 주소창이 바뀌었을 때 해당 경로 불러오기
                 loadContent(window.location.pathname);
             });
 
@@ -196,7 +198,15 @@
             }
         });
 
-        // 팝업 열기/닫기
+        function getCSRFToken() {
+            const cookies = document.cookie.split("; ");
+            for (let cookie of cookies) {
+                if (cookie.startsWith("csrftoken=")) {
+                    return cookie.split("=")[1];
+                }
+            }
+            return null;
+        }
         function showPopup() {
             document.getElementById('popup').classList.remove('hidden');
         }
@@ -207,136 +217,72 @@
         // ---------------------------
         // (5) spaContentLoaded 이후 로직
         // ---------------------------
-        
         document.addEventListener("spaContentLoaded", function () {
-            const chattingPanel = document.getElementById("chattingPanel");
-            if (chattingPanel) {
-                console.log("[Chatting] panel detected!");
-
-                // 모든 chat-item 에 이벤트 등록
-                document.querySelectorAll(".chat-item").forEach(item => {
-                    item.addEventListener("click", function() {
-                        // data-chat-id 읽기
-                        const chatId = this.getAttribute("data-chat-id");
-                        
-                        // localStorage 에 저장 (또는 sessionStorage)
-                        localStorage.setItem("selectedChatId", chatId);
-
-                        // "/app/planner/" 로 SPA 이동
-                        history.pushState(null, '', '/app/planner/');
-                        loadContent('/app/planner/'); 
-                    });
-                });
-            }
-
+            // 1) Planner Panel
             const plannerPanel = document.getElementById("plannerPanel");
             if (plannerPanel) {
                 console.log("[Planner] panel detected!");
 
-                // localStorage 에서 'selectedChatId' 꺼내기
-                const chatId = localStorage.getItem("selectedChatId");
-                if (chatId) {
-                    // 예: chatId에 따라 채팅 내용 표시
-                    const chatMessages = document.getElementById("chat-messages");
-                    if (chatMessages) {
-                        // 간단하게 "N번 채팅 내역" 메세지를 추가해보자
-                        const newMsg = document.createElement("div");
-                        newMsg.className = "bubble user"; // 임의 스타일
-                        newMsg.style.color = "blue";      // 예시
-                        newMsg.innerHTML = `${chatId}번 채팅 내역 로드 완료!`;
+                const chatMessages = document.getElementById("chat-messages");
+                const scrollBtn = document.getElementById("scrollToBottomBtn");
 
-                        chatMessages.appendChild(newMsg);
+                if (!chatMessages || !scrollBtn) return;
 
-                        // 필요하다면 localStorage.removeItem("selectedChatId"); 
-                        // (한번만 표시하고 싶다면 제거)
+                // 1) 스크롤 이벤트 -> 버튼 표시/숨김
+                chatMessages.addEventListener("scroll", function() {
+                    // 만약 스크롤이 '맨 아래'가 아니라면 버튼 보이기
+                    // (clientHeight + scrollTop < scrollHeight 이면 아직 위로 스크롤 중)
+                    if (chatMessages.scrollTop + chatMessages.clientHeight 
+                        < chatMessages.scrollHeight - 10) {
+                        scrollBtn.classList.remove("hidden");
+                    } else {
+                        scrollBtn.classList.add("hidden");
                     }
+                });
+
+                // 2) 버튼 클릭 시 맨 아래로 스크롤
+                scrollBtn.addEventListener("click", function() {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                });
+
+                // 숨겨둔 div에서 chat_content 읽기
+                const contentEl = document.getElementById("chatContentData"); 
+                if (contentEl) {
+                    const rawChatContent = contentEl.textContent.trim();
+                    const decoded = rawChatContent
+                        .replace(/\\u003C/g, "<")
+                        .replace(/\\u003E/g, ">")
+                        .replace(/\\u000D/g, "\r")
+                        .replace(/\\u000A/g, "\n");
+                    parseAndDisplayChatContent(decoded);
+                }
+                else {
+                    console.log("DEBUG: #chatContentData not found");
+                    return;
                 }
             }
 
-            const profilePanel = document.getElementById("profilePanel");
-            if (profilePanel) {
-                console.log("[profile] panel detected!");
+            // 2) Chatting Panel
+            const chattingPanel = document.getElementById("chattingPanel");
+            if (chattingPanel) {
+                console.log("[Chatting] panel detected!");
 
-                // 1) 닉네임 수정
-                const nicknameText  = document.getElementById('nickname-text');
-                const nicknameInput = document.getElementById('nickname-input');
-                const editButton    = document.getElementById('edit-btn');
-                const logoutBtn     = document.getElementById("logout-btn");
-
-                let oldNickname = nicknameText ? nicknameText.textContent : "";
-
-                let escNote = document.createElement("div");
-                escNote.style.color = "#999";      // 예시 스타일
-                escNote.style.fontSize = "0.9rem"; // 예시
-                escNote.textContent = "(ENTER: edit / ESC: cancel)";
-
-                if (editButton && nicknameText && nicknameInput) {
-                    editButton.addEventListener("click", function() {
-                        // 연필 버튼 클릭 시
-                        oldNickname = nicknameText.textContent; // 현재 닉네임 저장
-                        nicknameText.classList.add("hidden");   // 숨김
-                        nicknameInput.classList.remove("hidden");
-                        nicknameInput.value = oldNickname;      // 입력창 초기값
-                        nicknameInput.focus();
-
-                        const wrapper = document.querySelector(".nickname-wrapper");
-                        if (wrapper) {
-                            wrapper.appendChild(escNote);
-                        }
+                // chat-item 클릭 -> /app/planner/?chat_id=xxx 형태
+                document.querySelectorAll(".chat-item").forEach(item => {
+                    item.addEventListener("click", function() {
+                        const chatId = this.getAttribute("data-chat-id");
+                        const targetUrl = `/app/planner/?chat_id=${encodeURIComponent(chatId)}`;
+                        history.pushState(null, '', targetUrl);
+                        loadContent(targetUrl);
                     });
-
-                    // (1) Enter -> 저장
-                    nicknameInput.addEventListener("keydown", function(e) {
-                        if (e.key === "Enter") {
-                            const newNickname = nicknameInput.value.trim();
-                            if (newNickname) {
-                                nicknameText.textContent = newNickname;
-                            }
-                            nicknameText.classList.remove("hidden");
-                            nicknameInput.classList.add("hidden");
-
-                            // 안내 문구 제거
-                            removeEscNote();
-                        }
-                        // (2) ESC -> 취소 (원래 닉네임 복원)
-                        else if (e.key === "Escape") {
-                            nicknameInput.value = oldNickname;
-                            nicknameText.classList.remove("hidden");
-                            nicknameInput.classList.add("hidden");
-
-                            // 안내 문구 제거
-                            removeEscNote();
-                        }
-                    });
-                }
-
-                // (4) 안내 문구 제거 함수
-                function removeEscNote() {
-                    if (escNote && escNote.parentNode) {
-                        escNote.parentNode.removeChild(escNote);
-                    }
-                }
-
-                // (5) 로그아웃 버튼
-                if (logoutBtn) {
-                    logoutBtn.addEventListener("click", function() {
-                        alert("로그아웃 처리 로직을 구현해주세요.");
-                        window.location.href = "/";
-                    });
-                }
-
-                // 로그아웃 버튼 예시
-                if (logoutBtn) {
-                    logoutBtn.addEventListener("click", function() {
-                        alert("로그아웃 처리 로직을 구현해주세요.");
-                        window.location.href = "/";
-                    });
-                }
+                });
             }
 
-            // [1] favorites_places.html 로드 여부 확인
+            // 3) Favorites Panel
             const favoritesPanel = document.getElementById("favoritesPanel");
             if (favoritesPanel) {
+                console.log("[Favorites] favoritesPanel detected!");
+                // 장소와 일정 섹션 전환 버튼
                 console.log("[Favorites] favoritesPanel detected!");
 
                 // --------------------------------
@@ -369,7 +315,6 @@
                 const plusPlace = document.getElementById("plus-place");
                 if (plusPlace) {
                     plusPlace.addEventListener('click', function() {
-
                         // 이미 입력창이 열려있으면 무시
                         if (isPlaceInputOpen) return;
                         isPlaceInputOpen = true;
@@ -382,6 +327,7 @@
                         inputItem.className = "folder-item";
 
                         const inputElem = document.createElement("input");
+                        inputElem.id = "folderNameInput";
                         inputElem.type = "text";
                         inputElem.placeholder = "새 폴더 이름 입력 (Enter)";
                         inputElem.style.width = "200px";
@@ -410,25 +356,61 @@
                                     return;
                                 }
 
-                                // 새 폴더 아이템 생성
-                                const newItem = document.createElement("div");
-                                newItem.className = "folder-item";
-                                newItem.innerHTML = `
-                                    <img src="{% static 'images/folder.png' %}" width="50px" height="50px">
-                                    &nbsp;&nbsp;${textValue}
-                                    <img 
-                                    src="{% static 'images/delete.png' %}" 
-                                    alt="delete" 
-                                    class="delete-icon"
-                                    >
-                                `;
-                                folderList.replaceChild(newItem, inputItem);
+                                // ----------------------------------------
+                                // (A) 여기서 placesSection 표시 여부 판별
+                                // ----------------------------------------
+                                const placesSection = document.getElementById("placesSection");
+                                // display가 "block"이면 true, 아니면 false
+                                const isPlaceVal = (placesSection && placesSection.style.display === "block");
 
-                                // 삭제 이벤트 연결
-                                attachDeleteEvent(newItem, folderList, plusPlace);
+                                // (B) 서버로 AJAX 호출
+                                fetch("/app/partials/favorites/add/", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRFToken": getCSRFToken()
+                                    },
+                                    body: JSON.stringify({
+                                        title: textValue,
+                                        // placesSection이 block이면 true, 아니면 false
+                                        is_place: isPlaceVal,
+                                    })
+                                })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(`HTTP error! status: ${response.status}`);
+                                    }
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    if (data.success) {
+                                        // 새 폴더 아이템 생성
+                                        const newItem = document.createElement("div");
+                                        newItem.className = "folder-item";
+                                        newItem.innerHTML = `
+                                            <img src="{% static 'images/folder.png' %}" width="50px" height="50px">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;${textValue}
+                                            <img 
+                                                src="{% static 'images/delete.png' %}" 
+                                                alt="delete" 
+                                                class="delete-icon"
+                                                data-id="${data.folderId}"
+                                            >
+                                        `;
+                                        folderList.replaceChild(newItem, inputItem);
+                                        attachDeleteEvent(newItem, folderList, plusPlace);
+                                        updateFolderListUI(folderList, plusPlace);
 
-                                // 스크롤/버튼활성화 갱신
-                                updateFolderListUI(folderList, plusPlace);
+                                        console.log("폴더 생성 성공:", data.folderId);
+                                    } else {
+                                        alert("폴더 생성 실패: " + (data.error || data.message));
+                                        folderList.removeChild(inputItem);
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error("서버 통신 오류:", err);
+                                    folderList.removeChild(inputItem);
+                                });
                             }
                         });
                     });
@@ -473,29 +455,67 @@
 
                                 isScheduleInputOpen = false;
 
+                                // 입력이 없으면 취소
                                 if (textValue === "") {
                                     scheduleList.removeChild(inputItem);
                                     updateFolderListUI(scheduleList, plusSchedule);
                                     return;
                                 }
 
-                                // 새 일정 아이템 생성
-                                const newItem = document.createElement("div");
-                                newItem.className = "folder-item";
-                                newItem.innerHTML = `
-                                    <img src="{% static 'images/schedule.png' %}" width="50px" height="50px">
-                                    &nbsp;&nbsp;${textValue}
-                                    <img 
-                                    src="{% static 'images/delete.png' %}" 
-                                    alt="delete" 
-                                    class="delete-icon"
-                                    >
-                                `;
-                                scheduleList.replaceChild(newItem, inputItem);
+                                // -----------------------------
+                                // 1) 서버로 AJAX 호출
+                                // -----------------------------
+                                fetch("/app/partials/favorites/add/", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRFToken": getCSRFToken()
+                                    },
+                                    body: JSON.stringify({
+                                        title: textValue,
+                                        // 일정 -> is_place = false
+                                        is_place: false
+                                    })
+                                })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(`HTTP error! status: ${response.status}`);
+                                    }
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    if (data.success) {
+                                        // -----------------------------
+                                        // 2) 생성 성공 시, UI에 반영
+                                        // -----------------------------
+                                        const newItem = document.createElement("div");
+                                        newItem.className = "folder-item";
+                                        newItem.innerHTML = `
+                                            <img src="{% static 'images/schedule.png' %}" width="50px" height="50px">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;${textValue}
+                                            <img 
+                                                src="{% static 'images/delete.png' %}" 
+                                                alt="delete" 
+                                                class="delete-icon"
+                                                data-id="${data.folderId}"
+                                            >
+                                        `;
+                                        scheduleList.replaceChild(newItem, inputItem);
 
-                                attachDeleteEvent(newItem, scheduleList, plusSchedule);
+                                        attachDeleteEvent(newItem, scheduleList, plusSchedule);
+                                        updateFolderListUI(scheduleList, plusSchedule);
 
-                                updateFolderListUI(scheduleList, plusSchedule);
+                                        console.log("일정 폴더 생성 성공:", data.folderId);
+                                    } else {
+                                        // 실패 시 → 입력창 삭제
+                                        alert("폴더 생성 실패: " + (data.error || data.message));
+                                        scheduleList.removeChild(inputItem);
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error("서버 통신 오류:", err);
+                                    scheduleList.removeChild(inputItem);
+                                });
                             }
                         });
                     });
@@ -533,8 +553,46 @@
                 if (!deleteIcon) return;
 
                 deleteIcon.addEventListener('click', function() {
-                    parentList.removeChild(folderItem);
-                    updateFolderListUI(parentList, plusButton);
+                    // (A) bookmark_id 가져오기
+                    const bookmarkId = deleteIcon.getAttribute('data-id');
+                    if (!bookmarkId) {
+                        console.warn("No data-id found for this item, cannot delete in DB.");
+                        return;
+                    }
+
+                    // (B) 서버에 DELETE 요청(AJAX)
+                    fetch("/app/partials/favorites/delete/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCSRFToken()  // CSRF 토큰
+                        },
+                        body: JSON.stringify({
+                            bookmark_id: bookmarkId
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            // 예: 404, 500 등이면 throw
+                            throw new Error(`HTTP error: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            // (C) 성공하면 UI에서 제거
+                            parentList.removeChild(folderItem);
+                            updateFolderListUI(parentList, plusButton);
+                            console.log("북마크 삭제 성공:", bookmarkId);
+                        } else {
+                            // (D) 실패 처리
+                            alert("삭제 실패: " + (data.error || "unknown error"));
+                        }
+                    })
+                    .catch(err => {
+                        console.error("서버 통신 오류:", err);
+                        alert("서버 오류가 발생했습니다.");
+                    });
                 });
             }
 
@@ -566,7 +624,237 @@
                 }
             }
             
-            // 2) 채팅 입력창 로직 (이미 있는 부분)
+            // 4) Settings Panel
+            const settingsPanel= document.getElementById("settingsPanel");
+            if (settingsPanel) {
+                console.log("[settings] panel detected!");
+                const lightBox = document.getElementById('light');
+                const darkBox = document.getElementById('dark');
+                const lightRadio = document.querySelector("input[name='theme'][value='light']");
+                const darkRadio = document.querySelector("input[name='theme'][value='dark']");
+                const themeRadios = document.querySelectorAll('input[name="theme"]');
+                const languageSelect = document.getElementById('language');
+
+                function selectTheme(theme) {
+                    lightBox.classList.remove('selected');
+                    darkBox.classList.remove('selected');
+
+                    if (theme === 'light') {
+                        lightBox.classList.add('selected');
+                        lightRadio.checked = true;
+                    } else if (theme === 'dark') {
+                        darkBox.classList.add('selected');
+                        darkRadio.checked = true;
+                    }
+                }
+
+                lightBox.addEventListener('click', () => selectTheme('light'));
+                darkBox.addEventListener('click', () => selectTheme('dark'));
+
+                console.log("themeRadios:", themeRadios);
+                console.log("languageSelect:", languageSelect);
+                // 테마 선택 변경 시 서버에 업데이트
+                themeRadios.forEach(radio => {
+                    radio.addEventListener("change", () => {
+                        const isWhiteTheme = radio.value === "light";
+                        fetch("/app/partials/settings/update_theme/", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": getCSRFToken()
+                            },
+                            body: JSON.stringify({ is_white_theme: isWhiteTheme })
+                        }).then(response => {
+                            if (!response.ok) throw new Error("Theme update failed.");
+                            console.log("Theme updated successfully.");
+                        }).catch(err => console.error(err));
+                    });
+                });
+
+                // 언어 선택 변경 시 서버에 업데이트
+                languageSelect.addEventListener("change", () => {
+                    const selectedLanguage = languageSelect.value;
+                    fetch("/app/partials/settings/update_language/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCSRFToken()
+                        },
+                        body: JSON.stringify({ country_id: selectedLanguage })
+                    }).then(response => {
+                        if (!response.ok) throw new Error("Language update failed.");
+                        console.log("Language updated successfully.");
+                    }).catch(err => console.error(err));
+                });
+            }
+
+            // 5) Profile Panel
+            const profilePanel = document.getElementById("profilePanel");
+            if (profilePanel) {
+                console.log("[profile] panel detected!");
+
+                const profileImage = document.getElementById("profile-image");
+                const popup = document.getElementById("image-popup");
+                const popupImages = document.querySelectorAll(".popup-image");
+                
+                // 프로필 이미지를 클릭하면 팝업 표시
+                profileImage.addEventListener("click", function () {
+                    popup.classList.remove("hidden");
+                });
+
+                // 팝업 이미지 클릭 시 서버로 thumbnail_id 업데이트
+                popupImages.forEach(image => {
+                    image.addEventListener("click", function () {
+                        const selectedId = this.dataset.id;
+
+                        // 서버로 AJAX 요청
+                        fetch("/app/partials/profile/update_thumbnail/", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": getCSRFToken()
+                            },
+                            body: JSON.stringify({ thumbnail_id: selectedId })
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    // 성공 시 프로필 이미지 업데이트
+                                    profileImage.src = `/static/images/profiles/profile_${selectedId}.jpg`;
+                                    popup.classList.add("hidden");
+                                } else {
+                                    alert("Failed to update profile image: " + data.error);
+                                }
+                            })
+                            .catch(err => {
+                                console.error("Error updating profile image:", err);
+                            });
+                    });
+                });
+
+                // 팝업 외부 클릭 시 닫기
+                popup.addEventListener("click", function (e) {
+                    if (e.target === popup) {
+                        popup.classList.add("hidden");
+                    }
+                });
+
+                // 1) 닉네임 수정
+                const nicknameText  = document.getElementById('nickname-text');
+                const nicknameInput = document.getElementById('nickname-input');
+                const editButton    = document.getElementById('edit-btn');
+                const logoutBtn     = document.getElementById("logout-btn");
+
+                let oldNickname = nicknameText ? nicknameText.textContent : "";
+
+                let escNote = document.createElement("div");
+                escNote.style.color = "#999";      // 예시 스타일
+                escNote.style.fontSize = "0.9rem"; // 예시
+                escNote.textContent = "(ENTER: edit / ESC: cancel)";
+
+                if (editButton && nicknameText && nicknameInput) {
+                    editButton.addEventListener("click", function() {
+                        // 연필 버튼 클릭 시
+                        oldNickname = nicknameText.textContent; // 현재 닉네임 저장
+                        nicknameText.classList.add("hidden");   // 숨김
+                        nicknameInput.classList.remove("hidden");
+                        nicknameInput.value = oldNickname;      // 입력창 초기값
+                        nicknameInput.focus();
+
+                        const wrapper = document.querySelector(".nickname-wrapper");
+                        if (wrapper) {
+                            wrapper.appendChild(escNote);
+                        }
+                    });
+
+                    // (1) Enter -> 저장
+                    nicknameInput.addEventListener("keydown", function(e) {
+                        if (e.key === "Enter") {
+                            const newNickname = nicknameInput.value.trim();
+                            if (newNickname) {
+                                nicknameText.textContent = newNickname;
+                            }
+                            nicknameText.classList.remove("hidden");
+                            nicknameInput.classList.add("hidden");
+
+                            // 안내 문구 제거
+                            removeEscNote();
+
+                            // 서버로 AJAX 요청
+                            fetch("/app/partials/profile/update_nickname/", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken": getCSRFToken(),
+                                },
+                                body: JSON.stringify({ nickname: newNickname }),
+                            })
+                            .then((response) => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.json(); // JSON 파싱
+                            })
+                            .then((data) => {
+                                if (data.success) {
+                                    // 성공 시 UI 업데이트
+                                    nicknameText.textContent = newNickname;
+                                } else {
+                                    alert("닉네임 수정 실패: " + (data.error || "알 수 없는 오류"));
+                                }
+                            })
+                            .catch((err) => {
+                                console.error("서버 통신 오류:", err);
+                                alert("서버 통신 오류: " + err.message);
+                            })
+                            .finally(() => {
+                                // 입력창 숨기고 라벨 보이기
+                                nicknameInput.classList.add("hidden");
+                                nicknameText.classList.remove("hidden");
+                            });
+                        }
+                        // (2) ESC -> 취소 (원래 닉네임 복원)
+                        else if (e.key === "Escape") {
+                            nicknameInput.value = oldNickname;
+                            nicknameText.classList.remove("hidden");
+                            nicknameInput.classList.add("hidden");
+
+                            // 안내 문구 제거
+                            removeEscNote();
+                        }
+                    });
+                }
+
+                // (4) 안내 문구 제거 함수
+                function removeEscNote() {
+                    if (escNote && escNote.parentNode) {
+                        escNote.parentNode.removeChild(escNote);
+                    }
+                }
+
+                // (5) 로그아웃 버튼
+                if (logoutBtn) {
+                    logoutBtn.addEventListener("click", function() {
+                        alert("로그아웃 처리 로직을 구현해주세요.");
+                        window.location.href = "/";
+                    });
+                }
+
+                // 로그아웃 버튼 예시
+                if (logoutBtn) {
+                    logoutBtn.addEventListener("click", function() {
+                        alert("로그아웃 처리 로직을 구현해주세요.");
+                        window.location.href = "/";
+                    });
+                }
+            }
+
+            // 6) 채팅 입력창 로직
             const inputBar = document.getElementById("input_bar");            
             const chatMessages = document.getElementById("chat-messages");
             const deleteBtn = document.querySelector('.delete-btn');
@@ -575,15 +863,14 @@
                 deleteBtn.addEventListener('click', showPopup);
             }
 
-            // newChatMessage 이벤트 처리
+            // 새 메시지 이벤트
             document.addEventListener("newChatMessage", function (e) {
                 const newMessage = document.createElement('div');
-                newMessage.className = 'bubble user'; // 사용자 메시지 스타일
+                newMessage.className = 'bubble user';
                 newMessage.innerHTML = e.detail.replace(/\n/g, "<br>");
                 if (chatMessages) chatMessages.prepend(newMessage);
             });
 
-            // 만약 inputBar, chatMessages가 없으면 채팅 로직 패스
             if (!inputBar || !chatMessages) return;
 
             function sendMessage() {
@@ -593,16 +880,24 @@
                 const newMessage = document.createElement("div");
                 newMessage.className = "bubble user";
                 newMessage.innerHTML = message.replace(/\n/g, "<br>");
-
-                newMessage.style.display = "inline-block";
-                newMessage.style.maxWidth = "80%";
-                newMessage.style.wordWrap = "break-word";
-                newMessage.style.lineHeight = "1.4";
-
-                chatMessages.prepend(newMessage); 
+                chatMessages.appendChild(newMessage); 
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-
                 inputBar.value = "";
+                
+                const contentEl = document.getElementById("chatContentData"); 
+                if (contentEl) {
+                    const rawChatContent = contentEl.textContent.trim();
+                    const decoded = rawChatContent
+                        .replace(/\\u003C/g, "<")
+                        .replace(/\\u003E/g, ">")
+                        .replace(/\\u000D/g, "\r")
+                        .replace(/\\u000A/g, "\n");
+                    if (decoded) {
+                        updateMessage = decoded + "\n<나>" + newMessage.innerHTML;
+                        console.log("updateMessage:" + updateMessage);
+                    }
+                }
+                
                 resizeInput();
             }
 
@@ -619,27 +914,77 @@
                 }
             }
 
-            // Enter / Shift+Enter 처리
             inputBar.addEventListener("keydown", function (e) {
                 if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
+                    e.preventDefault();                    
                     sendMessage();
-                } 
-                else if (e.key === "Enter" && e.shiftKey) {
+                } else if (e.key === "Enter" && e.shiftKey) {
                     e.preventDefault();
                     const cursorPosition = inputBar.selectionStart;
                     inputBar.value =
-                        inputBar.value.slice(0, cursorPosition) + "\n" 
+                        inputBar.value.slice(0, cursorPosition) + "\n"
                         + inputBar.value.slice(cursorPosition);
                     resizeInput();
                 }
             });
-
             inputBar.addEventListener("input", resizeInput);
             resizeInput();
         });
 
-        
+        // ----------------------------
+        // parseAndDisplayChatContent
+        // ----------------------------
+        function parseAndDisplayChatContent(chatContent) {
+            if (!chatContent) return;
+
+            // <나>…<봇>… 로 split
+            let tokens = chatContent.split(/(<나>|<봇>)/g);
+            let conversation = [];
+            let currentSpeaker = null;
+
+            tokens.forEach(token => {
+                token = token.trim();
+                if (token === "<나>") {
+                    currentSpeaker = "user";
+                } else if (token === "<봇>") {
+                    currentSpeaker = "bot";
+                } else {
+                    if (token && currentSpeaker) {
+                        conversation.push({
+                            speaker: currentSpeaker,
+                            text: token
+                        });
+                    }
+                }
+            });        
+            console.log("DEBUG: conversation", conversation);
+
+            // DOM에 말풍선 생성
+            const chatMessages = document.getElementById("chat-messages");
+            if (!chatMessages) return;
+            chatMessages.innerHTML = "";
+            conversation.forEach(msg => {
+                const bubble = document.createElement("div");
+                bubble.classList.add("bubble");
+                if (msg.speaker === "user") {
+                    bubble.classList.add("left-bubble");
+                } else {
+                    bubble.classList.add("right-bubble");
+                }
+                bubble.textContent = msg.text;
+
+                chatMessages.appendChild(bubble);
+            });
+        }
+        function getCSRFToken() {
+            const cookies = document.cookie.split("; ");
+            for (let cookie of cookies) {
+                if (cookie.startsWith("csrftoken=")) {
+                    return cookie.split("=")[1];
+                }
+            }
+            return null;
+        }
     </script>
 </body>
 </html>
