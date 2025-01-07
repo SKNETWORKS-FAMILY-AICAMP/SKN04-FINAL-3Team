@@ -47,7 +47,14 @@
                         >
                     </div>
                     <button id="edit-btn" class="edit-btn">
-                        <img src="{% static 'images/edit.png' %}" alt="Edit" width="16px" height="16px">
+                        <img 
+                            src="{% if settings.is_white_theme %}{% static 'images/edit_light.png' %}{% else %}{% static 'images/edit_dark.png' %}{% endif %}" 
+                            data-light="{% static 'images/edit_light.png' %}" 
+                            data-dark="{% static 'images/edit_dark.png' %}" 
+                            alt="Edit"
+                            style="width: 16px; height: 16px;"
+                            class="edit-icon"
+                        >
                     </button>
                 </div>
             </div>            

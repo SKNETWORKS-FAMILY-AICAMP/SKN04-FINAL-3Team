@@ -153,6 +153,12 @@
                 const newSrc = isLightTheme ? icon.getAttribute("data-light") : icon.getAttribute("data-dark");
                 icon.setAttribute("src", newSrc);
             });
+
+            const editIcon = document.querySelector(".edit-icon");
+            if (editIcon) {
+                const newEditSrc = isLightTheme ? editIcon.getAttribute("data-light") : editIcon.getAttribute("data-dark");
+                editIcon.setAttribute("src", newEditSrc);
+            }
         }
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -160,6 +166,7 @@
             
             // 지도 초기화
             initializeMap();
+            updateIconsBasedOnTheme();
 
             let currentPath = window.location.pathname;
 
@@ -420,12 +427,11 @@
                                                 alt="folder" width="50px" height="50px">
                                             &nbsp;&nbsp;&nbsp;&nbsp;${textValue}
                                             <img src="${isLightTheme ? "/static/images/delete_light.png" : "/static/images/delete_dark.png"}"
-                                                alt="delete" width="50px" height="50px" class="delete-icon">
-                `;
+                                                alt="delete" width="50px" height="50px" class="delete-icon" data-id="${data.folderId}">
+                                        `;
                                         folderList.replaceChild(newItem, inputItem);
-                                        attachDeleteEvent(newItem, folderList, plusPlace);
+                                        attachDeleteEvent(newItem); // 삭제 이벤트 연결
                                         updateFolderListUI(folderList, plusPlace);
-
                                         console.log("폴더 생성 성공:", data.folderId);
                                     } else {
                                         alert("폴더 생성 실패: " + (data.error || data.message));
@@ -509,33 +515,31 @@
                                     }
                                     return response.json();
                                 })
-                                .then(data => {
+                                .then((data) => {
                                     if (data.success) {
-                                        // -----------------------------
-                                        // 2) 생성 성공 시, UI에 반영
-                                        // -----------------------------
+                                        // 생성 성공 시, 새 일정 아이템 생성
                                         const newItem = document.createElement("div");
                                         newItem.className = "folder-item";
                                         newItem.innerHTML = `
                                             <img src="${isLightTheme ? "/static/images/schedule_light.png" : "/static/images/schedule_dark.png"}"
-                                                alt="folder" width="50px" height="50px">
+                                                alt="schedule" width="50px" height="50px">
                                             &nbsp;&nbsp;&nbsp;&nbsp;${textValue}
                                             <img src="${isLightTheme ? "/static/images/delete_light.png" : "/static/images/delete_dark.png"}"
-                                                alt="delete" width="50px" height="50px" class="delete-icon">
+                                                alt="delete" width="50px" height="50px" class="delete-icon" data-id="${data.folderId}">
                                         `;
                                         scheduleList.replaceChild(newItem, inputItem);
 
-                                        attachDeleteEvent(newItem, scheduleList, plusSchedule);
+                                        attachDeleteEvent(newItem); // 삭제 이벤트 연결
                                         updateFolderListUI(scheduleList, plusSchedule);
 
-                                        console.log("일정 폴더 생성 성공:", data.folderId);
-                                    } else {
-                                        // 실패 시 → 입력창 삭제
-                                        alert("폴더 생성 실패: " + (data.error || data.message));
+                                        console.log("일정 생성 성공:", data.folderId);
+                                    } 
+                                    else {
+                                        alert("일정 생성 실패: " + (data.error || "알 수 없는 오류"));
                                         scheduleList.removeChild(inputItem);
                                     }
                                 })
-                                .catch(err => {
+                                .catch((err) => {
                                     console.error("서버 통신 오류:", err);
                                     scheduleList.removeChild(inputItem);
                                 });
@@ -604,7 +608,8 @@
                     .then(data => {
                         if (data.success) {
                             // (C) 성공하면 UI에서 제거
-                            parentList.removeChild(folderItem);
+                            folderItem.remove();
+                            // parentList.removeChild(folderItem);
                             updateFolderListUI(parentList, plusButton);
                             console.log("북마크 삭제 성공:", bookmarkId);
                         } else {
