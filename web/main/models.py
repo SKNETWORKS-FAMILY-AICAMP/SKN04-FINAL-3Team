@@ -42,7 +42,7 @@ class Country(models.Model):
 
 class Settings(models.Model):
     profile = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    country = models.ForeignKey(Country, on_delete=models.SET_DEFAULT, default="US")
     is_white_theme = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

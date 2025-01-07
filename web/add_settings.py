@@ -9,7 +9,7 @@ from main.models import Settings, CustomUser, Country
 
 # Settings 레코드 추가
 settings = [
-    Settings(profile_id=CustomUser.objects.get(username="user1"), country_id=Country.objects.get(country_id="KR"), is_white_theme=True),
+    Settings(profile_id=CustomUser.objects.get(username="user1"), country_id=Country.objects.get(country_id="CN"), is_white_theme=True),
     Settings(profile_id=CustomUser.objects.get(username="user2"), country_id=Country.objects.get(country_id="US"), is_white_theme=False),
     Settings(profile_id=CustomUser.objects.get(username="user3"), country_id=Country.objects.get(country_id="JP"), is_white_theme=True),
 ]

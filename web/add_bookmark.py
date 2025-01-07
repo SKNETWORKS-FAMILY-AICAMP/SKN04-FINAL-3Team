@@ -9,9 +9,15 @@ from main.models import Bookmark, CustomUser
 
 # Bookmark 레코드 추가
 bookmarks = [
-    {"bookmark_id": "bm_00001", "username": "user1", "title": "서울 명소 즐겨찾기", "is_place": True},
-    {"bookmark_id": "bm_00002", "username": "user2", "title": "뉴욕 명소 즐겨찾기", "is_place": True},
-    {"bookmark_id": "bm_00003", "username": "user3", "title": "도쿄 명소 즐겨찾기", "is_place": True},
+    {"bookmark_id": "bm_00001", "username": "user1", "title": "국립중앙박물관", "is_place": True},
+    {"bookmark_id": "bm_00002", "username": "user2", "title": "이태원", "is_place": True},
+    {"bookmark_id": "bm_00003", "username": "user3", "title": "남산스", "is_place": True},
+    {"bookmark_id": "bm_00004", "username": "user1", "title": "용산 전자 상가", "is_place": True},
+    {"bookmark_id": "bm_00005", "username": "user1", "title": "한강", "is_place": True},
+    {"bookmark_id": "bm_00006", "username": "user1", "title": "용산 투어", "is_place": False},
+    {"bookmark_id": "bm_00007", "username": "user1", "title": "명동 일정", "is_place": False},
+    {"bookmark_id": "bm_00008", "username": "user1", "title": "서울", "is_place": False},
+    {"bookmark_id": "bm_00009", "username": "user1", "title": "종로구", "is_place": False},
 ]
 
 for data in bookmarks:
