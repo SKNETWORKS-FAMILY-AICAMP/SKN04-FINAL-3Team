@@ -2,7 +2,112 @@
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
+    color: #000;
     margin: 0;
+}
+
+.theme-box {
+    border: 2px solid #000;
+}
+
+.panel {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+}
+
+/* 어두운 테마 */
+[data-theme="dark"] {
+    background-color: #121212;
+    color: #fff;
+}
+
+[data-theme="dark"] .theme-box {
+    border: 2px solid #fff;
+}
+
+[data-theme="dark"] .panel {
+    background-color: #222;
+    border: 1px solid #444;
+}
+
+/* Sidebar 변경 */
+[data-theme="dark"] .sidebar {
+    background-color: #1e1e1e;
+    color: #fff;
+}
+
+[data-theme="dark"] .sidebar button {
+    color: white;
+    background-color: transparent;
+    border: none;
+}
+
+[data-theme="dark"] .sidebar button:hover {
+    background-color: #333;
+}
+
+[data-theme="dark"] .sidebar button.active {
+    background-color: #3a3a3a;
+}
+
+/* 채팅창 */
+[data-theme="dark"] #chat-messages {
+    background-color: #222;
+    color: #ccc;
+    border: 1px solid #444;
+}
+
+/* 팝업창 */
+[data-theme="dark"] .popup-content {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+/* 스크롤바 스타일 */
+[data-theme="dark"] #chat-messages::-webkit-scrollbar-thumb {
+    background-color: #555;
+}
+
+[data-theme="dark"] #chat-messages::-webkit-scrollbar-track {
+    background-color: #2a2a2a;
+}
+
+.settings-panel {
+    background-color: #ffffff;
+    color: #000000;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.settings-panel h1,
+.settings-panel label {
+    color: #333;
+}
+
+.settings-panel select,
+.settings-panel button {
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+.top-menu {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+}
+
+[data-theme="dark"] .top-menu {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    background-color: #222;
+    border-bottom: 1px solid #444;
+    padding: 10px 0;
 }
 
 @font-face {
@@ -47,8 +152,13 @@ body {
 /* 입력창 컨테이너 */
 .input-container {
     padding: 10px;
-    border-top: 1px solid #ddd;
-    background-color: #f4f4f4;
+    border: 1px solid #ddd;
+}
+
+[data-theme="dark"] .input-container {
+    padding: 10px;
+    border-top: 1px solid #444;
+    background-color: #222;
 }
 
 .container {
@@ -64,8 +174,7 @@ body {
     display: flex;
     flex-direction: column;
     padding: 10px 0;
-    /* width: 67px; */
-    /* border-right: 2px solid #ddd; */
+    border-right: 1px solid #444;
 }
 
 .sidebar button {
@@ -111,6 +220,16 @@ body {
     background-color: #ffffff;
 }
 
+[data-theme="dark"] .content1 {
+    position: relative;
+    width: 400px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #222;
+    background-color: #222;
+}
+
 .nav-btn.active {
     background-color: #ccc;  /* 더 짙은 회색 */
     cursor: default;         /* 일반 화살표로 */
@@ -122,12 +241,25 @@ body {
     font-size: 24px; /* 아이콘 크기만 조정 */
 }
 
-/* 채팅 헤더 */
 #chat-header {
     padding: 10px;
-    background: #f4f4f4;
-    border-bottom: 1px solid #ddd;
     font-weight: bold;
+    font-size: 1.5rem;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-left: 10px;
+}
+
+[data-theme="dark"] #chat-header {
+    padding: 10px;
+    background: #222;
+    border-bottom: 1px solid #222;
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #c1c1c1;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-left: 10px;
 }
 
 #map {

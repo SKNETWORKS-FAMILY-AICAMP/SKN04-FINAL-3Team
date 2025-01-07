@@ -27,7 +27,15 @@
     margin-bottom: 20px;
 }
 
-/* 상단 “장소”, “일정” 버튼 영역 */
+[data-theme="dark"] .panel h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding-left: 10px;
+    color: #c1c1c1;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
 .top-menu {
     display: flex;
     justify-content: space-evenly;
@@ -35,6 +43,15 @@
     background-color: #fff;
     /* 아래쪽 테두리 */
     border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+}
+
+[data-theme="dark"] .top-menu {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    background-color: #222;
+    border-bottom: 1px solid #444;
     padding: 10px 0;
 }
 
@@ -55,8 +72,20 @@
     border-bottom: 1px solid #ddd;
 }
 
+[data-theme="dark"] .chat-item {
+    cursor: pointer;
+    padding: 15px 0px 15px 30px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #444;
+}
+
 .chat-item:hover {
     background-color: #f0f0f0;
+}
+
+[data-theme="dark"] .chat-item:hover {
+    background-color: #555555d4;
 }
 
 .left-bubble {
