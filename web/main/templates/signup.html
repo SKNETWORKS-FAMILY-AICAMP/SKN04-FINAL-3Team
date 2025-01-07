@@ -6,37 +6,164 @@
     <title>Sign Up</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/signup.css' %}">
-</head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head> 
 <body>
-    <div class="signup-container">
-        <h2>Sign Up</h2>
-        <form>
-            <div class="form-group">
-                <label for="username">ID</label>
-                <input type="text" id="id" name="id" placeholder="Enter your ID" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required>
-            </div>
-            <div class="form-group">
-                <label for="nickname">Nickname</label>
-                <input type="text" id="nickname" name="nickname" placeholder="Enter your nickname" required>
-            </div>
+    <div class="signup-container-wrapper">
+        <div class="signup-container">
+            <h2>Sign Up</h2>
+            <form id="signup-form" onsubmit="submitSignup(event)">
+                <div class="form-group">
+                    <label for="username">ID</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your ID" maxlength="20" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" maxlength="20" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" maxlength="20" required>
+                </div>
+                <!-- <div class="form-group">
+                    <label for="nickname">Nickname</label>
+                    <input type="text" id="nickname" name="nickname" placeholder="Enter your nickname" maxlength="10" required>
+                </div> -->
+                <div class="form-group">
+                    <label for="birthday">Birthday</label>
+                    <input type="text" id="birthday" name="birthday" placeholder="YYYY-MM-DD" required>
+                </div>
+                <div class="form-group">
+                    <label for="nationality">Nationality</label>
+                    <select id="nationality" name="nationality" required>
+                        <option value="" disabled selected>-------------------------------------------------------------------------------------</option>
+                        {% for country in countries %}
+                            <option value="{{ country.country_id }}">{{ country.country_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>                
+                <div class="alert" style="width: 100%; margin-bottom: 15px; padding-left: 5px; color: red;"></div>
+                <div class="form-group">
+                    <button type="submit">Sign Up</button>
+                </div>
+            </form>
+            <p>Already have an account? <a href="../login">Log In</a></p>
+
             <!-- 언어 선택 -->
-            <div class="section">
-                <label for="language">Language</label>
+            <div class="language-select">
                 <select id="language">
-                    <option value="en">English</option>
-                    <option value="kr">Korean</option>
-                    <option value="jp">Japanese</option>
+                    {% for country in countries %}
+                        <option value="{{ country.language }}">{{ country.language }}</option>
+                    {% endfor %}
                 </select>
             </div>
-            <div class="form-group">
-                <button type="submit">Sign Up</button>
-            </div>
-        </form>
-        <p>Already have an account? <a href="../login">Log In</a></p>
+        </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script>
+        // flatpickr 기본 설정
+        const birthdayPicker = flatpickr("#birthday", {
+            dateFormat: "Y-m-d",
+            maxDate: "today",
+        });
+    
+        // 언어 매핑
+        const languageMap = {
+            US: "default", // 영어
+            KR: "ko",      // 한국어
+            JP: "ja",      // 일본어
+            CN: "zh",      // 중국어
+            ES: "es",      // 스페인어 (예시로 추가)
+        };
+    
+        // 언어 변경 이벤트 처리
+        document.getElementById("language").addEventListener("change", function () {
+            const selectedLanguage = this.value; // 선택된 언어 코드
+            const locale = languageMap[selectedLanguage] || "default";
+            birthdayPicker.set("locale", locale); // flatpickr 언어 설정
+        });
+
+        function submitSignup(event) {
+            event.preventDefault();
+
+            const usernameField = document.getElementById("username");
+            const passwordField = document.getElementById("password");
+            const confirmPasswordField = document.getElementById("confirm-password");
+            const alertDiv = document.querySelector(".alert");
+
+            // 비밀번호와 비밀번호 확인 검증
+            if (passwordField.value !== confirmPasswordField.value) {
+                // 경고 메시지 설정 및 표시
+                alertDiv.textContent = "Passwords do not match!";
+                alertDiv.style.visibility = "visible";
+
+                // 비밀번호 필드에 포커스 및 스타일 적용
+                passwordField.focus();
+                passwordField.style.border = "2px solid red";
+                confirmPasswordField.style.border = "2px solid red";
+                return; // 서버로 요청 보내지 않음
+            } else {
+                // 경고 메시지 숨기기
+                alertDiv.style.visibility = "hidden";
+                passwordField.style.border = ""; // 원래 스타일로 복구
+                confirmPasswordField.style.border = "";
+            }
+
+            const formData = {
+                username: usernameField.value,
+                password: passwordField.value,
+                confirm_password: confirmPasswordField.value,
+                nationality: document.getElementById("nationality").value,
+                birthday: document.getElementById("birthday").value,
+            };
+
+            fetch("{% url 'signup_process' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken"), // CSRF 토큰 설정
+                },
+                body: JSON.stringify(formData),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Sign up successful!\n Please sign in again");
+                        window.location.href = "{% url 'login' %}"; // 로그인 페이지로 이동
+                    } else {
+                        // 회원가입 실패 처리
+                        if (data.error === "ID already exists") {
+                            alertDiv.textContent = "This ID already exists!";
+                            alertDiv.style.visibility = "visible"; // 경고 메시지 표시
+                            usernameField.focus(); // ID 입력 필드에 포커스
+                            usernameField.style.border = "2px solid red"; // 테두리를 빨간색으로 변경
+                        } else {
+                            alert("Sign up failed: " + data.error);
+                        }
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== "") {
+                const cookies = document.cookie.split(";");
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === name + "=") {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
 </body>
 </html>

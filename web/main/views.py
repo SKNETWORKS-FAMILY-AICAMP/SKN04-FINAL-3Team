@@ -1,10 +1,13 @@
 from django.http import HttpResponseForbidden
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from main.models import Chatting, Bookmark, BookmarkList, Settings, Country
+from django.db import models
+from main.models import Chatting, Bookmark, Settings, Country, CustomUser
 from dotenv import load_dotenv
 import os
 import json
@@ -27,15 +30,87 @@ def main(request):
 
 # (1) login_view: GET이면 login.html 렌더링
 def login_view(request):
+    countries = get_nationalities()
+    
     if request.method == 'GET':
-        return render(request, 'login.html')
+        return render(request, 'login.html', {
+            'countries': countries,  # 템플릿에 전달
+        })
     else:
         # 혹시 POST로 왔다면 login_process로 넘긴다
         return redirect('login_process')
 
 
 def signup(request):
-    return render(request, 'signup.html')
+    countries = get_nationalities()
+    return render(request, 'signup.html', {
+        'countries': countries,  # 템플릿에 전달
+    })
+
+
+def get_nationalities():
+    countries = Country.objects.filter().order_by(
+        models.Case(
+            models.When(country_id="US", then=0),
+            models.When(country_id="KR", then=1),
+            models.When(country_id="CN", then=2),
+            models.When(country_id="JP", then=3),
+            default=4,
+        )
+    )
+    return countries
+
+
+@csrf_exempt
+def signup_process(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+
+            # 필수 입력값 검증
+            username = data.get("username", "").strip()
+            password = data.get("password", "").strip()
+            confirm_password = data.get("confirm_password", "").strip()
+            # nickname = data.get("nickname", "").strip()
+            nationality = data.get("nationality", "").strip()
+            birthday = data.get("birthday", "").strip()
+
+            # 필수 필드 확인
+            if not username or not password or not confirm_password or not nationality or not birthday:
+                return JsonResponse({"success": False, "error": "모든 필드를 채워주세요."}, status=400)
+
+            # 아이디 중복 체크
+            if CustomUser.objects.filter(username=username).exists():
+                return JsonResponse({"success": False, "error": "ID already exists"}, status=400)
+            
+             # 비밀번호와 비밀번호 확인 일치 여부 확인
+            if password != confirm_password:
+                return JsonResponse({"success": False, "error": "Passwords do not match"}, status=400)
+
+            # 사용자 생성
+            new_user = CustomUser.objects.create(
+                username=username,
+                password=make_password(password),  # 비밀번호 해시 처리
+                # nickname=nickname,
+                country_id=nationality,
+                birthday=birthday,
+            )
+
+            # Settings 테이블에 기본 설정 생성
+            default_country = Country.objects.get(country_id=nationality)  # 가입한 국가와 연결
+            Settings.objects.create(
+                profile=new_user,
+                country=default_country,  # 사용자의 국가 정보
+                is_white_theme=True  # 기본값으로 White Theme 설정
+            )
+
+            return JsonResponse({"success": True})
+        except Country.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Invalid nationality"}, status=400)
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
+    else:
+        return JsonResponse({"success": False, "error": "POST 요청만 허용됩니다."}, status=405)
 
 
 # (2) login_process: 아이디/비번 둘 다 있으면 /app/profile/로 리다이렉트

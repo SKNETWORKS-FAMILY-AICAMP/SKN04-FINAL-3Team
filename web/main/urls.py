@@ -10,6 +10,7 @@ urlpatterns = [
     path('login_process/', views.login_process, name='login_process'),
     path('logout/', views.logout_view, name='logout_view'),
     path('signup/', views.signup, name='signup'),
+    path('signup_process/', views.signup_process, name='signup_process'),
 
     # Partial 전용 라우트
     path('app/partials/planner/', views.planner, name='planner'),
