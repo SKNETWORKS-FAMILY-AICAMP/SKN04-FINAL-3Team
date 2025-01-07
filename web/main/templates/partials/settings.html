@@ -13,18 +13,23 @@
                 <div class="theme-options">
                     <!-- Light Theme -->
                     <div class="theme-item">
-                        <div id="light" class="theme-box {% if settings and settings.is_white_theme %}selected{% endif %}"></div>
                         <label>
-                            <input type="radio" name="theme" value="light" {% if settings and settings.is_white_theme %}checked{% endif %}>
-                            Light
+                            <div id="light" class="theme-box {% if settings and settings.is_white_theme %}selected{% endif %}"></div>
+                            <div>
+                                <span>Light</span>
+                                <input type="radio" name="theme" value="light" {% if settings and settings.is_white_theme %}checked{% endif %}>
+                            </div>
                         </label>
                     </div>
                     <!-- Dark Theme -->
                     <div class="theme-item">
-                        <div id="dark" class="theme-box {% if settings and not settings.is_white_theme %}selected{% endif %}"></div>
                         <label>
-                            <input type="radio" name="theme" value="dark" {% if settings and not settings.is_white_theme %}checked{% endif %}>
-                            Dark
+                            <div id="dark" class="theme-box {% if settings and not settings.is_white_theme %}selected{% endif %}"></div>
+                            <div>
+                                <span>Dark</span>
+                                <input type="radio" name="theme" value="dark" {% if settings and not settings.is_white_theme %}checked{% endif %}>
+                            </div>
+                            </input>
                         </label>
                     </div>
                 </div>

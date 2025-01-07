@@ -14,6 +14,7 @@
                         id="profile-image" 
                         src="{% if profile_user.thumbnail_id %}{% static 'images/profiles/profile_' %}{{ profile_user.thumbnail_id }}.jpg{% else %}{% static 'images/profile.png' %}{% endif %}" 
                         alt="Profile Image"
+                        style="cursor: pointer;"
                     >
                 </div>
                 <!-- 팝업 창 -->

@@ -8,31 +8,49 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body>
+<body data-theme="{% if settings.is_white_theme %}light{% else %}dark{% endif %}">
     <div class="container">
-        <div class="sidebar" id="sidebar" style="width: 100px; border-right: 1px solid #ddd;">
+        <div class="sidebar" id="sidebar">
             <button class="nav-btn" id="home-btn">
-                <img src="{% static 'images/nav/nav_home.png' %}" style="width: 30px; height: 30px;">
+                <img class="nav-icon" data-light="{% static 'images/nav/nav_home_light.png' %}" 
+                     data-dark="{% static 'images/nav/nav_home_dark.png' %}" 
+                     src="{% static 'images/nav/nav_home_light.png' %}" 
+                     style="width: 30px; height: 30px;">
                 <br>Home
             </button>
             <button class="nav-btn" data-url="/app/planner/">
-                <img src="{% static 'images/nav/nav_planner.png' %}" style="width: 30px; height: 30px;">
+                <img class="nav-icon" data-light="{% static 'images/nav/nav_planner_light.png' %}" 
+                     data-dark="{% static 'images/nav/nav_planner_dark.png' %}" 
+                     src="{% static 'images/nav/nav_planner_light.png' %}" 
+                     style="width: 30px; height: 30px;">
                 <br>Planner
             </button>
             <button class="nav-btn" data-url="/app/chatting/">
-                <img src="{% static 'images/nav/nav_chattings.png' %}" style="width: 30px; height: 30px;">
+                <img class="nav-icon" data-light="{% static 'images/nav/nav_chattings_light.png' %}" 
+                     data-dark="{% static 'images/nav/nav_chattings_dark.png' %}" 
+                     src="{% static 'images/nav/nav_chattings_light.png' %}" 
+                     style="width: 30px; height: 30px;">
                 <br>Chatting
             </button>
             <button class="nav-btn" data-url="/app/favorites/">
-                <img src="{% static 'images/nav/nav_favorites.png' %}" style="width: 30px; height: 30px;">
+                <img class="nav-icon" data-light="{% static 'images/nav/nav_favorites_light.png' %}" 
+                     data-dark="{% static 'images/nav/nav_favorites_dark.png' %}" 
+                     src="{% static 'images/nav/nav_favorites_light.png' %}" 
+                     style="width: 30px; height: 30px;">
                 <br>Favorites
             </button>
             <button class="nav-btn" data-url="/app/settings/">
-                <img src="{% static 'images/nav/nav_settings.png' %}" style="width: 30px; height: 30px;">
+                <img class="nav-icon" data-light="{% static 'images/nav/nav_settings_light.png' %}" 
+                     data-dark="{% static 'images/nav/nav_settings_dark.png' %}" 
+                     src="{% static 'images/nav/nav_settings_light.png' %}" 
+                     style="width: 30px; height: 30px;">
                 <br>Settings
             </button>
             <button class="nav-btn" data-url="/app/profile/">
-                <img src="{% static 'images/nav/nav_profile.png' %}" style="width: 30px; height: 30px;">
+                <img class="nav-icon" data-light="{% static 'images/nav/nav_profile_light.png' %}" 
+                     data-dark="{% static 'images/nav/nav_profile_dark.png' %}" 
+                     src="{% static 'images/nav/nav_profile_light.png' %}" 
+                     style="width: 30px; height: 30px;">
                 <br>Profile
             </button>
         </div>
@@ -127,10 +145,19 @@
                 .catch(error => console.error('Error loading content:', error));
         }
 
-        // ---------------------------
-        // (4) 페이지 로드 시 동작
-        // ---------------------------
+        function updateIconsBasedOnTheme() {
+            const isLightTheme = document.body.getAttribute("data-theme") === "light";
+            const navIcons = document.querySelectorAll(".nav-icon");
+
+            navIcons.forEach(icon => {
+                const newSrc = isLightTheme ? icon.getAttribute("data-light") : icon.getAttribute("data-dark");
+                icon.setAttribute("src", newSrc);
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
+            console.log("Initial theme:", document.body.getAttribute('data-theme'));
+            
             // 지도 초기화
             initializeMap();
 
@@ -198,6 +225,7 @@
             }
         });
 
+        
         function getCSRFToken() {
             const cookies = document.cookie.split("; ");
             for (let cookie of cookies) {
@@ -346,7 +374,6 @@
                             if (e.key === "Enter") {
                                 e.preventDefault();
                                 const textValue = inputElem.value.trim();
-
                                 isPlaceInputOpen = false;
 
                                 if (textValue === "") {
@@ -362,6 +389,7 @@
                                 const placesSection = document.getElementById("placesSection");
                                 // display가 "block"이면 true, 아니면 false
                                 const isPlaceVal = (placesSection && placesSection.style.display === "block");
+                                const isLightTheme = document.body.getAttribute("data-theme") === "light";
 
                                 // (B) 서버로 AJAX 호출
                                 fetch("/app/partials/favorites/add/", {
@@ -388,15 +416,12 @@
                                         const newItem = document.createElement("div");
                                         newItem.className = "folder-item";
                                         newItem.innerHTML = `
-                                            <img src="{% static 'images/folder.png' %}" width="50px" height="50px">
+                                            <img src="${isLightTheme ? "/static/images/folder_light.png" : "/static/images/folder_dark.png"}"
+                                                alt="folder" width="50px" height="50px">
                                             &nbsp;&nbsp;&nbsp;&nbsp;${textValue}
-                                            <img 
-                                                src="{% static 'images/delete.png' %}" 
-                                                alt="delete" 
-                                                class="delete-icon"
-                                                data-id="${data.folderId}"
-                                            >
-                                        `;
+                                            <img src="${isLightTheme ? "/static/images/delete_light.png" : "/static/images/delete_dark.png"}"
+                                                alt="delete" width="50px" height="50px" class="delete-icon">
+                `;
                                         folderList.replaceChild(newItem, inputItem);
                                         attachDeleteEvent(newItem, folderList, plusPlace);
                                         updateFolderListUI(folderList, plusPlace);
@@ -431,7 +456,7 @@
                         if (!scheduleList) return;
 
                         // 새 입력창 아이템
-                        const inputItem = document.createElement("div");
+                        const inputItem = document.createElement("div");                        
                         inputItem.className = "folder-item";
 
                         const inputElem = document.createElement("input");
@@ -452,6 +477,7 @@
                             if (e.key === "Enter") {
                                 e.preventDefault();
                                 const textValue = inputElem.value.trim();
+                                const isLightTheme = document.body.getAttribute("data-theme") === "light";
 
                                 isScheduleInputOpen = false;
 
@@ -491,14 +517,11 @@
                                         const newItem = document.createElement("div");
                                         newItem.className = "folder-item";
                                         newItem.innerHTML = `
-                                            <img src="{% static 'images/schedule.png' %}" width="50px" height="50px">
+                                            <img src="${isLightTheme ? "/static/images/schedule_light.png" : "/static/images/schedule_dark.png"}"
+                                                alt="folder" width="50px" height="50px">
                                             &nbsp;&nbsp;&nbsp;&nbsp;${textValue}
-                                            <img 
-                                                src="{% static 'images/delete.png' %}" 
-                                                alt="delete" 
-                                                class="delete-icon"
-                                                data-id="${data.folderId}"
-                                            >
+                                            <img src="${isLightTheme ? "/static/images/delete_light.png" : "/static/images/delete_dark.png"}"
+                                                alt="delete" width="50px" height="50px" class="delete-icon">
                                         `;
                                         scheduleList.replaceChild(newItem, inputItem);
 
@@ -651,25 +674,33 @@
                 lightBox.addEventListener('click', () => selectTheme('light'));
                 darkBox.addEventListener('click', () => selectTheme('dark'));
 
-                console.log("themeRadios:", themeRadios);
-                console.log("languageSelect:", languageSelect);
                 // 테마 선택 변경 시 서버에 업데이트
                 themeRadios.forEach(radio => {
                     radio.addEventListener("change", () => {
-                        const isWhiteTheme = radio.value === "light";
+                        const isLightTheme = radio.value === "light";
+                        document.body.setAttribute("data-theme", isLightTheme ? "light" : "dark");
+                        updateIconsBasedOnTheme();
+                        
                         fetch("/app/partials/settings/update_theme/", {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",
-                                "X-CSRFToken": getCSRFToken()
+                                "X-CSRFToken": getCSRFToken(),
                             },
-                            body: JSON.stringify({ is_white_theme: isWhiteTheme })
-                        }).then(response => {
-                            if (!response.ok) throw new Error("Theme update failed.");
-                            console.log("Theme updated successfully.");
-                        }).catch(err => console.error(err));
+                            body: JSON.stringify({ is_white_theme: isLightTheme }),
+                        })
+                            .then((response) => {
+                                if (!response.ok) {
+                                    throw new Error("Theme update failed.");
+                                }
+                                console.log("Theme updated successfully.");
+                            })
+                            .catch((err) => console.error("Error updating theme:", err));
                     });
                 });
+
+                const initialTheme = document.body.getAttribute("data-theme") === "light";
+                updateIconsBasedOnTheme(initialTheme);
 
                 // 언어 선택 변경 시 서버에 업데이트
                 languageSelect.addEventListener("change", () => {

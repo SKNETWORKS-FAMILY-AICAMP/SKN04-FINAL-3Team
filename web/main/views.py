@@ -18,14 +18,25 @@ load_dotenv()
 
 def spa(request):
     ncp_client_id = os.getenv('NCP_CLIENT_ID')  # 환경 변수에서 NCP_CLIENT_ID 가져오기
-    return render(request, 'spa_base.html', {
-        'ncp_client_id': ncp_client_id,  # 템플릿에 전달
-    })
+    context = {'ncp_client_id': ncp_client_id}  # 기본 컨텍스트
+    context.update(get_theme_context(request.user))  # 테마 정보 추가
+    return render(request, 'spa_base.html', context)
 
 
 # 메인 페이지
 def main(request):
     return render(request, 'main.html')  
+
+
+def get_theme_context(user):
+    if user.is_authenticated:
+        try:
+            settings = Settings.objects.get(profile=user)
+            return {"settings": settings}
+        except Settings.DoesNotExist:
+            pass
+    # 기본값으로 dark 테마 설정
+    return {"settings": {"is_white_theme": False}}
 
 
 # (1) login_view: GET이면 login.html 렌더링
@@ -140,6 +151,7 @@ def logout_view(request):
 @login_required
 @csrf_exempt
 def planner(request):
+    context = get_theme_context(request.user)  # 테마 정보 추가
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -166,19 +178,20 @@ def planner(request):
                 chat_content = chat.content
             except Chatting.DoesNotExist:
                 pass
-        return render(request, "partials/planner.html", {"chat_content": chat_content})
+        context.update({"chat_content": chat_content})  # 추가 정보 업데이트
+        return render(request, "partials/planner.html", context)
 
 
-# views.py에서 image_range를 context로 전달
 @login_required
 def profile(request):
+    context = get_theme_context(request.user)  # 테마 정보 추가
     profile_user = request.user
-    print(f"Thumbnail ID: {profile_user.thumbnail_id}")
     image_range = range(1, 11)  # 1부터 10까지의 숫자
-    return render(request, 'partials/profile.html', {
+    context.update({
         'profile_user': profile_user,
         'image_range': image_range,
-    })
+    })  # 추가 정보 업데이트
+    return render(request, 'partials/profile.html', context)
 
 
 @csrf_exempt
@@ -307,13 +320,15 @@ def update_language(request):
 
 @login_required
 def favorites_places(request):
+    context = get_theme_context(request.user)  # 테마 정보 추가
     user = request.user
     places = Bookmark.objects.filter(profile=user, is_place=True)
     schedules = Bookmark.objects.filter(profile=user, is_place=False)
-    return render(request, "partials/favorites_places.html", {
+    context.update({
         "places": places,
         "schedules": schedules,
-    })
+    })  # 추가 정보 업데이트
+    return render(request, "partials/favorites_places.html", context)
 
 
 @csrf_exempt
@@ -393,17 +408,13 @@ def delete_favorite(request):
 
 @login_required
 def chatting(request):
-    # 1) 현재 로그인 사용자: request.user (CustomUser 인스턴스)
+    context = get_theme_context(request.user)  # 테마 정보 추가
     user = request.user
-
-    # 2) 해당 사용자의 Chatting 레코드를 DB에서 조회
-    chattings = Chatting.objects.filter(profile=user).order_by('created_at')  
-    # 필요하다면 order_by('created_at') 또는 다른 조건으로 정렬 가능
-
-    # 3) 템플릿에 쿼리셋 전달
-    return render(request, 'partials/chatting.html', {
-        'chattings': chattings
-    }) 
+    chattings = Chatting.objects.filter(profile=user).order_by('created_at')
+    context.update({
+        'chattings': chattings,
+    })  # 추가 정보 업데이트
+    return render(request, 'partials/chatting.html', context)
 
 
 def admin_required(view_func):
