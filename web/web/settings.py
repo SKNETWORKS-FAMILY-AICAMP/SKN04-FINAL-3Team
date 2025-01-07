@@ -147,6 +147,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Session settings
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 1    # 1일 동안 세션 유지
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # 브라우저를 닫아도 세션 유지
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
