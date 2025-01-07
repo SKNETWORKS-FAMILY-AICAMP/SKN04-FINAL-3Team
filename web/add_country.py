@@ -12,10 +12,10 @@ Country.objects.all().delete()
 
 # 새로운 데이터 삽입
 countries = [
+    Country(country_id="US", country_name="USA", language="English"),
     Country(country_id="KR", country_name="대한민국", language="한국어"),
-    Country(country_id="US", country_name="미국", language="영어"),
-    Country(country_id="JP", country_name="일본", language="일본어"),
-    Country(country_id="CN", country_name="중국", language="중국어"),
+    Country(country_id="CN", country_name="中国", language="汉文"),
+    Country(country_id="JP", country_name="日本", language="日本語"),
 ]
 
 Country.objects.bulk_create(countries)
