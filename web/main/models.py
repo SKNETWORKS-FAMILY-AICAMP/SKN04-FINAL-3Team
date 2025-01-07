@@ -3,10 +3,10 @@ from django.db import models
 
 
 class CustomUser(AbstractUser):
-    country_id = models.CharField(max_length=50, null=True, blank=True)
-    birthday = models.DateField(null=True, blank=True)
+    country_id = models.CharField(max_length=50, null=True, blank=True, default="US")
+    birthday = models.DateField(null=True, blank=True, default="2000-01-01")
     nickname = models.CharField(max_length=50, null=True, blank=True)
-    thumbnail_id = models.IntegerField(null=True, blank=True)
+    thumbnail_id = models.IntegerField(null=True, blank=True, default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
     groups = models.ManyToManyField(
