@@ -23,8 +23,6 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;{{ place.title }}
                     <img src="{% static 'images/delete.png' %}" alt="delete" width="50px" height="50px" class="delete-icon" data-id="{{ place.bookmark }}">
                 </div>
-                {% empty %}
-                <p>저장된 장소가 없습니다.</p>
                 {% endfor %}
                 <!-- 새로운 폴더 만들기 버튼 -->
                 <div class="folder-item" id="plus-place">
@@ -43,8 +41,6 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;{{ schedule.title }}
                     <img src="{% static 'images/delete.png' %}" alt="delete" width="50px" height="50px" class="delete-icon" data-id="{{ schedule.bookmark }}">
                 </div>
-                {% empty %}
-                <p>저장된 일정이 없습니다.</p>
                 {% endfor %}
                 <!-- 새로운 일정 만들기 버튼 -->
                 <div class="folder-item" id="plus-schedule">
