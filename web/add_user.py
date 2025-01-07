@@ -9,9 +9,9 @@ django.setup()
 from main.models import CustomUser, Country
 
 users = [
-    {"username": "user1", "password": "password1", "email": "user1@example.com", "country_id": "KR"},
-    {"username": "user2", "password": "password2", "email": "user2@example.com", "country_id": "US"},
-    {"username": "user3", "password": "password3", "email": "user3@example.com", "country_id": "JP"},
+    {"username": "user1", "password": "pbkdf2_sha256$870000$wV43cxWfYHBeXIuvhUf3B7$Vl31ukoNg65jTcXRSTWZWLzulSLwMXPTvCvzQ312+NM=", "email": "user1@example.com", "country_id": "KR", "birthday": "2004-12-22", "thumbnail_id": 1, "nickname": "서울깍쟁이"},
+    {"username": "user2", "password": "pbkdf2_sha256$870000$wV43cxWfYHBeXIuvhUf3B7$Vl31ukoNg65jTcXRSTWZWLzulSLwMXPTvCvzQ312+NM=", "email": "user2@example.com", "country_id": "US", "birthday": "1997-05-14", "thumbnail_id": 1, "nickname": "kate"},
+    {"username": "user3", "password": "pbkdf2_sha256$870000$wV43cxWfYHBeXIuvhUf3B7$Vl31ukoNg65jTcXRSTWZWLzulSLwMXPTvCvzQ312+NM=", "email": "user3@example.com", "country_id": "JP", "birthday": "1999-02-01", "thumbnail_id": 1, "nickname": "富士山"},
 ]
 
 for user_data in users:
