@@ -27,7 +27,15 @@
     margin-bottom: 20px;
 }
 
-/* 구역(section) 기본 설정 */
+[data-theme="dark"] .panel h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding-left: 10px;
+    color: #c1c1c1;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
 .section {
     display: flex;
     flex-direction: column;
@@ -39,8 +47,16 @@
     justify-content: space-evenly;
     align-items: center;
     background-color: #fff;
-    /* 아래쪽 테두리 */
     border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+}
+
+[data-theme="dark"] .top-menu {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    background-color: #222;
+    border-bottom: 1px solid #444;
     padding: 10px 0;
 }
 
@@ -57,9 +73,22 @@
     margin: 0 5px;
 }
 
+[data-theme="dark"] .top-menu button {
+    width: 120px;
+    height: 50px;
+    background-color: #f7f7f7b3;
+    border: 1px solid #ccc;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 8px 16px;
+    margin: 0 5px;
+}
+
 .top-menu button:hover {
     background-color: #e0e0e0;
 }
+
 
 /* 폴더 목록 */
 .folder-list {
@@ -76,6 +105,23 @@
     display: flex;
     align-items: center;
     border-bottom: 1px solid #ddd;
+}
+
+[data-theme="dark"] .folder-item {
+    cursor: pointer;
+    padding: 15px 0px 15px 30px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e031;
+}
+
+[data-theme="dark"] .folder-item:hover{
+    cursor: pointer;
+    padding: 15px 0px 15px 30px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e031;
+    background-color: #555555d4;
 }
 
 .folder-item:hover {
