@@ -438,6 +438,36 @@ def chatting(request):
     return render(request, 'partials/chatting.html', context)
 
 
+@csrf_exempt
+@login_required
+def delete_chat(request):
+    """
+    채팅 삭제 API
+    POST 요청:
+    {
+        "chatting_id": "chat_12345"
+    }
+    """
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            chatting_id = data.get("chatting_id")
+
+            if not chatting_id:
+                return JsonResponse({"success": False, "error": "Chat ID not provided."}, status=400)
+
+            # 현재 사용자의 채팅 확인 및 삭제
+            chat = Chatting.objects.filter(chatting_id=chatting_id, profile=request.user).first()
+            if not chat:
+                return JsonResponse({"success": False, "error": "Chat not found or unauthorized."}, status=404)
+
+            chat.delete()
+            return JsonResponse({"success": True, "message": "Chat deleted successfully."})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
+    return JsonResponse({"success": False, "error": "Invalid request method."}, status=405)
+
+
 def admin_required(view_func):
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated or not getattr(request.user, 'is_admin', False):

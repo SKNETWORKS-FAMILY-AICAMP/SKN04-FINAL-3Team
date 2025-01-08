@@ -287,7 +287,6 @@
                 }, 100);
             }
         });
-
         
         function getCSRFToken() {
             const cookies = document.cookie.split("; ");
@@ -357,6 +356,42 @@
             const chattingPanel = document.getElementById("chattingPanel");
             if (chattingPanel) {
                 console.log("[Chatting] panel detected!");
+
+                const deleteIcons = document.querySelectorAll(".delete-icon");
+
+                deleteIcons.forEach((icon) => {
+                    icon.addEventListener("click", async function (e) {
+                        e.stopPropagation();
+                        
+                        const chatId = this.dataset.chatId;
+                        if (!chatId) return;
+
+                        const confirmed = confirm("Are you sure you want to delete this chat?");
+                        if (!confirmed) return;
+
+                        try {
+                            const response = await fetch("/app/partials/chatting/delete/", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken": getCSRFToken(),
+                                },
+                                body: JSON.stringify({ chatting_id: chatId }),
+                            });
+
+                            const result = await response.json();
+                            if (result.success) {
+                                alert("Chat deleted successfully!");
+                                this.closest(".chat-item").remove(); // UI에서 삭제
+                            } else {
+                                alert(`Error: ${result.error || "Failed to delete chat."}`);
+                            }
+                        } catch (error) {
+                            console.error("Error deleting chat:", error);
+                            alert("An error occurred. Please try again.");
+                        }
+                    });
+                });
 
                 // chat-item 클릭 -> /app/planner/?chat_id=xxx 형태
                 document.querySelectorAll(".chat-item").forEach(item => {
@@ -1064,7 +1099,6 @@
                     }
                 }
             });        
-            console.log("DEBUG: conversation", conversation);
 
             // DOM에 말풍선 생성
             const chatMessages = document.getElementById("chat-messages");

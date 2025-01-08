@@ -15,6 +15,7 @@ urlpatterns = [
     # Partial 전용 라우트
     path('app/partials/planner/', views.planner, name='planner'),
     path('app/partials/chatting/', views.chatting, name='chatting'),
+    path('app/partials/chatting/delete/', views.delete_chat, name='delete_chat'),
     path('app/partials/favorites/', views.favorites_places, name='favorites_places'),
     path('app/partials/favorites/add/', views.add_folder, name='add_folder'),
     path('app/partials/favorites/delete/', views.delete_favorite, name='delete_favorite'),

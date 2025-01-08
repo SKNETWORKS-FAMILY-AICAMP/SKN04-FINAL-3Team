@@ -19,7 +19,7 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;{{ forloop.counter }}번 채팅
             
                         <img src="{% if settings.is_white_theme %}{% static 'images/delete_light.png' %}{% else %}{% static 'images/delete_dark.png' %}{% endif %}"
-                            alt="delete" class="delete-icon" data-id="${data.folderId}">
+                            alt="delete" class="delete-icon" data-chat-id="{{ chat.chatting_id }}">
                     </div>
                 {% empty %}
                     <p style="color: #888; text-align:center;">

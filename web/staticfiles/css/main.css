@@ -18,10 +18,10 @@ body {
 
 /* 타이틀 스타일 */
 .title {
-    font-size: 3rem;
+    font-size: 3.5rem;
     font-weight: bold;
     color: #000;
-    margin-bottom: 20px;
+    margin-bottom: 50px;
 }
 
 .input-wrapper {
@@ -33,14 +33,13 @@ body {
 }
 
 .input-box {
-    font-size: 20px; /* 20px로 설정 */
-    line-height: 20px; /* font-size와 동일하게 설정 */
-    max-height: calc(20px * 5); /* 5줄로 제한 */
-    overflow: hidden; /* 스크롤 제거 */
-    resize: none; /* 크기 조정 비활성화 */
+    flex: 1;
     padding: 10px;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 15px;
+    font-size: 1rem;
+    resize: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .input-box:focus {
@@ -108,7 +107,6 @@ body {
 }
 
 .popup {
-    width: 100%;
     position: absolute;
     top: 50px; /* 프로필 아래에 위치 */
     right: -15px;
@@ -184,10 +182,3 @@ body {
     text-align: center;
 }
 
-textarea {
-    margin: 0;
-    padding: 0;
-    border: none;
-    outline: none;
-    font-family: inherit;
-}
