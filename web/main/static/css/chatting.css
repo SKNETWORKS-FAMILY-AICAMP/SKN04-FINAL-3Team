@@ -63,10 +63,10 @@
     overflow-y: auto;
 }
 
-/* 각 폴더 아이템에 아이콘 달기 */
 .chat-item {
-    cursor: pointer;
-    padding: 15px 0px 15px 30px;
+    position: relative; /* 자식 요소(삭제 아이콘) 위치 제어 */
+    padding-right: 40px; /* 삭제 아이콘이 오른쪽에 뜰 공간 확보 */
+    padding: 15px 0px 15px 30px; /* 왼쪽 여백과 위아래 패딩 유지 */
     display: flex;
     align-items: center;
     border-bottom: 1px solid #ddd;
@@ -108,4 +108,20 @@
     margin-bottom: 8px;
     max-width: 80%;
     white-space: pre-wrap;
+}
+
+.chat-item .delete-icon {
+    position: absolute;
+    right: 15px; /* 오른쪽 정렬 */
+    top: 50%; /* 세로 가운데 정렬 */
+    transform: translateY(-50%);
+    cursor: pointer;
+    width: 24px; /* 아이콘 크기에 맞춤 */
+    height: 24px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.chat-item .delete-icon:hover {
+    opacity: 1.0;
 }

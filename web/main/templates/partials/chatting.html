@@ -12,15 +12,16 @@
 
         <div id="chattingsSection" style="display: block;">
             <div class="chat-list">
-                <!-- chattings 쿼리셋을 순회하며 각 chat에 대한 div 생성 -->
                 {% for chat in chattings %}
                     <div class="chat-item" data-chat-id="{{ chat.chatting_id }}">
                         <img src="{% if settings.is_white_theme %}{% static 'images/chat_light.png' %}{% else %}{% static 'images/chat_dark.png' %}{% endif %}"
-                             alt="chat" width="50px" height="50px">
+                            alt="chat" width="50px" height="50px">
                         &nbsp;&nbsp;&nbsp;&nbsp;{{ forloop.counter }}번 채팅
+            
+                        <img src="{% if settings.is_white_theme %}{% static 'images/delete_light.png' %}{% else %}{% static 'images/delete_dark.png' %}{% endif %}"
+                            alt="delete" class="delete-icon" data-id="${data.folderId}">
                     </div>
                 {% empty %}
-                    <!-- 사용자의 채팅 데이터가 없을 경우 표시 -->
                     <p style="color: #888; text-align:center;">
                         채팅 목록이 없습니다.
                     </p>
