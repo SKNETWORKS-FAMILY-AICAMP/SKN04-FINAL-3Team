@@ -41,7 +41,21 @@
                             <option value="{{ country.country_id }}">{{ country.country_name }}</option>
                         {% endfor %}
                     </select>
-                </div>                
+                </div>   
+                <div class="form-group">
+                    <label for="sex">Sex</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="sex" value="male" required> Male
+                        </label>
+                        <label>
+                            <input type="radio" name="sex" value="female"> Female
+                        </label>
+                        <label>
+                            <input type="radio" name="sex" value="other"> Other
+                        </label>
+                    </div>
+                </div>           
                 <div class="alert" style="width: 100%; margin-bottom: 15px; padding-left: 5px; color: red;"></div>
                 <div class="form-group">
                     <button type="submit">Sign Up</button>
@@ -98,21 +112,22 @@
 
             // 비밀번호와 비밀번호 확인 검증
             if (passwordField.value !== confirmPasswordField.value) {
-                // 경고 메시지 설정 및 표시
                 alertDiv.textContent = "Passwords do not match!";
                 alertDiv.style.visibility = "visible";
-
-                // 비밀번호 필드에 포커스 및 스타일 적용
                 passwordField.focus();
                 passwordField.style.border = "2px solid red";
                 confirmPasswordField.style.border = "2px solid red";
-                return; // 서버로 요청 보내지 않음
+                return;
             } else {
-                // 경고 메시지 숨기기
                 alertDiv.style.visibility = "hidden";
-                passwordField.style.border = ""; // 원래 스타일로 복구
+                passwordField.style.border = "";
                 confirmPasswordField.style.border = "";
             }
+
+            // 라디오 버튼 값 변환 (male -> 1, female -> 2, other -> 0)
+            const genderMap = { male: 1, female: 2, other: 0 };
+            const genderValue = document.querySelector('input[name="sex"]:checked').value;
+            const gender = genderMap[genderValue] ?? 0;
 
             const formData = {
                 username: usernameField.value,
@@ -120,31 +135,25 @@
                 confirm_password: confirmPasswordField.value,
                 nationality: document.getElementById("nationality").value,
                 birthday: document.getElementById("birthday").value,
+                gender: gender,
             };
 
             fetch("{% url 'signup_process' %}", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": getCookie("csrftoken"), // CSRF 토큰 설정
+                    "X-CSRFToken": getCookie("csrftoken"),
                 },
                 body: JSON.stringify(formData),
             })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert("Sign up successful!\n Please sign in again");
-                        window.location.href = "{% url 'login' %}"; // 로그인 페이지로 이동
+                        alert("Sign up successful! Please sign in.");
+                        window.location.href = "{% url 'login' %}";
                     } else {
-                        // 회원가입 실패 처리
-                        if (data.error === "ID already exists") {
-                            alertDiv.textContent = "This ID already exists!";
-                            alertDiv.style.visibility = "visible"; // 경고 메시지 표시
-                            usernameField.focus(); // ID 입력 필드에 포커스
-                            usernameField.style.border = "2px solid red"; // 테두리를 빨간색으로 변경
-                        } else {
-                            alert("Sign up failed: " + data.error);
-                        }
+                        alertDiv.textContent = data.error || "Sign up failed!";
+                        alertDiv.style.visibility = "visible";
                     }
                 })
                 .catch(error => console.error("Error:", error));

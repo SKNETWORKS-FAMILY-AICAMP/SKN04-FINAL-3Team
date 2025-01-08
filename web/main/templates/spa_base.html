@@ -90,14 +90,70 @@
             mapScript.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${ncpClientId}`;
             mapScript.onload = function () {
                 map = new naver.maps.Map('map', {
-                    center: new naver.maps.LatLng(37.5665, 126.9780), // 서울
-                    zoom: 10,
+                    center: new naver.maps.LatLng(37.5296, 126.9644), // 용산역 좌표
+                    zoom: 13,
                 });
                 isMapInitialized = true;
+
+                // 여러 마커의 정보를 배열로 관리
+                const markerData = [
+                    {
+                        position: new naver.maps.LatLng(37.5296, 126.9644), // 용산역
+                        title: '용산역',
+                        icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_number&chld=1|FF0000|000000',
+                    },
+                    {
+                        position: new naver.maps.LatLng(37.4999, 126.9201), // 보라매역
+                        title: '보라매역',
+                        icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_number&chld=2|00FF00|000000',
+                    },
+                    {
+                        position: new naver.maps.LatLng(37.5462, 126.8768), // 염창역
+                        title: '염창역',
+                        icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_number&chld=3|0000FF|FFFFFF',
+                    }, 
+                ];
+
+                // 마커 추가
+                markerData.forEach(data => {
+                    const marker = new naver.maps.Marker({
+                        position: data.position,
+                        map: map,
+                        title: data.title,
+                        icon: {
+                            url: data.icon, // 커스텀 마커 이미지 URL
+                            size: new naver.maps.Size(36, 36), // 마커 크기
+                            origin: new naver.maps.Point(0, 0),
+                            anchor: new naver.maps.Point(18, 36), // 마커 위치 조정
+                        },
+                    });
+
+                    // 마커 클릭 이벤트 (선택 사항)
+                    naver.maps.Event.addListener(marker, 'click', function () {
+                        alert(`${data.title}입니다!`);
+                    });
+                });
+
+                // 선 연결
+                const lines = [
+                    [markerData[0].position, markerData[1].position], // 용산역 -> 보라매역
+                    [markerData[1].position, markerData[2].position], // 보라매역 -> 염창역
+                ];
+
+                lines.forEach(line => {
+                    const polyline = new naver.maps.Polyline({
+                        map: map,
+                        path: line, // 선을 연결할 좌표 배열
+                        strokeColor: '#000000', // 선 색상
+                        strokeWeight: 3, // 선 두께
+                        strokeStyle: 'solid', // 선 스타일 (solid, dashed, dotted 등)
+                    });
+                });
             };
             mapScript.onerror = function () {
                 console.error("Failed to load Naver Map script.");
             };
+
             document.head.appendChild(mapScript);
         }
 

@@ -82,29 +82,33 @@ def signup_process(request):
             username = data.get("username", "").strip()
             password = data.get("password", "").strip()
             confirm_password = data.get("confirm_password", "").strip()
-            # nickname = data.get("nickname", "").strip()
             nationality = data.get("nationality", "").strip()
             birthday = data.get("birthday", "").strip()
+            gender = data.get("gender", None)  # 성별 추가
 
             # 필수 필드 확인
-            if not username or not password or not confirm_password or not nationality or not birthday:
+            if not username or not password or not confirm_password or not nationality or not birthday or gender is None:
                 return JsonResponse({"success": False, "error": "모든 필드를 채워주세요."}, status=400)
 
             # 아이디 중복 체크
             if CustomUser.objects.filter(username=username).exists():
                 return JsonResponse({"success": False, "error": "ID already exists"}, status=400)
             
-             # 비밀번호와 비밀번호 확인 일치 여부 확인
+            # 비밀번호와 비밀번호 확인 일치 여부 확인
             if password != confirm_password:
                 return JsonResponse({"success": False, "error": "Passwords do not match"}, status=400)
+
+            # 성별 유효성 검사
+            if gender not in [0, 1, 2]:  # 0: Not Specified, 1: Male, 2: Female
+                return JsonResponse({"success": False, "error": "Invalid gender value"}, status=400)
 
             # 사용자 생성
             new_user = CustomUser.objects.create(
                 username=username,
                 password=make_password(password),  # 비밀번호 해시 처리
-                # nickname=nickname,
                 country_id=nationality,
                 birthday=birthday,
+                gender=gender,  # 성별 저장
             )
 
             # Settings 테이블에 기본 설정 생성

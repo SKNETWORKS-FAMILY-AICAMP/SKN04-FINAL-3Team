@@ -3,11 +3,18 @@ from django.db import models
 
 
 class CustomUser(AbstractUser):
+    GENDER_CHOICES = (
+        (0, 'Not Specified'),
+        (1, 'Male'),
+        (2, 'Female'),
+    )
+
     country_id = models.CharField(max_length=50, null=True, blank=True, default="US")
     birthday = models.DateField(null=True, blank=True, default="2000-01-01")
     nickname = models.CharField(max_length=50, null=True, blank=True)
     thumbnail_id = models.IntegerField(null=True, blank=True, default=1)
     created_at = models.DateTimeField(auto_now_add=True)
+    gender = models.IntegerField(choices=GENDER_CHOICES, default=0)  # 선택 목록 추가
 
     groups = models.ManyToManyField(
         Group,

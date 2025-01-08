@@ -97,3 +97,17 @@ body {
 .language-select select {
     font-size: 14px;
 }
+
+.radio-group {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    margin-top: 10px;
+}
+
+.radio-group label {
+    display: flex; /* 내부 요소를 가로로 정렬 */
+    align-items: center; /* 라디오 버튼과 텍스트를 세로로 정렬 */
+    gap: 5px; /* 버튼과 텍스트 간격 조정 */
+    cursor: pointer; /* 클릭 시 포인터 */
+}
