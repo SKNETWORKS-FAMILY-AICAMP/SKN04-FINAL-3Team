@@ -305,21 +305,38 @@ def update_theme(request):
             return JsonResponse({"success": False, "error": str(e)}, status=500)
         
 
-@csrf_exempt
 @login_required
+@csrf_exempt
 def update_language(request):
+    """
+    POST 요청을 받아 settings 테이블의 country_id 값을 업데이트합니다.
+    """
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            country_id = data.get("country_id", "")
+            new_language = data.get("language")
 
-            user = request.user
-            user.country_id = country_id
-            user.save()
+            if not new_language:
+                return JsonResponse({"success": False, "message": "Language not provided"}, status=400)
 
-            return JsonResponse({"success": True, "message": "Language updated successfully."})
+            # 현재 사용자의 Settings 가져오기
+            settings = Settings.objects.filter(profile=request.user).first()
+            if not settings:
+                return JsonResponse({"success": False, "message": "Settings not found"}, status=404)
+
+            # Country 검증
+            valid_countries = ["US", "KR", "JP", "CN"]
+            if new_language not in valid_countries:
+                return JsonResponse({"success": False, "message": "Invalid language"}, status=400)
+
+            # country_id 업데이트
+            settings.country_id = new_language
+            settings.save()
+
+            return JsonResponse({"success": True, "message": "Language updated successfully"})
         except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)}, status=500)
+            return JsonResponse({"success": False, "message": str(e)}, status=500)
+    return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
         
 
 @login_required

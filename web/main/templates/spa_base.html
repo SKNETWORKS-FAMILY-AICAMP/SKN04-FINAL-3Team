@@ -717,7 +717,6 @@
                 const lightRadio = document.querySelector("input[name='theme'][value='light']");
                 const darkRadio = document.querySelector("input[name='theme'][value='dark']");
                 const themeRadios = document.querySelectorAll('input[name="theme"]');
-                const languageSelect = document.getElementById('language');
 
                 function selectTheme(theme) {
                     lightBox.classList.remove('selected');
@@ -763,21 +762,37 @@
                 const initialTheme = document.body.getAttribute("data-theme") === "light";
                 updateIconsBasedOnTheme(initialTheme);
 
-                // 언어 선택 변경 시 서버에 업데이트
-                languageSelect.addEventListener("change", () => {
-                    const selectedLanguage = languageSelect.value;
-                    fetch("/app/partials/settings/update_language/", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": getCSRFToken()
-                        },
-                        body: JSON.stringify({ country_id: selectedLanguage })
-                    }).then(response => {
-                        if (!response.ok) throw new Error("Language update failed.");
-                        console.log("Language updated successfully.");
-                    }).catch(err => console.error(err));
-                });
+                const languageSelect = document.getElementById('language');
+                if (languageSelect) {
+                    languageSelect.addEventListener('change', async () => {
+                        const selectedLanguage = languageSelect.value;
+
+                        try {
+                            const response = await fetch('/app/partials/settings/update_language/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCSRFToken(), // CSRF 토큰 추가
+                                },
+                                body: JSON.stringify({ language: selectedLanguage }),
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+
+                            const result = await response.json();
+                            if (result.success) {
+                                // alert("Language updated successfully.");
+                            } else {
+                                alert(`Error: ${result.message}`);
+                            }
+                        } catch (error) {
+                            console.error("Error updating language:", error);
+                            alert("Failed to update language. Please try again.");
+                        }
+                    });
+                }
             }
 
             // 5) Profile Panel
