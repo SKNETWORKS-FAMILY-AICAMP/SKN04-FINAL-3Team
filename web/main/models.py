@@ -83,6 +83,7 @@ class Bookmark(models.Model):
         db_table = 'bookmark'
         managed = True
 
+
 class BookmarkList(models.Model):
     place = models.ForeignKey(Place, on_delete=models.CASCADE)
     bookmark = models.ForeignKey(Bookmark, on_delete=models.CASCADE)
@@ -94,11 +95,20 @@ class BookmarkList(models.Model):
         db_table = 'bookmarklist'
         managed = True
 
+
 class Chatting(models.Model):
     chatting_id = models.CharField(max_length=50, primary_key=True)
     profile = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     content = models.TextField()
+    title = models.CharField(max_length=100, null=False, default="")  # 새로운 title 필드 추가
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.title:  # title이 비어있을 때만 기본값 생성
+            # 현재 채팅 개수를 가져와 새로운 title 생성
+            chat_count = Chatting.objects.filter(profile=self.profile).count()
+            self.title = f"채팅{chat_count + 1}"
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'chatting'

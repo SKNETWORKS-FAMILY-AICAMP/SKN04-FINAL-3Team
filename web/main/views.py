@@ -433,8 +433,8 @@ def chatting(request):
     user = request.user
     chattings = Chatting.objects.filter(profile=user).order_by('created_at')
     context.update({
-        'chattings': chattings,
-    })  # 추가 정보 업데이트
+        'chattings': chattings,  
+    })
     return render(request, 'partials/chatting.html', context)
 
 
