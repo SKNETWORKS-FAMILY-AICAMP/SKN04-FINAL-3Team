@@ -35,7 +35,7 @@ embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
 retriever_navermap = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
 
 # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
-retriever_navermap.search_kwargs = {"k": 20}
+retriever_navermap.search_kwargs = {"k": 6}
 
 
 
@@ -48,7 +48,7 @@ embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
 retriever_opendata = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
 
 # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
-retriever_opendata.search_kwargs = {"k": 20}
+retriever_opendata.search_kwargs = {"k": 12}
 
 
 #프롬포트
@@ -433,10 +433,15 @@ app = workflow.compile(checkpointer=memory)
 # config 설정(재귀 최대 횟수, thread_id)
 config = RunnableConfig(recursion_limit=20, configurable={"thread_id": random_uuid()})
 
-userinput = input('사용자 :')
-# 질문 입력
+while(True):
 
-inputs = GraphState(question=userinput)
+    userinput = input('사용자 :')
+    # 질문 입력
 
-# 그래프 실행
-invoke_graph(app, inputs, config)
+    inputs = GraphState(question=userinput)
+
+    res=app.invoke(input=inputs, config=config)
+
+    print(res.get('answer'))
+    # 그래프 실행
+    # invoke_graph(app, inputs, config)
