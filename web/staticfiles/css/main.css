@@ -33,13 +33,14 @@ body {
 }
 
 .input-box {
-    flex: 1;
+    font-size: 20px; /* 20px로 설정 */
+    line-height: 20px; /* font-size와 동일하게 설정 */
+    max-height: calc(20px * 5); /* 5줄로 제한 */
+    overflow: hidden; /* 스크롤 제거 */
+    resize: none; /* 크기 조정 비활성화 */
     padding: 10px;
     border: 1px solid #ccc;
-    border-radius: 15px;
-    font-size: 1rem;
-    resize: none;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
 }
 
 .input-box:focus {
@@ -48,7 +49,7 @@ body {
 
 .send-button {
     position: absolute;
-    right: 10px;
+    right: -50px;
     bottom: 10px;
     width: 40px;
     height: 40px;
@@ -78,7 +79,8 @@ body {
 }
 
 .profile-section span {
-    font-size: 1rem;
+    width: 150px;
+    font-size: 1.8rem;
     font-weight: bold;
     color: #000;
 }
@@ -103,4 +105,89 @@ body {
     max-width: 80%;
     word-wrap: break-word;
     text-align: left;
+}
+
+.popup {
+    width: 100%;
+    position: absolute;
+    top: 50px; /* 프로필 아래에 위치 */
+    right: -15px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    width: 190px;
+    z-index: 10;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.popup.hidden {
+    display: none;
+    animation: fadeOut 0.2s ease-out;
+}
+
+.popup ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.popup ul li {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.popup ul li a {
+    text-decoration: none;
+    color: #007BFF;
+    font-weight: bold;
+    display: block;
+    padding: 5px;
+}
+
+.popup ul li:not(:last-child) {
+    border-bottom: 1px solid #ccc;
+}
+
+.popup ul li a:hover {
+    background-color: #f0f0f0;
+    border-radius: 5px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+#profileLink {
+    cursor: pointer;
+    text-align: center;
+}
+
+textarea {
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    font-family: inherit;
 }

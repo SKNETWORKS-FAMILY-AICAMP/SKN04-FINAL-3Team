@@ -157,8 +157,8 @@ body {
 
 [data-theme="dark"] .input-container {
     padding: 10px;
-    border-top: 1px solid #444;
     background-color: #222;
+    border: 1px solid #444;
 }
 
 .container {

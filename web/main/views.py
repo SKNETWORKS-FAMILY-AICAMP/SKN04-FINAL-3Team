@@ -128,7 +128,7 @@ def signup_process(request):
         return JsonResponse({"success": False, "error": "POST 요청만 허용됩니다."}, status=405)
 
 
-# (2) login_process: 아이디/비번 둘 다 있으면 /app/profile/로 리다이렉트
+# (2) login_process: 아이디/비번 둘 다 있으면 메인화면으로 이동
 def login_process(request):
     if request.method == 'POST':
         username = request.POST.get('username','').strip()
@@ -137,7 +137,7 @@ def login_process(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)  # 세션에 로그인 상태 기록
-            return redirect('/app/profile/')
+            return redirect('/..')
         else:
             # 로그인 실패 -> 다시 login.html
             return render(request, 'login.html', {
