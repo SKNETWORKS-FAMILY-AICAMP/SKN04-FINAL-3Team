@@ -71,7 +71,19 @@
             <!-- country_id (e.g. "Korea") -->
             <p>{{ profile_user.country_id }}</p>
         </div>
-        
+        <div class="section">
+            <label>Gender</label>
+            <!-- 성별 표시 -->
+            <p>
+                {% if profile_user.gender == 1 %}
+                    Male
+                {% elif profile_user.gender == 2 %}
+                    Female
+                {% else %}
+                    Other
+                {% endif %}
+            </p>
+        </div>
         <div class="section" style="height: 450px;">
         </div>
 
