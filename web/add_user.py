@@ -9,9 +9,9 @@ django.setup()
 from main.models import CustomUser, Country
 
 users = [
-    {"username": "user1", "password": "pbkdf2_sha256$870000$wV43cxWfYHBeXIuvhUf3B7$Vl31ukoNg65jTcXRSTWZWLzulSLwMXPTvCvzQ312+NM=", "email": "user1@example.com", "country_id": "KR", "birthday": "2004-12-22", "thumbnail_id": 1, "sex": 1, "nickname": "서울깍쟁이"},
-    {"username": "user2", "password": "pbkdf2_sha256$870000$wV43cxWfYHBeXIuvhUf3B7$Vl31ukoNg65jTcXRSTWZWLzulSLwMXPTvCvzQ312+NM=", "email": "user2@example.com", "country_id": "US", "birthday": "1997-05-14", "thumbnail_id": 1, "sex": 2, "nickname": "kate"},
-    {"username": "user3", "password": "pbkdf2_sha256$870000$wV43cxWfYHBeXIuvhUf3B7$Vl31ukoNg65jTcXRSTWZWLzulSLwMXPTvCvzQ312+NM=", "email": "user3@example.com", "country_id": "JP", "birthday": "1999-02-01", "thumbnail_id": 1, "sex": 0, "nickname": "富士山"},
+    {"username": "user1", "password": "pbkdf2_sha256$870000$wV43cxWfYHBeXIuvhUf3B7$Vl31ukoNg65jTcXRSTWZWLzulSLwMXPTvCvzQ312+NM=", "email": "user1@example.com", "country_id": "KR", "birthday": "2004-12-22", "thumbnail_id": 1, "gender_id": 1, "nickname": "서울깍쟁이"},
+    {"username": "user2", "password": "pbkdf2_sha256$870000$wV43cxWfYHBeXIuvhUf3B7$Vl31ukoNg65jTcXRSTWZWLzulSLwMXPTvCvzQ312+NM=", "email": "user2@example.com", "country_id": "US", "birthday": "1997-05-14", "thumbnail_id": 1, "gender_id": 2, "nickname": "kate"},
+    {"username": "user3", "password": "pbkdf2_sha256$870000$wV43cxWfYHBeXIuvhUf3B7$Vl31ukoNg65jTcXRSTWZWLzulSLwMXPTvCvzQ312+NM=", "email": "user3@example.com", "country_id": "JP", "birthday": "1999-02-01", "thumbnail_id": 1, "gender_id": 0, "nickname": "富士山"},
 ]
 
 for user_data in users:
@@ -19,7 +19,7 @@ for user_data in users:
     CustomUser.objects.update_or_create(
         username=user_data["username"],
         defaults={
-            "gender": user_data["gender"],
+            "gender": user_data["gender_id"],
             "password": user_data["password"],
             "email": user_data["email"],
             "country_id": user_data["country_id"],  # Country 객체 대신 PK 값 전달
