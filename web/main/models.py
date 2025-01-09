@@ -100,7 +100,7 @@ class Chatting(models.Model):
     chatting_id = models.CharField(max_length=50, primary_key=True)
     profile = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     content = models.TextField()
-    title = models.CharField(max_length=100, null=False, default="")  # 새로운 title 필드 추가
+    title = models.CharField(max_length=10, null=False, default="")  # 새로운 title 필드 추가
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):

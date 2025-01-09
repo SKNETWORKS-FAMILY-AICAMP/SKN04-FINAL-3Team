@@ -183,8 +183,6 @@
         // (3) 부분 템플릿 로딩 함수
         // ---------------------------
         function loadContent(spaPath) {
-            highlightActiveLink(spaPath);
-
             const partialUrl = toPartialUrl(spaPath);
             fetch(partialUrl)
                 .then(response => {
@@ -195,7 +193,8 @@
                 })
                 .then(html => {
                     document.getElementById('content1').innerHTML = html;
-                    // 콘텐츠 로드 후 이벤트 트리거
+
+                    // spaContentLoaded 이벤트 트리거
                     document.dispatchEvent(new Event("spaContentLoaded"));
                 })
                 .catch(error => console.error('Error loading content:', error));
@@ -217,9 +216,7 @@
             }
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            console.log("Initial theme:", document.body.getAttribute('data-theme'));
-            
+        document.addEventListener("DOMContentLoaded", function () {            
             // 지도 초기화
             initializeMap();
             updateIconsBasedOnTheme();
@@ -233,20 +230,7 @@
             }
             loadContent(currentPath);
 
-            // 임시: chat-item 클릭 -> planner 이동
-            const chatItems = document.querySelectorAll(".chat-item");
-            chatItems.forEach(item => {
-                item.addEventListener("click", function() {
-                    const chatId = this.getAttribute("data-chat-id");
-                    localStorage.setItem("selectedChatId", chatId);
-        
-                    history.pushState(null, '', '/app/planner/');
-                    if (typeof loadContent === 'function') {
-                        loadContent('/app/planner/');
-                    }
-                });
-            });
-
+            
             // 네비게이션 버튼 클릭 시
             document.querySelectorAll('.nav-btn').forEach(button => {
                 button.addEventListener('click', function (event) {
@@ -307,7 +291,7 @@
         // ---------------------------
         // (5) spaContentLoaded 이후 로직
         // ---------------------------
-        document.addEventListener("spaContentLoaded", function () {
+        document.addEventListener("spaContentLoaded", async function () {
             // 1) Planner Panel
             const plannerPanel = document.getElementById("plannerPanel");
             if (plannerPanel) {
@@ -317,6 +301,69 @@
                 const scrollBtn = document.getElementById("scrollToBottomBtn");
                 const resetButton = document.getElementById("resetButton");
                 const newPostButton = document.getElementById("newPostButton");
+
+                const plannerTitle = document.getElementById("planner-title");
+                const changeTitle = document.getElementById("change-title");
+                if (plannerTitle) {
+                    plannerTitle.addEventListener("dblclick", function () {
+                        changeTitle.value = plannerTitle.textContent;
+                        changeTitle.style.display = "block"; // 입력창 표시
+                        plannerTitle.style.display = "none"; // 기존 텍스트 숨김
+                    });
+
+                    // 2) Enter: 제목 저장, ESC: 취소
+                    changeTitle.addEventListener("keydown", async function (e) {
+                        if (event.key === "Enter") {
+                            const titleText = document.getElementById("planner-title");                            
+                            plannerTitle.style.display = "block"; // 기존 텍스트 표시
+                            changeTitle.style.display = "none"; // 입력창 숨김
+
+                            try {
+                                const response = await fetch("/app/partials/planner/update_title/", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRFToken": getCSRFToken(),
+                                    },
+                                    body: JSON.stringify({ chat_id: chatId, title: changeTitle.value.trim() }),
+                                });
+
+                                const result = await response.json();
+                                if (result.success) {
+                                    plannerTitle.textContent = changeTitle.value.trim();
+                                } else {
+                                    console.error("Failed to update title:", result.error || "Unknown error");
+                                }
+                            } catch (error) {
+                                console.error("Error updating title:", error);
+                            }
+                        } else if (event.key === "Escape") {
+                            plannerTitle.style.display = "block"; // 기존 텍스트 표시
+                            changeTitle.style.display = "none"; // 입력창 숨김
+                        }
+                    });
+                }
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const chatId = urlParams.get("chat_id");
+
+                if (plannerTitle && chatId) {
+                    try {
+                        // 서버에서 제목 가져오기
+                        const response = await fetch(`/app/partials/planner/get_title/?chat_id=${encodeURIComponent(chatId)}`);
+                        const result = await response.json();
+
+                        if (result.success && result.title) {
+                            plannerTitle.textContent = result.title; // 제목 업데이트
+                        } else {
+                            console.error("Failed to fetch title:", result.error || "Unknown error");
+                        }
+                    } catch (error) {
+                        console.error("Error fetching title:", error);
+                    }
+                } else {
+                    console.warn("Planner title element or chat ID not found.");
+                }
 
                 resetButton.addEventListener("click", function () {
                     console.log("초기화 버튼이 눌렸습니다.");

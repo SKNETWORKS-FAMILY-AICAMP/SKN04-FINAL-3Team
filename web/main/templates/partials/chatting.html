@@ -11,10 +11,13 @@
         <div id="chattingsSection" style="display: block;">
             <div class="chat-list">
                 {% for chat in chattings %}
-                    <div class="chat-item" data-chat-id="{{ chat.chatting_id }}">
+                    <div class="chat-item"
+                         data-chat-id="{{ chat.chatting_id }}" 
+                         data-chat-title="{{ chat.title|escape }}"> <!-- 제목 추가 -->
+                         
                         <img src="{% if settings.is_white_theme %}{% static 'images/chat_light.png' %}{% else %}{% static 'images/chat_dark.png' %}{% endif %}"
                             alt="chat" width="50px" height="50px">
-                        &nbsp;&nbsp;&nbsp;&nbsp;{{ chat.title }}  <!-- title 표시 -->
+                        &nbsp;&nbsp;&nbsp;&nbsp;{{ chat.title }} <!-- 채팅 제목 표시 -->
 
                         <img src="{% if settings.is_white_theme %}{% static 'images/delete_light.png' %}{% else %}{% static 'images/delete_dark.png' %}{% endif %}"
                             alt="delete" class="delete-icon" data-id="{{ chat.chatting_id }}">

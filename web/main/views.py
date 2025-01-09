@@ -186,6 +186,59 @@ def planner(request):
         return render(request, "partials/planner.html", context)
 
 
+def check_duplicate_title(request):
+    """
+    채팅 제목 중복 확인 API
+    """
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            title = data.get("title", "").strip()
+
+            if Chatting.objects.filter(title=title, profile=request.user).exists():
+                return JsonResponse({"is_duplicate": True})
+            return JsonResponse({"is_duplicate": False})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+@csrf_exempt
+@login_required
+def update_title(request):
+    """DB에 채팅 제목 업데이트"""
+    if request.method == "POST":
+        data = json.loads(request.body)
+        chat_id = data.get("chat_id")
+        title = data.get("title")
+
+        if not chat_id or not title:
+            return JsonResponse({"success": False, "error": "Invalid data"})
+
+        try:
+            chat = Chatting.objects.get(chatting_id=chat_id, profile=request.user)
+            chat.title = title
+            chat.save()
+            return JsonResponse({"success": True})
+        except Chatting.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Chat not found"})
+
+    return JsonResponse({"success": False, "error": "Invalid request method"})
+
+
+def get_chat_title(request):
+    chat_id = request.GET.get("chat_id")
+    if not chat_id:
+        return JsonResponse({"success": False, "error": "Missing chat_id"})
+
+    try:
+        chat = Chatting.objects.get(chatting_id=chat_id)
+        return JsonResponse({"success": True, "title": chat.title})
+    except Chatting.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Chat not found"})
+
+
 @login_required
 def profile(request):
     context = get_theme_context(request.user)  # 테마 정보 추가
