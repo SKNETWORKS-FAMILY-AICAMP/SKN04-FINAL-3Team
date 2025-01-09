@@ -6,13 +6,19 @@
 
 <div class="container" id="plannerPanel">
     <div class="content1">
-        <div id="chat-header">Planner</div>
-        <div class="top-menu"></div>
+        <div id="chat-header">
+            Planner
+            <div class="header-buttons">
+                <img src="{% if settings.is_white_theme %}{% static 'images/init_light.png' %}{% else %}{% static 'images/init_dark.png' %}{% endif %}"
+                    alt="chat" id="resetButton">
+                <img src="{% if settings.is_white_theme %}{% static 'images/new_chat_light.png' %}{% else %}{% static 'images/new_chat_dark.png' %}{% endif %}"
+                    alt="chat" id="newPostButton">
+            </div>
+        </div>
 
         <!-- 숨긴 상태로 시작 (CSS .hidden) -->
         <div class="scroll-to-bottom hidden" id="scrollToBottomBtn" title="Go to bottom">
-            <span class="arrow-down">&#x25BC;</span> 
-            <!-- or use ▲ ▼ ◀ ▶, or a custom SVG icon -->
+            <span class="arrow-down">&#x25BC;</span>
         </div>
 
         <div id="chatContentData" style="display: none;">

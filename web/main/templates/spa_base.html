@@ -315,6 +315,16 @@
 
                 const chatMessages = document.getElementById("chat-messages");
                 const scrollBtn = document.getElementById("scrollToBottomBtn");
+                const resetButton = document.getElementById("resetButton");
+                const newPostButton = document.getElementById("newPostButton");
+
+                resetButton.addEventListener("click", function () {
+                    console.log("초기화 버튼이 눌렸습니다.");
+                });
+
+                newPostButton.addEventListener("click", function () {
+                    console.log("새 글 버튼이 눌렸습니다.");
+                });
 
                 if (!chatMessages || !scrollBtn) return;
 
@@ -362,7 +372,7 @@
                 deleteIcons.forEach((icon) => {
                     icon.addEventListener("click", async function (e) {
                         e.stopPropagation();
-                        
+
                         const chatId = this.dataset.chatId;
                         if (!chatId) return;
 
