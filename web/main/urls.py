@@ -18,6 +18,7 @@ urlpatterns = [
     path("app/partials/planner/update_title/", views.update_title, name="update_title"),
     path('app/partials/planner/check_duplicate_title/', views.check_duplicate_title, name='check_duplicate_title'),
     path('app/partials/chatting/', views.chatting, name='chatting'),
+    path('app/partials/chatting/count/', views.get_chat_count, name='get_chat_count'),
     path('app/partials/chatting/delete/', views.delete_chat, name='delete_chat'),
     path('app/partials/favorites/', views.favorites_places, name='favorites_places'),
     path('app/partials/favorites/add/', views.add_folder, name='add_folder'),

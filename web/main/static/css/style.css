@@ -413,6 +413,7 @@ body {
 .header-buttons {
     display: flex;
     gap: 10px; /* 버튼 사이 간격 */
+    justify-content: flex-end; /* 오른쪽 정렬 */
 }
 
 .header-buttons img {
@@ -425,4 +426,8 @@ body {
 .header-buttons img:hover {
     transform: scale(1.2); /* 크기 1.2배로 확대 */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 살짝 그림자 추가 */
+}
+
+.title-container {
+    flex-grow: 1; /* 제목이 남은 공간을 차지 */
 }

@@ -7,9 +7,11 @@
 <div class="container" id="plannerPanel">
     <div class="content1">
         <div id="chat-header">
-            <div class="header-buttons">
+            <div class="title-container">
                 <span id="planner-title" style="display: block;"></span>
                 <input id="change-title" type="text" style="display: none;" maxlength="10">
+            </div>
+            <div class="header-buttons">                
                 <img src="{% if settings.is_white_theme %}{% static 'images/init_light.png' %}{% else %}{% static 'images/init_dark.png' %}{% endif %}" alt="reset" id="resetButton">
                 <img src="{% if settings.is_white_theme %}{% static 'images/new_chat_light.png' %}{% else %}{% static 'images/new_chat_dark.png' %}{% endif %}" alt="new" id="newPostButton">
             </div>

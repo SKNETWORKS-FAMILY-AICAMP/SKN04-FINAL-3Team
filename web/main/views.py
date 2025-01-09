@@ -240,6 +240,18 @@ def get_chat_title(request):
 
 
 @login_required
+def get_chat_count(request):
+    """
+    현재 사용자의 채팅 개수를 반환합니다.
+    """
+    try:
+        user_chat_count = Chatting.objects.filter(profile=request.user).count()
+        return JsonResponse({"success": True, "chat_count": user_chat_count})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+@login_required
 def profile(request):
     context = get_theme_context(request.user)  # 테마 정보 추가
     profile_user = request.user
