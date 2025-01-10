@@ -1,0 +1,96 @@
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+</head>
+<div class="container">
+    <div class="panel" id="profilePanel">
+        <h2>Profile</h2>
+        <!-- 테마 선택 -->
+        <div class="section">
+            <div class="section-child">
+                <!-- 프로필 이미지 -->
+                <div class="profile-image">
+                    <img 
+                        id="profile-image" 
+                        src="{% if profile_user.thumbnail_id %}{% static 'images/profiles/profile_' %}{{ profile_user.thumbnail_id }}.jpg{% else %}{% static 'images/profile.png' %}{% endif %}" 
+                        alt="Profile Image"
+                        style="cursor: pointer;"
+                    >
+                </div>
+                <!-- 팝업 창 -->
+                <div id="image-popup" class="popup hidden">
+                    <div class="popup-content">
+                        <h3>Choose a Profile Image</h3>
+                        <div class="image-grid">
+                            <!-- 10개의 기본 이미지 버튼 -->
+                            {% for i in image_range %}
+                            <img 
+                                src="{% static 'images/profiles/profile_' %}{{ i }}.jpg" 
+                                class="popup-image" 
+                                data-id="{{ i }}" 
+                                alt="Profile {{ i }}"
+                            >
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <!-- 닉네임 -->
+                <div class="nickname-container">
+                    <div class="nickname-wrapper">
+                        <span id="nickname-text" class="nickname">{{ profile_user.nickname }}</span>
+                        <input 
+                            id="nickname-input" 
+                            class="nickname hidden" 
+                            type="text" 
+                            value="{{ profile_user.nickname }}" 
+                            maxlength="10"
+                        >
+                    </div>
+                    <button id="edit-btn" class="edit-btn">
+                        <img 
+                            src="{% if settings.is_white_theme %}{% static 'images/edit_light.png' %}{% else %}{% static 'images/edit_dark.png' %}{% endif %}" 
+                            data-light="{% static 'images/edit_light.png' %}" 
+                            data-dark="{% static 'images/edit_dark.png' %}" 
+                            alt="Edit"
+                            style="width: 16px; height: 16px;"
+                            class="edit-icon"
+                        >
+                    </button>
+                </div>
+            </div>            
+        </div>
+
+        <div class="section">
+            <label>Birthday</label>
+            <!-- profile_user.birthday가 datetime/date 필드라면, |date:"Y.m.d" 등으로 포맷 -->
+            <p>{{ profile_user.birthday|date:"Y.m.d" }}</p>
+        </div>
+        
+        <div class="section">
+            <label>Nationality</label>
+            <!-- country_id (e.g. "Korea") -->
+            <p>{{ profile_user.country_id }}</p>
+        </div>
+        <div class="section">
+            <label>Gender</label>
+            <!-- 성별 표시 -->
+            <p>
+                {% if profile_user.gender == 1 %}
+                    Male
+                {% elif profile_user.gender == 2 %}
+                    Female
+                {% else %}
+                    Other
+                {% endif %}
+            </p>
+        </div>
+        <div class="section" style="height: 450px;">
+        </div>
+
+        <div class="section">            
+            <span class="logout-btn"><a href="/logout/">Logout</a></span>
+        </div>
+
+        <div class="toggle-button" id="toggleButton"><</div>
+    </div>
+</div>

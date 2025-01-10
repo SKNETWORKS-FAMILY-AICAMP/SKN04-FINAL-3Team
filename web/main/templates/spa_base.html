@@ -1,0 +1,1368 @@
+<!-- spa_base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPA Example</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body data-theme="{% if settings.is_white_theme %}light{% else %}dark{% endif %}">
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <button class="nav-btn" id="home-btn">
+                <img class="nav-icon" data-light="{% static 'images/nav/nav_home_light.png' %}" 
+                     data-dark="{% static 'images/nav/nav_home_dark.png' %}" 
+                     src="{% static 'images/nav/nav_home_light.png' %}" 
+                     style="width: 30px; height: 30px;">
+                <br>Home
+            </button>
+            <button class="nav-btn" data-url="/app/planner/">
+                <img class="nav-icon" data-light="{% static 'images/nav/nav_planner_light.png' %}" 
+                     data-dark="{% static 'images/nav/nav_planner_dark.png' %}" 
+                     src="{% static 'images/nav/nav_planner_light.png' %}" 
+                     style="width: 30px; height: 30px;">
+                <br>Planner
+            </button>
+            <button class="nav-btn" data-url="/app/chatting/">
+                <img class="nav-icon" data-light="{% static 'images/nav/nav_chattings_light.png' %}" 
+                     data-dark="{% static 'images/nav/nav_chattings_dark.png' %}" 
+                     src="{% static 'images/nav/nav_chattings_light.png' %}" 
+                     style="width: 30px; height: 30px;">
+                <br>Chatting
+            </button>
+            <button class="nav-btn" data-url="/app/favorites/">
+                <img class="nav-icon" data-light="{% static 'images/nav/nav_favorites_light.png' %}" 
+                     data-dark="{% static 'images/nav/nav_favorites_dark.png' %}" 
+                     src="{% static 'images/nav/nav_favorites_light.png' %}" 
+                     style="width: 30px; height: 30px;">
+                <br>Bookmarks
+            </button>
+            <button class="nav-btn" data-url="/app/settings/">
+                <img class="nav-icon" data-light="{% static 'images/nav/nav_settings_light.png' %}" 
+                     data-dark="{% static 'images/nav/nav_settings_dark.png' %}" 
+                     src="{% static 'images/nav/nav_settings_light.png' %}" 
+                     style="width: 30px; height: 30px;">
+                <br>Settings
+            </button>
+            <button class="nav-btn" data-url="/app/profile/">
+                <img class="nav-icon" data-light="{% static 'images/nav/nav_profile_light.png' %}" 
+                     data-dark="{% static 'images/nav/nav_profile_dark.png' %}" 
+                     src="{% static 'images/nav/nav_profile_light.png' %}" 
+                     style="width: 30px; height: 30px;">
+                <br>Profile
+            </button>
+        </div>
+
+        <!-- 동적 콘텐츠 영역 -->
+        <div id="content1">            
+            <!-- AJAX로 불러온 partial HTML이 여기 들어감 -->
+        </div>
+        <!-- 지도 영역 -->
+        <div id="map" style="flex-grow: 1; height: 100%; z-index: 1;"></div>
+    </div>
+
+    <!-- 팝업 창 -->
+    <div id="popup" class="popup hidden">
+        <div class="popup-content">
+            <h3>Are you sure you want to delete your account?</h3>
+            <div class="popup-buttons">
+                <button id="confirm-delete" class="popup-button">Yes, Delete</button>
+                <button id="cancel-delete" class="popup-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function () {
+            // localStorage의 특정 키 삭제
+            localStorage.removeItem('chatMessage');
+
+            // 또는 모든 데이터 삭제
+            // localStorage.clear();
+
+            console.log("LocalStorage cleared or specific key removed.");
+        };
+
+        const ncpClientId = "{{ ncp_client_id|default:'' }}";
+        let isMapInitialized = false;
+        let map = null;
+
+        // ---------------------------
+        // (1) 지도 초기화 함수
+        // ---------------------------
+        function initializeMap() {
+            if (isMapInitialized) return;
+
+            const mapScript = document.createElement('script');
+            mapScript.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${ncpClientId}`;
+            mapScript.onload = function () {
+                map = new naver.maps.Map('map', {
+                    center: new naver.maps.LatLng(37.5296, 126.9644), // 용산역 좌표
+                    zoom: 13,
+                });
+                isMapInitialized = true;
+
+                // 여러 마커의 정보를 배열로 관리
+                const markerData = [
+                    {
+                        position: new naver.maps.LatLng(37.5296, 126.9644), // 용산역
+                        title: '용산역',
+                        icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_number&chld=1|FF0000|000000',
+                    },
+                    {
+                        position: new naver.maps.LatLng(37.4999, 126.9201), // 보라매역
+                        title: '보라매역',
+                        icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_number&chld=2|00FF00|000000',
+                    },
+                    {
+                        position: new naver.maps.LatLng(37.5462, 126.8768), // 염창역
+                        title: '염창역',
+                        icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_number&chld=3|0000FF|FFFFFF',
+                    }, 
+                ];
+
+                // 마커 추가
+                markerData.forEach(data => {
+                    const marker = new naver.maps.Marker({
+                        position: data.position,
+                        map: map,
+                        title: data.title,
+                        icon: {
+                            url: data.icon, // 커스텀 마커 이미지 URL
+                            size: new naver.maps.Size(36, 36), // 마커 크기
+                            origin: new naver.maps.Point(0, 0),
+                            anchor: new naver.maps.Point(18, 36), // 마커 위치 조정
+                        },
+                    });
+
+                    // 마커 클릭 이벤트 (선택 사항)
+                    naver.maps.Event.addListener(marker, 'click', function () {
+                        alert(`${data.title}입니다!`);
+                    });
+                });
+
+                // 선 연결
+                const lines = [
+                    [markerData[0].position, markerData[1].position], // 용산역 -> 보라매역
+                    [markerData[1].position, markerData[2].position], // 보라매역 -> 염창역
+                ];
+
+                lines.forEach(line => {
+                    const polyline = new naver.maps.Polyline({
+                        map: map,
+                        path: line, // 선을 연결할 좌표 배열
+                        strokeColor: '#000000', // 선 색상
+                        strokeWeight: 3, // 선 두께
+                        strokeStyle: 'solid', // 선 스타일 (solid, dashed, dotted 등)
+                    });
+                });
+            };
+            mapScript.onerror = function () {
+                console.error("Failed to load Naver Map script.");
+            };
+
+            document.head.appendChild(mapScript);
+        }
+
+        // ---------------------------
+        // (2) /app/* -> /app/partials/* 치환 함수
+        // ---------------------------
+        function toPartialUrl(spaPath) {
+            // 예: /app/planner/ -> /app/partials/planner/
+            return spaPath.replace(/^\/app/, '/app/partials');
+        }
+
+        // 현재 활성화된 nav-btn 표시 함수
+        function highlightActiveLink(spaPath) {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const url = btn.getAttribute('data-url');
+                if (!url) return;  // home-btn이 data-url이 없으므로 건너뜀
+
+                if (url === spaPath) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // ---------------------------
+        // (3) 부분 템플릿 로딩 함수
+        // ---------------------------
+        function loadContent(spaPath) {
+            const partialUrl = toPartialUrl(spaPath);
+            fetch(partialUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('content1').innerHTML = html;
+
+                    // spaContentLoaded 이벤트 트리거
+                    document.dispatchEvent(new Event("spaContentLoaded"));
+                })
+                .catch(error => console.error('Error loading content:', error));
+        }
+
+        function updateIconsBasedOnTheme() {
+            const isLightTheme = document.body.getAttribute("data-theme") === "light";
+            const navIcons = document.querySelectorAll(".nav-icon");
+
+            navIcons.forEach(icon => {
+                const newSrc = isLightTheme ? icon.getAttribute("data-light") : icon.getAttribute("data-dark");
+                icon.setAttribute("src", newSrc);
+            });
+
+            const editIcon = document.querySelector(".edit-icon");
+            if (editIcon) {
+                const newEditSrc = isLightTheme ? editIcon.getAttribute("data-light") : editIcon.getAttribute("data-dark");
+                editIcon.setAttribute("src", newEditSrc);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {            
+            // 지도 초기화
+            initializeMap();
+            updateIconsBasedOnTheme();
+
+            let currentPath = window.location.pathname;
+
+            // /app/ 만 입력되었다면 디폴트: /app/planner/ 로 가정
+            if (currentPath === '/app/') {
+                currentPath = '/app/planner/';
+                history.replaceState(null, '', currentPath);
+            }
+            loadContent(currentPath);
+
+            
+            // 네비게이션 버튼 클릭 시
+            document.querySelectorAll('.nav-btn').forEach(button => {
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const spaPath = this.getAttribute('data-url');
+                    if (!spaPath) return;
+
+                    history.pushState(null, '', spaPath);
+                    loadContent(spaPath);
+                });
+            });
+
+            // Home 버튼 처리
+            document.getElementById('home-btn').addEventListener('click', function () {
+                window.location.href = '/';
+            });
+
+            // 팝업 창 기능
+            document.getElementById('cancel-delete').addEventListener('click', closePopup);
+            document.getElementById('confirm-delete').addEventListener('click', function () {
+                alert('Account deleted!');
+                closePopup();
+            });
+
+            // 뒤로가기/앞으로가기 처리
+            window.addEventListener('popstate', function () {
+                loadContent(window.location.pathname);
+            });            
+        });
+        
+        function getCSRFToken() {
+            const cookies = document.cookie.split("; ");
+            for (let cookie of cookies) {
+                if (cookie.startsWith("csrftoken=")) {
+                    return cookie.split("=")[1];
+                }
+            }
+            return null;
+        }
+        function showPopup() {
+            document.getElementById('popup').classList.remove('hidden');
+        }
+        function closePopup() {
+            document.getElementById('popup').classList.add('hidden');
+        }
+
+        // ---------------------------
+        // (5) spaContentLoaded 이후 로직
+        // ---------------------------
+        document.addEventListener("spaContentLoaded", async function () {
+            const content1 = document.querySelector('.panel');
+            const map = document.getElementById("map");
+            const toggleButton = document.getElementById("toggleButton");
+
+            let isChatHidden = false;
+
+            toggleButton.addEventListener("click", function () {
+                if (isChatHidden) {
+                    // 채팅 패널을 다시 표시
+                    content1.style.width = "400px";
+                    map.style.flexGrow = "1"; // 원래 상태로 복구
+                    toggleButton.textContent = "<"; // 버튼 텍스트 변경
+                } else {
+                    // 채팅 패널을 숨김
+                    content1.style.width = "0";
+                    map.style.flexGrow = "2"; // 지도 넓이를 확장
+                    toggleButton.textContent = ">"; // 버튼 텍스트 변경
+                }
+                isChatHidden = !isChatHidden; // 상태 변경
+            });
+
+
+            // 1) Planner Panel
+            const plannerPanel = document.getElementById("plannerPanel");
+            if (plannerPanel) {
+                console.log("[Planner] panel detected!");
+
+                const scrollBtn = document.getElementById("scrollToBottomBtn");
+                const resetButton = document.getElementById("resetButton");
+                const newPostButton = document.getElementById("newPostButton");
+
+                const plannerTitle = document.getElementById("planner-title");
+                const changeTitle = document.getElementById("change-title");
+                const chatMessages = document.getElementById('chat-messages');
+                const initialMessage = localStorage.getItem('chatMessage');
+                const newMessage = document.createElement("div");
+                
+                if (initialMessage) {
+                    newMessage.className = "bubble left-bubble";
+                    newMessage.innerHTML = initialMessage.replace(/\n/g, "<br>");
+                    chatMessages.appendChild(newMessage);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const chatId = urlParams.get("chat_id");
+                
+                if (plannerTitle) {
+                    plannerTitle.addEventListener("dblclick", function () {
+                        changeTitle.value = plannerTitle.textContent;
+                        changeTitle.style.display = "block"; // 입력창 표시
+                        plannerTitle.style.display = "none"; // 기존 텍스트 숨김
+                        changeTitle.focus();
+                    });
+
+                    // 2) Enter: 제목 저장, ESC: 취소
+                    changeTitle.addEventListener("keydown", async function (e) {
+                        if (event.key === "Enter") {
+                            const newTitle = changeTitle.value.trim();
+                            const titleText = document.getElementById("planner-title"); 
+                            
+                            if (!newTitle) {
+                                alert("제목을 입력해주세요.");
+                                return;
+                            }
+
+                            plannerTitle.style.display = "block"; // 기존 텍스트 표시
+                            changeTitle.style.display = "none"; // 입력창 숨김
+
+                            try {
+                                // 중복 확인 API 호출
+                                const response = await fetch("/app/partials/planner/check_duplicate_title/", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRFToken": getCSRFToken(),
+                                    },
+                                    body: JSON.stringify({ title: newTitle }),
+                                });
+
+                                const result = await response.json();
+
+                                if (result.is_duplicate) {
+                                    alert("중복된 제목입니다. 다른 제목을 입력해주세요.");
+                                    return;
+                                }
+
+                                // 제목 업데이트 API 호출
+                                const updateResponse = await fetch("/app/partials/planner/update_title/", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRFToken": getCSRFToken(),
+                                    },
+                                    body: JSON.stringify({ chat_id: chatId, title: newTitle }),
+                                });
+
+                                const updateResult = await updateResponse.json();
+                                if (updateResult.success) {
+                                    plannerTitle.textContent = newTitle;
+                                    plannerTitle.style.display = "block";
+                                    changeTitle.style.display = "none";
+                                } else {
+                                    console.error("Failed to update title:", updateResult.error || "Unknown error");
+                                }
+                            } catch (error) {
+                                console.error("Error checking/updating title:", error);
+                            }
+                        } else if (event.key === "Escape") {
+                            plannerTitle.style.display = "block"; // 기존 텍스트 표시
+                            changeTitle.style.display = "none";  // 입력창 숨김
+                        }                    
+                    });
+                }
+
+                if (plannerTitle && chatId) {
+                    try {
+                        // 서버에서 제목 가져오기
+                        const response = await fetch(`/app/partials/planner/get_title/?chat_id=${encodeURIComponent(chatId)}`);
+                        const result = await response.json();
+
+                        if (result.success && result.title) {
+                            plannerTitle.textContent = result.title; // 제목 업데이트
+                        } else {
+                            console.error("Failed to fetch title:", result.error || "Unknown error");
+                        }
+                    } catch (error) {
+                        console.error("Error fetching title:", error);
+                    }
+                } else {
+                    console.warn("Planner title element or chat ID not found.");
+                }
+                if (!chatId) {
+                    try {
+                        // chat_id가 없을 경우, 현재 채팅 개수를 API로 가져옴
+                        const response = await fetch("/app/partials/chatting/");
+                        const html = await response.text();
+
+                        // DOM 파싱을 통해 채팅 개수를 계산
+                        const tempDiv = document.createElement("div");
+                        tempDiv.innerHTML = html;
+
+                        const chatItems = tempDiv.querySelectorAll(".chat-item");
+                        const chatCount = chatItems.length;
+
+                        // 제목 설정: chat + (채팅 개수 + 1)
+                        const newTitle = `chat${chatCount + 1}`;
+                        plannerTitle.textContent = newTitle;
+                    } catch (error) {
+                        console.error("Error calculating chat count:", error);
+                        plannerTitle.textContent = "chat1"; // 기본값 설정
+                    }
+                } 
+                else {
+                    // 기존 chat_id에 따라 제목 가져오기
+                    try {
+                        const response = await fetch(`/app/partials/planner/get_title/?chat_id=${encodeURIComponent(chatId)}`);
+                        const result = await response.json();
+
+                        if (result.success && result.title) {
+                            plannerTitle.textContent = result.title; // 제목 업데이트
+                        } else {
+                            console.error("Failed to fetch title:", result.error || "Unknown error");
+                        }
+                    } catch (error) {
+                        console.error("Error fetching title:", error);
+                    }
+
+                    fetch(`/app/partials/planner/get_chat_content/?chat_id=${encodeURIComponent(chatId)}`)
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw new Error(`Failed to fetch chat content: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then((data) => {
+                            if (data.success && data.content) {
+                                // 기존 채팅 내용을 파싱하여 DOM에 추가
+                                const chatContent = data.content.split("\n");
+                                console.log("chatContent:", chatContent);
+                                chatContent.forEach((line) => {
+                                    const isUserMessage = line.startsWith("<나>");
+                                    const messageText = line.replace(/^<나>|^<봇>/, "").trim();
+
+                                    const newMessage = document.createElement("div");
+                                    newMessage.className = `bubble ${isUserMessage ? "left-bubble" : "right-bubble"}`;
+                                    newMessage.textContent = messageText;
+                                    const chatMessages = document.getElementById("chat-messages");
+                                    chatMessages.appendChild(newMessage);
+                                });
+                            } else {
+                                console.log("No content for the provided chat_id.");
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching chat content:", error);
+                        });
+                }
+
+                resetButton.addEventListener("click", function () {
+                    console.log("초기화 버튼이 눌렸습니다.");
+                });
+
+                newPostButton.addEventListener("click", function () {
+                    console.log("새 글 버튼이 눌렸습니다.");
+                });
+
+                if (!chatMessages || !scrollBtn) return;
+
+                // 1) 스크롤 이벤트 -> 버튼 표시/숨김
+                chatMessages.addEventListener("scroll", function() {
+                    // 만약 스크롤이 '맨 아래'가 아니라면 버튼 보이기
+                    // (clientHeight + scrollTop < scrollHeight 이면 아직 위로 스크롤 중)
+                    if (chatMessages.scrollTop + chatMessages.clientHeight 
+                        < chatMessages.scrollHeight - 10) {
+                        scrollBtn.classList.remove("hidden");
+                    } else {
+                        scrollBtn.classList.add("hidden");
+                    }
+                });
+
+                // 2) 버튼 클릭 시 맨 아래로 스크롤
+                scrollBtn.addEventListener("click", function() {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                });
+
+                // 숨겨둔 div에서 chat_content 읽기
+                const contentEl = document.getElementById("chatContentData"); 
+                if (contentEl) {
+                    const rawChatContent = contentEl.textContent.trim();
+                    const decoded = rawChatContent
+                        .replace(/\\u003C/g, "<")
+                        .replace(/\\u003E/g, ">")
+                        .replace(/\\u000D/g, "\r")
+                        .replace(/\\u000A/g, "\n");
+                    parseAndDisplayChatContent(decoded);
+                }
+                else {
+                    console.log("DEBUG: #chatContentData not found");
+                    return;
+                }
+            }
+
+            // 2) Chatting Panel
+            const chattingPanel = document.getElementById("chattingPanel");
+            if (chattingPanel) {
+                console.log("[Chatting] panel detected!");
+
+                const deleteIcons = document.querySelectorAll(".delete-icon");
+
+                deleteIcons.forEach((icon) => {
+                    icon.addEventListener("click", async function (e) {
+                        e.stopPropagation();
+
+                        const chatId = this.dataset.id;
+                        console.log("ChatIDD:", chatId);
+                        if (!chatId) return;
+
+                        const confirmed = confirm("Are you sure you want to delete this chat?");
+                        if (!confirmed) return;
+
+                        try {
+                            const response = await fetch("/app/partials/chatting/delete/", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken": getCSRFToken(),
+                                },
+                                body: JSON.stringify({ chatting_id: chatId }),
+                            });
+
+                            const result = await response.json();
+                            if (result.success) {
+                                alert("Chat deleted successfully!");
+                                this.closest(".chat-item").remove(); // UI에서 삭제
+                            } else {
+                                alert(`Error: ${result.error || "Failed to delete chat."}`);
+                            }
+                        } catch (error) {
+                            console.error("Error deleting chat:", error);
+                            alert("An error occurred. Please try again.");
+                        }
+                    });
+                });
+
+                // chat-item 클릭 -> /app/planner/?chat_id=xxx 형태
+                document.querySelectorAll(".chat-item").forEach(item => {
+                    item.addEventListener("click", function() {
+                        const chatId = this.getAttribute("data-chat-id");
+                        const targetUrl = `/app/planner/?chat_id=${encodeURIComponent(chatId)}`;
+                        history.pushState(null, '', targetUrl);
+                        loadContent(targetUrl);
+                    });
+                });
+            }
+
+            // 3) Favorites Panel
+            const favoritesPanel = document.getElementById("favoritesPanel");
+            if (favoritesPanel) {
+                console.log("[Favorites] favoritesPanel detected!");
+                // 장소와 일정 섹션 전환 버튼
+                console.log("[Favorites] favoritesPanel detected!");
+
+                // --------------------------------
+                // (A) 탭 전환 로직
+                // --------------------------------
+                const placeBtn = document.getElementById('placeBtn');
+                const scheduleBtn = document.getElementById('scheduleBtn');
+                const placesSection = document.getElementById('placesSection');
+                const scheduleSection = document.getElementById('scheduleSection');
+                if (placeBtn && scheduleBtn && placesSection && scheduleSection) {
+                    placeBtn.addEventListener('click', function() {
+                        placesSection.style.display = 'block';
+                        scheduleSection.style.display = 'none';
+                    });
+                    scheduleBtn.addEventListener('click', function() {
+                        placesSection.style.display = 'none';
+                        scheduleSection.style.display = 'block';
+                    });
+                }
+
+                // --------------------------------
+                // (B) 중복 입력창 방지용 플래그
+                // --------------------------------
+                let isPlaceInputOpen = false;
+                let isScheduleInputOpen = false;
+
+                // --------------------------------
+                // (C) 장소 폴더 만들기 로직
+                // --------------------------------
+                const plusPlace = document.getElementById("plus-place");
+                if (plusPlace) {
+                    plusPlace.addEventListener('click', function() {
+                        // 이미 입력창이 열려있으면 무시
+                        if (isPlaceInputOpen) return;
+                        isPlaceInputOpen = true;
+
+                        const folderList = document.querySelector("#placesSection .folder-list");
+                        if (!folderList) return;
+
+                        // 새 입력창 아이템
+                        const inputItem = document.createElement("div");
+                        inputItem.className = "folder-item";
+
+                        const inputElem = document.createElement("input");
+                        inputElem.id = "folderNameInput";
+                        inputElem.type = "text";
+                        inputElem.placeholder = "새 폴더 이름 입력 (Enter)";
+                        inputElem.style.width = "200px";
+
+                        inputItem.appendChild(inputElem);
+
+                        folderList.insertBefore(inputItem, plusPlace);
+
+                        // 스크롤/버튼활성화 상태 갱신
+                        updateFolderListUI(folderList, plusPlace);
+
+                        inputElem.focus();
+
+                        // Enter로 확정
+                        inputElem.addEventListener("keydown", function(e) {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                const textValue = inputElem.value.trim();
+                                isPlaceInputOpen = false;
+
+                                if (textValue === "") {
+                                    // 입력 없으면 취소
+                                    folderList.removeChild(inputItem);
+                                    updateFolderListUI(folderList, plusPlace);
+                                    return;
+                                }
+
+                                // ----------------------------------------
+                                // (A) 여기서 placesSection 표시 여부 판별
+                                // ----------------------------------------
+                                const placesSection = document.getElementById("placesSection");
+                                // display가 "block"이면 true, 아니면 false
+                                const isPlaceVal = (placesSection && placesSection.style.display === "block");
+                                const isLightTheme = document.body.getAttribute("data-theme") === "light";
+
+                                // (B) 서버로 AJAX 호출
+                                fetch("/app/partials/favorites/add/", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRFToken": getCSRFToken()
+                                    },
+                                    body: JSON.stringify({
+                                        title: textValue,
+                                        // placesSection이 block이면 true, 아니면 false
+                                        is_place: isPlaceVal,
+                                    })
+                                })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(`HTTP error! status: ${response.status}`);
+                                    }
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    if (data.success) {
+                                        // 새 폴더 아이템 생성
+                                        const newItem = document.createElement("div");
+                                        newItem.className = "folder-item";
+                                        newItem.innerHTML = `
+                                            <img src="${isLightTheme ? "/static/images/folder_light.png" : "/static/images/folder_dark.png"}"
+                                                alt="folder" width="50px" height="50px">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;${textValue}
+                                            <img src="${isLightTheme ? "/static/images/delete_light.png" : "/static/images/delete_dark.png"}"
+                                                alt="delete" width="50px" height="50px" class="delete-icon" data-id="${data.folderId}">
+                                        `;
+                                        folderList.replaceChild(newItem, inputItem);
+                                        attachDeleteEvent(newItem); // 삭제 이벤트 연결
+                                        updateFolderListUI(folderList, plusPlace);
+                                        console.log("폴더 생성 성공:", data.folderId);
+                                    } else {
+                                        alert("폴더 생성 실패: " + (data.error || data.message));
+                                        folderList.removeChild(inputItem);
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error("서버 통신 오류:", err);
+                                    folderList.removeChild(inputItem);
+                                });
+                            }
+                        });
+                    });
+                }
+
+                // --------------------------------
+                // (D) 일정 만들기 로직
+                // --------------------------------
+                const plusSchedule = document.getElementById("plus-schedule");
+                if (plusSchedule) {
+                    plusSchedule.addEventListener('click', function() {
+
+                        // 이미 입력창이 열려있으면 무시
+                        if (isScheduleInputOpen) return;
+                        isScheduleInputOpen = true;
+
+                        const scheduleList = document.querySelector("#scheduleSection .folder-list");
+                        if (!scheduleList) return;
+
+                        // 새 입력창 아이템
+                        const inputItem = document.createElement("div");                        
+                        inputItem.className = "folder-item";
+
+                        const inputElem = document.createElement("input");
+                        inputElem.type = "text";
+                        inputElem.placeholder = "새 일정 이름 입력 (Enter)";
+                        inputElem.style.width = "200px";
+
+                        inputItem.appendChild(inputElem);
+
+                        scheduleList.insertBefore(inputItem, plusSchedule);
+
+                        updateFolderListUI(scheduleList, plusSchedule);
+
+                        inputElem.focus();
+
+                        // Enter로 확정
+                        inputElem.addEventListener("keydown", function(e) {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                const textValue = inputElem.value.trim();
+                                const isLightTheme = document.body.getAttribute("data-theme") === "light";
+
+                                isScheduleInputOpen = false;
+
+                                // 입력이 없으면 취소
+                                if (textValue === "") {
+                                    scheduleList.removeChild(inputItem);
+                                    updateFolderListUI(scheduleList, plusSchedule);
+                                    return;
+                                }
+
+                                // -----------------------------
+                                // 1) 서버로 AJAX 호출
+                                // -----------------------------
+                                fetch("/app/partials/favorites/add/", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRFToken": getCSRFToken()
+                                    },
+                                    body: JSON.stringify({
+                                        title: textValue,
+                                        // 일정 -> is_place = false
+                                        is_place: false
+                                    })
+                                })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(`HTTP error! status: ${response.status}`);
+                                    }
+                                    return response.json();
+                                })
+                                .then((data) => {
+                                    if (data.success) {
+                                        // 생성 성공 시, 새 일정 아이템 생성
+                                        const newItem = document.createElement("div");
+                                        newItem.className = "folder-item";
+                                        newItem.innerHTML = `
+                                            <img src="${isLightTheme ? "/static/images/schedule_light.png" : "/static/images/schedule_dark.png"}"
+                                                alt="schedule" width="50px" height="50px">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;${textValue}
+                                            <img src="${isLightTheme ? "/static/images/delete_light.png" : "/static/images/delete_dark.png"}"
+                                                alt="delete" width="50px" height="50px" class="delete-icon" data-id="${data.folderId}">
+                                        `;
+                                        scheduleList.replaceChild(newItem, inputItem);
+
+                                        attachDeleteEvent(newItem); // 삭제 이벤트 연결
+                                        updateFolderListUI(scheduleList, plusSchedule);
+
+                                        console.log("일정 생성 성공:", data.folderId);
+                                    } 
+                                    else {
+                                        alert("일정 생성 실패: " + (data.error || "알 수 없는 오류"));
+                                        scheduleList.removeChild(inputItem);
+                                    }
+                                })
+                                .catch((err) => {
+                                    console.error("서버 통신 오류:", err);
+                                    scheduleList.removeChild(inputItem);
+                                });
+                            }
+                        });
+                    });
+                }
+
+                // --------------------------------------------------------
+                // (E) 페이지 로드 시, 기존 아이템들에도 삭제 이벤트 연결
+                // --------------------------------------------------------
+                // 만약 "기존 아이템"에도 삭제 아이콘이 있다면 적용
+                const allFolderLists = favoritesPanel.querySelectorAll('.folder-list');
+                allFolderLists.forEach(listEl => {
+                    // 해당 섹션이 "장소" 섹션이면 plusPlace를, 
+                    // "일정" 섹션이면 plusSchedule을 연결해야 함
+                    let plusBtn = null;
+                    if (listEl.closest('#placesSection')) {
+                        plusBtn = plusPlace;
+                    } else if (listEl.closest('#scheduleSection')) {
+                        plusBtn = plusSchedule;
+                    }
+                    // 아이템 스캔
+                    const items = listEl.querySelectorAll('.folder-item');
+                    items.forEach(item => attachDeleteEvent(item, listEl, plusBtn));
+
+                    // 초기 스크롤/버튼상태 갱신
+                    updateFolderListUI(listEl, plusBtn);
+                });
+
+            } // if (favoritesPanel)
+
+            // -----------------------------------
+            // (F) 헬퍼 함수들
+            // -----------------------------------
+            function attachDeleteEvent(folderItem, parentList, plusButton) {
+                const deleteIcon = folderItem.querySelector('.delete-icon');
+                if (!deleteIcon) return;
+
+                deleteIcon.addEventListener('click', function() {
+                    // (A) bookmark_id 가져오기
+                    const bookmarkId = deleteIcon.getAttribute('data-id');
+                    if (!bookmarkId) {
+                        console.warn("No data-id found for this item, cannot delete in DB.");
+                        return;
+                    }
+
+                    // (B) 서버에 DELETE 요청(AJAX)
+                    fetch("/app/partials/favorites/delete/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCSRFToken()  // CSRF 토큰
+                        },
+                        body: JSON.stringify({
+                            bookmark_id: bookmarkId
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            // 예: 404, 500 등이면 throw
+                            throw new Error(`HTTP error: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            // (C) 성공하면 UI에서 제거
+                            folderItem.remove();
+                            // parentList.removeChild(folderItem);
+                            updateFolderListUI(parentList, plusButton);
+                            console.log("북마크 삭제 성공:", bookmarkId);
+                        } else {
+                            // (D) 실패 처리
+                            alert("삭제 실패: " + (data.error || "unknown error"));
+                        }
+                    })
+                    .catch(err => {
+                        console.error("서버 통신 오류:", err);
+                        alert("서버 오류가 발생했습니다.");
+                    });
+                });
+            }
+
+            // (F-1) 아이템 개수에 따라 스크롤 및 버튼 활성/비활성
+            function updateFolderListUI(folderList, plusButton) {
+                if (!folderList) return;
+
+                const items = folderList.querySelectorAll('.folder-item');
+                const count = items.length;
+
+                // 스크롤
+                if (count >= 10) {
+                    folderList.classList.add('scrollable');
+                } else {
+                    folderList.classList.remove('scrollable');
+                }
+
+                // 버튼 비활성화: 10개 이상이면 disabled
+                if (plusButton) {
+                    if (count >= 11) {
+                        plusButton.style.pointerEvents = 'none';
+                        plusButton.style.opacity = '0.4';
+                        // 또는 plusButton.setAttribute('disabled', true);
+                    } else {
+                        plusButton.style.pointerEvents = 'auto';
+                        plusButton.style.opacity = '1';
+                        // plusButton.removeAttribute('disabled');
+                    }
+                }
+            }
+            
+            // 4) Settings Panel
+            const settingsPanel= document.getElementById("settingsPanel");
+            if (settingsPanel) {
+                console.log("[settings] panel detected!");
+                const lightBox = document.getElementById('light');
+                const darkBox = document.getElementById('dark');
+                const lightRadio = document.querySelector("input[name='theme'][value='light']");
+                const darkRadio = document.querySelector("input[name='theme'][value='dark']");
+                const themeRadios = document.querySelectorAll('input[name="theme"]');
+
+                function selectTheme(theme) {
+                    lightBox.classList.remove('selected');
+                    darkBox.classList.remove('selected');
+
+                    if (theme === 'light') {
+                        lightBox.classList.add('selected');
+                        lightRadio.checked = true;
+                    } else if (theme === 'dark') {
+                        darkBox.classList.add('selected');
+                        darkRadio.checked = true;
+                    }
+                }
+
+                lightBox.addEventListener('click', () => selectTheme('light'));
+                darkBox.addEventListener('click', () => selectTheme('dark'));
+
+                // 테마 선택 변경 시 서버에 업데이트
+                themeRadios.forEach(radio => {
+                    radio.addEventListener("change", () => {
+                        const isLightTheme = radio.value === "light";
+                        document.body.setAttribute("data-theme", isLightTheme ? "light" : "dark");
+                        updateIconsBasedOnTheme();
+                        
+                        fetch("/app/partials/settings/update_theme/", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": getCSRFToken(),
+                            },
+                            body: JSON.stringify({ is_white_theme: isLightTheme }),
+                        })
+                            .then((response) => {
+                                if (!response.ok) {
+                                    throw new Error("Theme update failed.");
+                                }
+                                console.log("Theme updated successfully.");
+                            })
+                            .catch((err) => console.error("Error updating theme:", err));
+                    });
+                });
+
+                const initialTheme = document.body.getAttribute("data-theme") === "light";
+                updateIconsBasedOnTheme(initialTheme);
+
+                const languageSelect = document.getElementById('language');
+                if (languageSelect) {
+                    languageSelect.addEventListener('change', async () => {
+                        const selectedLanguage = languageSelect.value;
+
+                        try {
+                            const response = await fetch('/app/partials/settings/update_language/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCSRFToken(), // CSRF 토큰 추가
+                                },
+                                body: JSON.stringify({ language: selectedLanguage }),
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+
+                            const result = await response.json();
+                            if (result.success) {
+                                // alert("Language updated successfully.");
+                            } else {
+                                alert(`Error: ${result.message}`);
+                            }
+                        } catch (error) {
+                            console.error("Error updating language:", error);
+                            alert("Failed to update language. Please try again.");
+                        }
+                    });
+                }
+            }
+
+            // 5) Profile Panel
+            const profilePanel = document.getElementById("profilePanel");
+            if (profilePanel) {
+                console.log("[profile] panel detected!");
+
+                const profileImage = document.getElementById("profile-image");
+                const popup = document.getElementById("image-popup");
+                const popupImages = document.querySelectorAll(".popup-image");
+                
+                // 프로필 이미지를 클릭하면 팝업 표시
+                profileImage.addEventListener("click", function () {
+                    popup.classList.remove("hidden");
+                });
+
+                // 팝업 이미지 클릭 시 서버로 thumbnail_id 업데이트
+                popupImages.forEach(image => {
+                    image.addEventListener("click", function () {
+                        const selectedId = this.dataset.id;
+
+                        // 서버로 AJAX 요청
+                        fetch("/app/partials/profile/update_thumbnail/", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": getCSRFToken()
+                            },
+                            body: JSON.stringify({ thumbnail_id: selectedId })
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    // 성공 시 프로필 이미지 업데이트
+                                    profileImage.src = `/static/images/profiles/profile_${selectedId}.jpg`;
+                                    popup.classList.add("hidden");
+                                } else {
+                                    alert("Failed to update profile image: " + data.error);
+                                }
+                            })
+                            .catch(err => {
+                                console.error("Error updating profile image:", err);
+                            });
+                    });
+                });
+
+                // 팝업 외부 클릭 시 닫기
+                popup.addEventListener("click", function (e) {
+                    if (e.target === popup) {
+                        popup.classList.add("hidden");
+                    }
+                });
+
+                // 1) 닉네임 수정
+                const nicknameText  = document.getElementById('nickname-text');
+                const nicknameInput = document.getElementById('nickname-input');
+                const editButton    = document.getElementById('edit-btn');
+                const logoutBtn     = document.getElementById("logout-btn");
+
+                let oldNickname = nicknameText ? nicknameText.textContent : "";
+
+                let escNote = document.createElement("div");
+                escNote.style.color = "#999";      // 예시 스타일
+                escNote.style.fontSize = "0.9rem"; // 예시
+                escNote.textContent = "(ENTER: edit / ESC: cancel)";
+
+                if (editButton && nicknameText && nicknameInput) {
+                    editButton.addEventListener("click", function() {
+                        // 연필 버튼 클릭 시
+                        oldNickname = nicknameText.textContent; // 현재 닉네임 저장
+                        nicknameText.classList.add("hidden");   // 숨김
+                        nicknameInput.classList.remove("hidden");
+                        nicknameInput.value = oldNickname;      // 입력창 초기값
+                        nicknameInput.focus();
+
+                        const wrapper = document.querySelector(".nickname-wrapper");
+                        if (wrapper) {
+                            wrapper.appendChild(escNote);
+                        }
+                    });
+
+                    // (1) Enter -> 저장
+                    nicknameInput.addEventListener("keydown", function(e) {
+                        if (e.key === "Enter") {
+                            const newNickname = nicknameInput.value.trim();
+                            if (newNickname) {
+                                nicknameText.textContent = newNickname;
+                            }
+                            nicknameText.classList.remove("hidden");
+                            nicknameInput.classList.add("hidden");
+
+                            // 안내 문구 제거
+                            removeEscNote();
+
+                            // 서버로 AJAX 요청
+                            fetch("/app/partials/profile/update_nickname/", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken": getCSRFToken(),
+                                },
+                                body: JSON.stringify({ nickname: newNickname }),
+                            })
+                            .then((response) => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.json(); // JSON 파싱
+                            })
+                            .then((data) => {
+                                if (data.success) {
+                                    // 성공 시 UI 업데이트
+                                    nicknameText.textContent = newNickname;
+                                } else {
+                                    alert("닉네임 수정 실패: " + (data.error || "알 수 없는 오류"));
+                                }
+                            })
+                            .catch((err) => {
+                                console.error("서버 통신 오류:", err);
+                                alert("서버 통신 오류: " + err.message);
+                            })
+                            .finally(() => {
+                                // 입력창 숨기고 라벨 보이기
+                                nicknameInput.classList.add("hidden");
+                                nicknameText.classList.remove("hidden");
+                            });
+                        }
+                        // (2) ESC -> 취소 (원래 닉네임 복원)
+                        else if (e.key === "Escape") {
+                            nicknameInput.value = oldNickname;
+                            nicknameText.classList.remove("hidden");
+                            nicknameInput.classList.add("hidden");
+
+                            // 안내 문구 제거
+                            removeEscNote();
+                        }
+                    });
+                }
+
+                // (4) 안내 문구 제거 함수
+                function removeEscNote() {
+                    if (escNote && escNote.parentNode) {
+                        escNote.parentNode.removeChild(escNote);
+                    }
+                }
+
+                // (5) 로그아웃 버튼
+                if (logoutBtn) {
+                    logoutBtn.addEventListener("click", function() {
+                        alert("로그아웃 처리 로직을 구현해주세요.");
+                        window.location.href = "/";
+                    });
+                }
+
+                // 로그아웃 버튼 예시
+                if (logoutBtn) {
+                    logoutBtn.addEventListener("click", function() {
+                        alert("로그아웃 처리 로직을 구현해주세요.");
+                        window.location.href = "/";
+                    });
+                }
+            }
+
+            // 6) 채팅 입력창 로직
+            const inputBar = document.getElementById("input_bar");            
+            const chatMessages = document.getElementById("chat-messages");
+            const deleteBtn = document.querySelector('.delete-btn');
+
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', showPopup);
+            }
+
+            if (!inputBar || !chatMessages) return;
+
+            function sendMessage() {
+                const message = inputBar.value.trim();
+                if (message === "") return;
+
+                const chatMessages = document.getElementById("chat-messages");
+                const plannerTitle = document.getElementById("planner-title");
+
+                if (!plannerTitle) {
+                    console.error("planner-title 요소를 찾을 수 없습니다.");
+                    return;
+                }
+
+                const title = plannerTitle.textContent.trim();
+                const messages = Array.from(chatMessages.children);
+                let mergedContent = "";
+                // 기존 메시지 병합
+                messages.forEach((msg) => {
+                    const isUserMessage = msg.classList.contains("left-bubble"); // "left-bubble"은 <나>, "right-bubble"은 <봇>
+                    const prefix = isUserMessage ? "<나>" : "<봇>";
+                    mergedContent += `${prefix}${msg.textContent.trim()}\n`;
+                });
+                // 새 메시지 추가
+                mergedContent += `<나>${message}`;
+                // UI 업데이트
+                const newMessage = document.createElement("div");
+                newMessage.className = "bubble left-bubble";
+                newMessage.innerHTML = message.replace(/\n/g, "<br>");
+                chatMessages.appendChild(newMessage);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                inputBar.value = "";
+
+                resizeInput();
+
+                // chat_id 가져오기
+                let chatId = new URLSearchParams(window.location.search).get("chat_id");
+                if (!chatId) {
+                    console.warn("chat_id가 URL에 없습니다. 서버에서 새 chat_id를 요청합니다.");
+
+                    // 서버에서 새 chat_id 요청
+                    fetch("/app/partials/planner/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCSRFToken(),
+                        },
+                        body: JSON.stringify({ request_new_chat_id: true, title: title }), // 새로운 chat_id 요청
+                    })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            if (data.success && data.chat_id) {
+                                chatId = data.chat_id;
+                                history.replaceState(null, '', `?chat_id=${chatId}`);
+                                sendMessageToServer(chatId, mergedContent, title);
+                            } else {
+                                console.error("chat_id 생성 실패:", data.error);
+                            }
+                        })
+                        .catch((err) => console.error("서버 통신 오류:", err));
+                } else {
+                    sendMessageToServer(chatId, mergedContent, title);
+                }
+            }
+
+            function sendMessageToServer(chatId, mergedContent, title) {
+                // 기존 데이터의 유효성 검사
+                const validContent = mergedContent
+                    .split("\n")
+                    .filter(line => line.trim() !== "" && !line.includes("None"))
+                    .join("\n");
+                fetch("/app/partials/planner/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCSRFToken(),
+                    },
+                    body: JSON.stringify({ chat_id: chatId, content: validContent, title: title }),
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error(`서버 오류: ${response.status}`);
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (!data.success) {
+                            console.error("채팅 내용 업데이트 실패:", data.error);
+                        }
+                    })
+                    .catch(err => {
+                        console.error("서버 통신 오류:", err);
+                    });
+            }
+
+            function resizeInput() {
+                inputBar.style.height = "auto"; 
+                const scrollHeight = inputBar.scrollHeight;
+                const maxHeight = 120; 
+                inputBar.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+
+                if (scrollHeight >= maxHeight) {
+                    inputBar.style.overflowY = "auto";
+                } else {
+                    inputBar.style.overflowY = "hidden";
+                }
+            }
+
+            inputBar.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();                    
+                    sendMessage();
+                } else if (e.key === "Enter" && e.shiftKey) {
+                    e.preventDefault();
+                    const cursorPosition = inputBar.selectionStart;
+                    inputBar.value =
+                        inputBar.value.slice(0, cursorPosition) + "\n"
+                        + inputBar.value.slice(cursorPosition);
+                    resizeInput();
+                }
+            });
+            inputBar.addEventListener("input", resizeInput);
+            resizeInput();
+        });
+
+        // ----------------------------
+        // parseAndDisplayChatContent
+        // ----------------------------
+        function parseAndDisplayChatContent(chatContent) {
+            if (!chatContent) return;
+
+            // <나>…<봇>… 로 split
+            let tokens = chatContent.split(/(<나>|<봇>)/g).filter(token => token.trim() !== "");
+            let conversation = [];
+            let currentSpeaker = null;
+
+            tokens.forEach(token => {
+                token = token.trim();
+                if (token === "<나>") {
+                    currentSpeaker = "user";
+                } else if (token === "<봇>") {
+                    currentSpeaker = "bot";
+                } else {
+                    if (token && currentSpeaker) {
+                        conversation.push({
+                            speaker: currentSpeaker,
+                            text: token
+                        });
+                    }
+                }
+            });
+
+            // DOM에 말풍선 생성
+            const chatMessages = document.getElementById("chat-messages");
+            if (!chatMessages) return;
+            chatMessages.innerHTML = "";
+            conversation.forEach(msg => {
+                const bubble = document.createElement("div");
+                bubble.classList.add("bubble");
+                bubble.textContent = msg.text;
+                if (msg.speaker === "user") {
+                    bubble.classList.add("left-bubble");
+                } else {
+                    bubble.classList.add("right-bubble");
+                }
+                chatMessages.appendChild(bubble);
+            });
+        }
+
+        function getCSRFToken() {
+            const cookies = document.cookie.split("; ");
+            for (let cookie of cookies) {
+                if (cookie.startsWith("csrftoken=")) {
+                    return cookie.split("=")[1];
+                }
+            }
+            return null;
+        }
+    </script>
+</body>
+</html>

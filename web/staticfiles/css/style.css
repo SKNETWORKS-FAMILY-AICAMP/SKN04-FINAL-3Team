@@ -1,0 +1,433 @@
+/* static/css/style.css */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #000;
+    margin: 0;
+}
+
+.theme-box {
+    border: 2px solid #000;
+}
+
+.panel {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+}
+
+/* 어두운 테마 */
+[data-theme="dark"] {
+    background-color: #121212;
+    color: #fff;
+}
+
+[data-theme="dark"] .theme-box {
+    border: 2px solid #fff;
+}
+
+[data-theme="dark"] .panel {
+    background-color: #222;
+    border: 1px solid #444;
+}
+
+/* Sidebar 변경 */
+[data-theme="dark"] .sidebar {
+    background-color: #1e1e1e;
+    color: #fff;
+}
+
+[data-theme="dark"] .sidebar button {
+    color: white;
+    background-color: transparent;
+    border: none;
+}
+
+[data-theme="dark"] .sidebar button:hover {
+    background-color: #333;
+}
+
+[data-theme="dark"] .sidebar button.active {
+    background-color: #3a3a3a;
+}
+
+/* 채팅창 */
+[data-theme="dark"] #chat-messages {
+    background-color: #222;
+    color: #ccc;
+    border: 1px solid #444;
+}
+
+/* 팝업창 */
+[data-theme="dark"] .popup-content {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+/* 스크롤바 스타일 */
+[data-theme="dark"] #chat-messages::-webkit-scrollbar-thumb {
+    background-color: #555;
+}
+
+[data-theme="dark"] #chat-messages::-webkit-scrollbar-track {
+    background-color: #2a2a2a;
+}
+
+.settings-panel {
+    background-color: #ffffff;
+    color: #000000;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.settings-panel h1,
+.settings-panel label {
+    color: #333;
+}
+
+.settings-panel select,
+.settings-panel button {
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+.top-menu {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+}
+
+[data-theme="dark"] .top-menu {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    background-color: #222;
+    border-bottom: 1px solid #444;
+    padding: 10px 0;
+}
+
+@font-face {
+    font-family: 'Maruburi';
+    src: url('/static/fonts/maruburi-regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 채팅 입력창 */
+.input-bar {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 2px solid #4caf50;
+    border-radius: 5px;
+    resize: none; /* 사용자가 직접 크기 조정 불가 */
+    height: 120px; /* 고정된 높이 (6줄) */
+    overflow-y: auto; /* 스크롤바 표시 */
+    transition: height 0.2s ease-in-out;
+}
+
+/* 스크롤바 스타일 */
+.input-bar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.input-bar::-webkit-scrollbar-thumb {
+    background-color: #4caf50;
+    border-radius: 5px;
+}
+
+.input-bar::-webkit-scrollbar-track {
+    background-color: #f0f0f0;
+}
+
+/* X 버튼이 보일 때 */
+.input-bar:not(:empty) + .clear-btn {
+    display: block;
+}
+
+/* 입력창 컨테이너 */
+.input-container {
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+[data-theme="dark"] .input-container {
+    padding: 10px;
+    background-color: #222;
+    border: 1px solid #444;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 100px; 
+    border-right: 1px solid #ddd;
+    background: #f4f4f4;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0;
+    border-right: 1px solid #444;
+}
+
+.sidebar button {
+    width: 100%;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: transparent;
+    text-align: center;
+    transition: background-color 0.3s, color 0.3s;
+    cursor: pointer;
+}
+
+.sidebar button:hover {
+    background-color: #ddd;
+}
+
+.sidebar button.active {
+    background-color: rgb(4, 117, 244);
+    color: rgb(255, 255, 255);
+}
+
+.sidebar .icon {
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+.content {
+    flex-grow: 1;
+    border-left: 1px solid #ddd;
+}
+
+.panel {
+    position: relative;
+    width: 400px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #ddd;
+    background-color: #ffffff;
+}
+
+[data-theme="dark"] .panel {
+    position: relative;
+    width: 400px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #222;
+    background-color: #222;
+}
+
+.nav-btn.active {
+    background-color: #ccc;  /* 더 짙은 회색 */
+    cursor: default;         /* 일반 화살표로 */
+    pointer-events: none;    /* 클릭 불가 */
+    opacity: 0.8;            /* 살짝 투명도 줄여도 됨 */
+}
+
+.nav-btn br {
+    font-size: 24px; /* 아이콘 크기만 조정 */
+}
+
+#chat-header {
+    display: flex;
+    justify-content: space-between; /* 양쪽 정렬 */
+    align-items: center; /* 수직 정렬 */
+    font-weight: bold;
+    background: #ffffff;
+    font-size: 1.5rem;
+    color: white;
+    padding: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-left: 10px;
+}
+
+[data-theme="dark"] #chat-header {
+    padding: 10px;
+    background: #222;
+    border-bottom: 1px solid #222;
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #c1c1c1;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-left: 10px;
+}
+
+#map {
+    display: block;
+    position: relative;
+}
+
+#chat-header {
+    position: sticky; /* 스크롤 시 고정 */
+    top: 0; /* 컨테이너의 맨 위에 고정 */
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    z-index: 1; /* 다른 요소 위에 표시되도록 설정 */
+}
+
+/* 메시지 목록 컨테이너 (유동적 크기) */
+#chat-messages {
+    flex-grow: 1; /* 채팅창이 유동적으로 늘어나도록 */
+    overflow-y: auto; /* 메시지가 많아지면 스크롤 */
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* 메시지 간격 */
+    padding: 5px;
+    width: 100%; 
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: white; /* 채팅창 배경 */
+}
+
+/* 스크롤바 커스터마이징 */
+#chat-messages::-webkit-scrollbar {
+    width: 8px; /* 스크롤바 너비 */
+}
+
+#chat-messages::-webkit-scrollbar-thumb {
+    background-color: #4caf50; /* 스크롤바 색상 */
+    border-radius: 5px; /* 스크롤바 모서리 둥글게 */
+}
+
+#chat-messages::-webkit-scrollbar-track {
+    background-color: #f0f0f0; /* 스크롤 트랙 색상 */
+}
+
+/* 팝업 배경 */
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* 팝업 내용 */
+.popup-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    width: 300px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 팝업 버튼 */
+.popup-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.popup-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.popup-button#confirm-delete {
+    background-color: red;
+    color: white;
+}
+
+.popup-button#cancel-delete {
+    background-color: #ccc;
+}
+
+.bubble {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 6px;
+    border-radius: 12px;
+    width: fit-content;
+    word-wrap: break-word;
+}
+
+.bubble.user {
+    background-color: #4caf50;
+    color: white;
+}
+
+/* 왼쪽 (사용자) */
+.left-bubble {
+    background-color: #4caf50; /* 초록색 */
+    color: #fff;
+    margin-right: auto;   /* 왼쪽 정렬 */
+}
+
+/* 오른쪽 (봇) */
+.right-bubble {
+    background-color: #eee;
+    color: #333;
+    margin-left: auto;    /* 오른쪽 정렬 */
+}
+
+/* 아래로 이동 버튼 */
+.scroll-to-bottom {
+    position: absolute;      /* 위치를 자유롭게 조정할 수 있도록 absolute/fixed */
+    bottom: 100px;          /* 화면 아래에서 100px 떨어짐 (입력창 위로) */
+    width: 40px;
+    height: 40px;
+    background-color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255); 
+    border-radius: 50%;      /* 둥근 원 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    margin-bottom: 40px;
+}
+
+/* 숨김 토글용 */
+.hidden {
+    display: none !important;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 10px; /* 버튼 사이 간격 */
+    justify-content: flex-end; /* 오른쪽 정렬 */
+}
+
+.header-buttons img {
+    width: 30px;
+    height: 30px;
+    cursor: pointer; /* 클릭 가능하게 */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* 크기와 그림자 애니메이션 */
+}
+
+.header-buttons img:hover {
+    transform: scale(1.2); /* 크기 1.2배로 확대 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 살짝 그림자 추가 */
+}
+
+.title-container {
+    flex-grow: 1; /* 제목이 남은 공간을 차지 */
+}

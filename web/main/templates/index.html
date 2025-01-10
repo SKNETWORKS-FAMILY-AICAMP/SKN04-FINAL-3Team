@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPA Example</title>
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        const ncpClientId = "{{ ncp_client_id }}";
+    
+        // 네이버 지도 스크립트 로드
+        const mapScript = document.createElement('script');
+        mapScript.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${ncpClientId}`;
+        mapScript.onload = function () {
+            console.log("Naver Map Script Loaded");
+            loadMap(); // 지도 초기화
+        };
+        mapScript.onerror = function () {
+            console.error("Failed to load Naver Map Script");
+        };
+        document.head.appendChild(mapScript);
+    
+        // 지도 초기화 함수
+        function loadMap() {
+            if (!window.naver || !naver.maps) {
+                console.error("Naver Maps is not loaded");
+                return;
+            }
+            const mapOptions = {
+                center: new naver.maps.LatLng(37.5665, 126.9780), // 서울
+                zoom: 10,
+            };
+            const map = new naver.maps.Map('map', mapOptions);
+        }
+    </script>
+</head>
+<body>
+<div class="container">
+    <!-- 네비게이션 바 -->
+    <div class="sidebar">
+        <button id="homeBtn"><span class="icon">&#127968;</span> LOGO</button>
+        <button id="plannerBtn"><span class="icon">&#128747;</span> Planner</button>
+        <button id="favoritesBtn"><span class="icon">&#127775;</span> Favorites</button>
+        <button id="settingsBtn"><span class="icon">&#128303;</span> Settings</button>
+        <button id="profileBtn"><span class="icon">&#128589;</span> Profile</button>
+    </div>
+
+    <!-- 채팅 입력창 영역 -->
+    <div class="content1" style="width:400px; height:auto; display: flex; flex-direction: column;">
+        <div id="chat-header">
+            Chat
+        </div>
+        <div id="chat-messages" style="flex-grow: 1; overflow-y: auto;">
+            
+            <!-- 메시지가 여기에 추가됩니다 -->
+        </div>
+        <div class="input-container">
+            <textarea id="input_bar" class="input-bar" autocomplete="off" maxlength="255" rows="1" placeholder="Type your message..."></textarea>
+        </div>
+    </div>
+    
+    <!-- 콘텐츠 영역 -->
+    <div class="content" id="content">
+        <!-- 지도와 UI 콘텐츠가 여기에 표시됩니다 -->
+        <div id="map" style="width:100%; height:700px;"></div>
+    </div>
+</div>
+
+<script>
+    function loadMap() {
+        var mapOptions = {
+            center: new naver.maps.LatLng(37.5665, 126.9780), // 서울
+            zoom: 10
+        };
+        var map = new naver.maps.Map('map', mapOptions);
+    }
+
+    // 콘텐츠 업데이트 함수
+    function loadContent(page) {
+        // 페이지 URL에 따라 콘텐츠를 업데이트하는 방식
+        $.ajax({
+            url: page,  // 페이지 URL (예: planner, profile 등)
+            success: function(response) {
+                $('#content').html(response);  // 받은 데이터를 content 영역에 삽입
+            },
+            error: function() {
+                $('#content').html('<p>페이지 로딩 오류</p>');  // 에러 처리
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        loadMap();  // 처음 페이지 로드시 지도 로드
+
+        // 처음 로드 시, homeBtn에 active 클래스 추가
+        $('#homeBtn').addClass('active');
+
+        // 각 버튼 클릭 시
+        $('#homeBtn').click(function() {
+            $('#content').html('<div id="map" style="width:100%; height:800px;"></div>');
+            loadMap();
+            $('.sidebar button').removeClass('active');
+            $(this).addClass('active');
+        });
+
+        $('#plannerBtn').click(function() {
+            loadContent('/planner/');
+            $('.sidebar button').removeClass('active');
+            $(this).addClass('active');
+        });
+
+        $('#profileBtn').click(function() {
+            loadContent('/profile/');
+            $('.sidebar button').removeClass('active');
+            $(this).addClass('active');
+        });
+
+        $('#settingsBtn').click(function() {
+            loadContent('/settings/');
+            $('.sidebar button').removeClass('active');
+            $(this).addClass('active');
+        });
+
+        $('#favoritesBtn').click(function() {
+            loadContent('/favorites/');
+            $('.sidebar button').removeClass('active');
+            $(this).addClass('active');
+        });
+
+        // 메시지 추가 함수
+        function addMessage(content, isUser = true) {
+            const bubbleClass = isUser ? 'user' : ''; // 사용자 메시지 스타일 적용
+            const messageHtml = `<div class="bubble ${bubbleClass}">${content.replace(/\n/g, '<br>')}</div>`;
+            $('#chat-messages').append(messageHtml);
+
+            // 스크롤을 맨 아래로 이동
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 채팅 입력란 자동 높이 조정
+        $('#input_bar').on('input', function() {
+            // 현재 입력 내용의 높이를 확인
+            this.style.height = 'auto'; // 높이를 초기화
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px'; // 입력 내용에 따라 높이 조정 (최대 120px)
+
+            // 스크롤바 표시 여부
+            if (this.scrollHeight > 120) {
+                this.style.overflowY = 'auto'; // 스크롤바 활성화
+            } else {
+                this.style.overflowY = 'hidden'; // 스크롤바 비활성화
+            }
+        });
+
+        // 채팅 메시지 추가 함수
+        function addMessageToChat(content) {
+            const messageHtml = `<div class="bubble">${content.replace(/\n/g, '<br>')}</div>`;
+            $('#chat-messages').append(messageHtml);
+
+            // 스크롤을 맨 아래로 이동
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Enter 키 입력 처리
+        $('#input_bar').keydown(function(event) {
+            // Shift + Enter (줄바꿈)
+            if (event.shiftKey && event.key === 'Enter') {
+                const value = $(this).val();
+                const cursorPos = this.selectionStart;
+                $(this).val(value.substring(0, cursorPos) + "\n" + value.substring(cursorPos));
+                this.selectionStart = this.selectionEnd = cursorPos + 1; // 커서를 줄바꿈 후 위치로 설정
+                event.preventDefault(); // 기본 Enter 동작 방지
+            }
+            // Enter 키를 눌렀을 때 메시지 전송
+            else if (event.key === 'Enter') {
+                event.preventDefault(); // 기본 Enter 동작 방지
+
+                const inputText = $(this).val().trim(); // 입력된 텍스트 가져오기
+                if (inputText) {
+                    addMessageToChat(inputText); // 채팅 메시지 추가
+                    $(this).val(''); // 입력란 초기화
+                    this.style.height = '40px'; // 초기 높이로 복원
+                }
+            }
+        });
+
+        // X 버튼 클릭 시 입력란 초기화
+        $('#clearBtn').click(function() {
+            $('#input_bar').val(''); // 텍스트 삭제
+            $(this).hide(); // X 버튼 숨김
+        });
+
+        // 텍스트 입력 시 X 버튼 표시
+        $('#input_bar').on('input', function() {
+            if ($(this).val()) {
+                $('#clearBtn').show();
+            } else {
+                $('#clearBtn').hide();
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

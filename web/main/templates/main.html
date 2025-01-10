@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Styled Layout</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+    <!-- 프로필 섹션 -->
+    <!-- 클릭 시 이동: id="profileLink" -->
+    <div class="profile-section">
+        <img class="nav-icon" id="nav-icon"
+                data-light="{% static 'images/nav/nav_profile_light.png' %}" 
+                data-dark="{% static 'images/nav/nav_profile_dark.png' %}" 
+                src="{% static 'images/nav/nav_profile_light.png' %}" 
+                style="width: 35px; height: 35px; cursor: pointer;">
+        <span id="profileLink">
+            {% if user.is_authenticated %}
+                {{ user.username }}
+            {% else %}
+                Sign In
+            {% endif %}
+        </span>
+
+        <!-- 팝업창 -->
+        {% if user.is_authenticated %}
+        <div id="profilePopup" class="popup hidden">
+            <ul>
+                <li><a href="/app/chatting/">Chattings</a></li>
+                <li><a href="/app/favorites/">Bookmark</a></li>
+                <li><a href="/app/settings/">Settings</a></li>
+                <li><a href="/app/profile/">Profile</a></li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container">
+        <!-- 타이틀 -->
+        <div class="title">SeouLIFE</div>
+
+        <!-- 입력 섹션 -->
+        <div class="input-wrapper">
+            <!-- 텍스트 입력란 -->
+            <textarea 
+                class="input-box" 
+                placeholder="일정을 만들거나 장소를 검색해 보세요"
+                rows="2"
+                maxlength="2000"
+            ></textarea>
+            <!-- 검은색 버튼 -->
+            <button class="send-button" onclick="goToEnterPage()">🔍</button>
+        </div>
+    </div>
+
+    <!-- (A) Django에서 로그인 여부를 JS 변수로 넘김 -->
+    <script>
+        // user.is_authenticated는 True 또는 False를 파이썬 부울형으로 가지므로,
+        // 템플릿 필터 yesno:"true,false"를 사용해 JS에서 쓸 수 있도록 변환
+        const isLoggedIn = {{ user.is_authenticated|yesno:"true,false" }};
+
+        // (B) "My Profile" 클릭 시 처리
+        document.addEventListener('DOMContentLoaded', function() {
+            const popup = document.getElementById('profilePopup');
+            const navicon = document.getElementById('nav-icon');
+            const profileLink = document.getElementById('profileLink');
+
+            if (navicon) {
+                navicon.addEventListener('click', function(e) {
+                    if (isLoggedIn) {
+                        // 로그인이 되어 있다면 팝업창 열기
+                        e.stopPropagation(); // 이벤트 버블링 방지
+                        popup.classList.toggle('hidden');                        
+                        // window.location.href = "/app/profile/";
+                    } else {
+                        // 안 되어 있다면 로그인 페이지로 이동
+                        window.location.href = "/login/";
+                    }
+                });
+            }
+            if (profileLink) {
+                profileLink.addEventListener('click', function(e) {
+                    if (isLoggedIn) {
+                        // 로그인이 되어 있다면 팝업창 열기
+                        e.stopPropagation(); // 이벤트 버블링 방지
+                        popup.classList.toggle('hidden');                        
+                        // window.location.href = "/app/profile/";
+                    } else {
+                        // 안 되어 있다면 로그인 페이지로 이동
+                        window.location.href = "/login/";
+                    }
+                });
+
+                // 팝업 외부 클릭 시 닫기
+                document.addEventListener('click', function (e) {
+                    if (!popup.classList.contains('hidden')) {
+                        popup.classList.add('hidden');
+                    }
+                });
+
+                // 팝업 내부 클릭 시 닫히지 않음
+                popup.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                });
+            }
+        });
+
+        function goToEnterPage() {
+            const inputBox = document.querySelector('.input-box');
+            const userInput = inputBox.value.trim();
+
+            if (userInput === "") {
+                alert("내용을 입력해주세요!");
+                return;
+            }
+            console.log("Saving to localStorage:", userInput); // 디버깅
+            // 입력 데이터를 localStorage에 저장
+            localStorage.setItem('chatMessage', userInput);
+
+            // SPA 페이지로 이동
+            window.location.href = "/app/";
+        }
+
+
+        // 입력창 자동 높이 조정 및 버튼 위치 유지
+        document.querySelector('.input-box').addEventListener('input', function () {
+            this.style.height = "auto";
+            const scrollHeight = this.scrollHeight;
+            const maxHeight = 300; // 6줄 높이 제한
+            this.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+
+            if (scrollHeight > maxHeight) {
+                this.style.overflowY = "scroll";
+            } else {
+                this.style.overflowY = "hidden";
+            }
+        });
+
+        // Enter 및 Shift+Enter 처리
+        document.querySelector('.input-box').addEventListener('keydown', function (e) {
+            if (e.key === "Enter" && e.shiftKey) {
+                e.preventDefault();
+                const cursorPosition = this.selectionStart;
+                this.value = this.value.slice(0, cursorPosition) + "\n" + this.value.slice(cursorPosition);
+            } else if (e.key === "Enter") {
+                e.preventDefault();
+                document.querySelector('.send-button').click();
+            }
+        });
+    </script>
+</body>
+</html>
