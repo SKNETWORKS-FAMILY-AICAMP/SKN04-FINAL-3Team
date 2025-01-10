@@ -2,12 +2,6 @@
 from dotenv import load_dotenv
 # API 키 정보 로드
 load_dotenv()
-# LangSmith 추적을 설정합니다. https://smith.langchain.com
-# !pip install -qU langchain-teddynote
-from langchain_teddynote import logging
-
-# 프로젝트 이름을 입력합니다.
-logging.langsmith("practice")
 
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
@@ -38,7 +32,7 @@ embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
 retriever_naver_gangnam = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
 
 # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
-retriever_naver_gangnam.search_kwargs = {"k": 6}
+retriever_naver_gangnam.search_kwargs = {"k": 8}
 
 
 
@@ -49,7 +43,7 @@ embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
 retriever_naver_jongro = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
 
 # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
-retriever_naver_jongro.search_kwargs = {"k": 6}
+retriever_naver_jongro.search_kwargs = {"k": 8}
 
 # Step 1: FAISS 인덱스 파일 로드
 faiss_index_path = "Faiss/naver_map_Junggu_faiss"  # 저장된 Faiss 파일 경로
@@ -59,7 +53,7 @@ embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
 retriever_naver_Junggu = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
 
 # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
-retriever_naver_Junggu.search_kwargs = {"k": 6}
+retriever_naver_Junggu.search_kwargs = {"k": 8}
 
 # Step 1: FAISS 인덱스 파일 로드
 faiss_index_path = "Faiss/naver_map_yongsan_faiss"  # 저장된 Faiss 파일 경로
@@ -69,7 +63,7 @@ embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
 retriever_naver_yongsan = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
 
 # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
-retriever_naver_yongsan.search_kwargs = {"k": 6}
+retriever_naver_yongsan.search_kwargs = {"k": 8}
 
 # Step 1: FAISS 인덱스 파일 로드
 faiss_index_path = "Faiss/opendata_gangnam_all"  # 저장된 Faiss 파일 경로
@@ -136,20 +130,57 @@ class GraphState(TypedDict):
 ##########################################################################################################
 # Query Rewrite 프롬프트 정의
 prompt = PromptTemplate(
-    template="""너는 입력 받는 장소 정보의 데이터를 종합해서 서울의 관광 일정을 추천해주는 봇이야.
-    추천 할 수 있는 지역은 종로구, 중구, 용산구, 강남구로 한정되어 있어.
-    사용자의 질문에 따라서 여러가지 서울의 관광지, 식당, 숙소, 쇼핑몰 등을 추천해야해.
-    사용자가 서울에 오는 이유에 대해 파악하고 그에 맞는 여행 일정을 추천해주면 돼.
-    대화하다가 추천한 여행 일정이 사용자의 마음에 들지 않아서 변경해달라고 하면 마음에 들지 않은 부분을
-    캐치하고 그 부분들만 수정해서 다시 추천해주면 돼.
-    일정은 아침, 점심, 저녁, 식당을 추천해주고, 중간중간에 카페나, 명소, 거리등을 추천 해줬으면 좋겠어.
+    template="""Create a travel itinerary bot that generates schedules based on user questions. The schedule should be divided into morning, lunch, and evening plans for each travel day, and for each time of day, recommend a restaurant and tourist attractions or streets.
 
-    여행 일정에 대한 동선이 짧도록 추천해줘.
-    언어는 사용자가 입력한 언어를 기준으로 알려줘. 
-    화폐 기준도 사용자가 입력한 언어를 사용하는 국가의 화폐를 기준으로 적용해줘.
+    Extract key details from the user's questions to create a travel itinerary. Identify dates, times, and activities, then structure a plan with specific restaurant and sightseeing recommendations for morning, lunch, and evening.
+
+    #유의사항
+
+    - 첫날에는 아침일정을 추천하지마.
+    - 추천했던 장소를 한번더 추천하지마.
+    - 아침, 점심, 저녁 이동 경로가 가까워야돼
+
+    # Steps
+
+    1. **Request Analysis**: Carefully analyze the user's input to understand the itinerary requirements, including any specified food or sightseeing preferences.
+    2. **Confirm Details**: Verify dates, times, locations, activity preferences, and any specific requests for restaurants or attractions.
+    3. **Create Itinerary**: Using confirmed details, write a structured schedule detailing morning, lunch, and evening sections for each day, recommending one restaurant and tourist attraction or street for each time slot.
+
+    # Output Format
+
+    - Provide a detailed itinerary in a bullet-point list or table format, itemizing each day's morning, lunch, and evening plans.
+
+    # Examples
+
+    **Input**: "용산구에 1박2일 방문 할 예정이야. 일정을 생성 해줄 수 있어?"
+
+    **Schedule**:
+    - 1일차
+
+    - 점심: 점심 식사 장소: [점심 식사 장소] [음식점 주소] [영업 시간] [음식점 특징] [기타 정보] ,
+            명소: [관광할 명소 또는 거리] [영업 시간] [명소 특징] [명소 위치] [기타 정보]
+            카페 : [카페 주소] [영업 시간] [카페 정보] [카페 특징] 
+    - 저녁: 저녁 식사 장소: [저녁 식사 장소] [음식점 주소] [음식점 특징] [기타 정보], 명소: [관광할 명소 또는 거리] [명소 특징] [명소 위치] [기타 정보]
+            쇼핑몰 : [쇼핑몰 주소] [쇼핑몰 특징]
+            숙소 : [숙소 위치] [숙소 정보] [숙소 특징] *숙소 정보 없으면 출력 하지 않기
+    - 2일차
+    - 아침: 아침 식사 장소: [음식점 이름] [음식점 주소] [음식점 특징] [기타 정보]
+            명소: [관광할 명소 또는 거리] [명소 특징] [명소 위치] [기타 정보]
+    - 점심: 점심 식사 장소: [점심 식사 장소] [음식점 주소] [영업 시간] [음식점 특징] [기타 정보],
+            명소: [관광할 명소 또는 거리] [영업 시간] [명소 특징] [명소 위치] [기타 정보]
+            카페 : [카페 주소] [영업 시간] [카페 정보] [카페 특징]
+    - 저녁: 저녁 식사 장소: [저녁 식사 장소] [음식점 주소] [음식점 특징] [기타 정보], 명소: [관광할 명소 또는 거리] [명소 특징] [명소 위치] [기타 정보]
+            쇼핑몰 : [쇼핑몰 주소] [쇼핑몰 특징]
+            숙소 : [숙소 위치] [숙소 정보] [숙소 특징] *숙소 정보 없으면 출력 하지 않기
+
+    # Notes
+
+    - Ensure that all parts of the itinerary are complete and relevant to the user's request.
+    - Attempt to clarify any ambiguous details related to time, location, or activity preferences.
+    - Include clear recommendations for restaurants and tourist attractions for each part of the day.
 
 
-
+    #답변언어 : 한국어
 
     # 장소 정보: {context}
 
@@ -475,7 +506,6 @@ chain_web = (
     | StrOutputParser()
 )
 
-# from rag.utils import format_docs
 # 웹 검색 or 리트리버 검색
 def web_or_retriever_check(state: GraphState) -> GraphState:
     
