@@ -211,6 +211,7 @@ body {
 }
 
 .content1 {
+    transition: transform 0.3s ease;
     position: relative;
     width: 400px;
     height: 100%;
@@ -430,4 +431,23 @@ body {
 
 .title-container {
     flex-grow: 1; /* 제목이 남은 공간을 차지 */
+}
+
+.toggle-button {
+    position: absolute;
+    top: 50%;
+    right: 400px; /* content1의 초기 width */
+    transform: translateY(-50%);
+    background-color: #333;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: right 0.3s ease, transform 0.3s ease;
+    z-index: 1000;
 }

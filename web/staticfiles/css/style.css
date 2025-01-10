@@ -242,9 +242,14 @@ body {
 }
 
 #chat-header {
-    padding: 10px;
+    display: flex;
+    justify-content: space-between; /* 양쪽 정렬 */
+    align-items: center; /* 수직 정렬 */
     font-weight: bold;
+    background: #ffffff;
     font-size: 1.5rem;
+    color: white;
+    padding: 10px;
     margin-top: 10px;
     margin-bottom: 10px;
     padding-left: 10px;
@@ -403,4 +408,26 @@ body {
 /* 숨김 토글용 */
 .hidden {
     display: none !important;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 10px; /* 버튼 사이 간격 */
+    justify-content: flex-end; /* 오른쪽 정렬 */
+}
+
+.header-buttons img {
+    width: 30px;
+    height: 30px;
+    cursor: pointer; /* 클릭 가능하게 */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* 크기와 그림자 애니메이션 */
+}
+
+.header-buttons img:hover {
+    transform: scale(1.2); /* 크기 1.2배로 확대 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 살짝 그림자 추가 */
+}
+
+.title-container {
+    flex-grow: 1; /* 제목이 남은 공간을 차지 */
 }

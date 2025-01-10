@@ -156,20 +156,44 @@ def logout_view(request):
 @csrf_exempt
 def planner(request):
     context = get_theme_context(request.user)  # 테마 정보 추가
+
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             chat_id = data.get("chat_id")
-            content = data.get("content")
+            new_message = data.get("content")  # 새로 입력된 메시지
+            title = data.get("title")  # 클라이언트에서 title을 받아옴
 
-            # 데이터베이스 업데이트
-            chat = Chatting.objects.get(chatting_id=chat_id, profile=request.user)
-            chat.content = content
+            if not chat_id:
+                # chatting 테이블에서 가장 마지막 인덱스 가져오기
+                last_chat = Chatting.objects.order_by('-chatting_id').first()
+                last_index = int(last_chat.chatting_id.split('_')[1]) if last_chat else 0
+
+                # 새로운 chat_id 생성
+                new_index = last_index + 1
+                chat_id = f"ch_{str(new_index).zfill(5)}"
+
+            # title 값이 없을 경우 기본 제목 설정
+            if not title:
+                title = f"chat{int(chat_id.split('_')[1])}"
+
+            # 기존 채팅 내역 가져오기
+            chat, created = Chatting.objects.get_or_create(
+                chatting_id=chat_id,
+                profile=request.user,
+                defaults={"content": "", "title": title}
+            )
+
+            # 유효성 검증: new_message가 None이면 처리 중단
+            # if not new_message or new_message.strip() == "":
+            #     return JsonResponse({"success": False, "error": "Empty message received."}, status=400)
+
+            updated_content = "\n".join(filter(None, ["", new_message]))
+            chat.content = updated_content
+            chat.title = title  # title 업데이트
             chat.save()
 
-            return JsonResponse({"success": True})
-        except Chatting.DoesNotExist:
-            return JsonResponse({"success": False, "error": "Chat not found"}, status=404)
+            return JsonResponse({"success": True, "chat_id": chat_id})
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)}, status=500)
 
@@ -184,6 +208,7 @@ def planner(request):
                 pass
         context.update({"chat_content": chat_content})  # 추가 정보 업데이트
         return render(request, "partials/planner.html", context)
+
 
 
 def check_duplicate_title(request):
@@ -225,6 +250,22 @@ def update_title(request):
             return JsonResponse({"success": False, "error": "Chat not found"})
 
     return JsonResponse({"success": False, "error": "Invalid request method"})
+
+
+@login_required
+def get_chat_content(request):
+    """
+    특정 chat_id에 해당하는 채팅 내용을 반환합니다.
+    """
+    chat_id = request.GET.get('chat_id', None)
+    if not chat_id:
+        return JsonResponse({"success": False, "error": "chat_id가 제공되지 않았습니다."}, status=400)
+
+    try:
+        chat = Chatting.objects.get(chatting_id=chat_id, profile=request.user)
+        return JsonResponse({"success": True, "content": chat.content})
+    except Chatting.DoesNotExist:
+        return JsonResponse({"success": False, "error": "해당 chat_id에 대한 채팅이 존재하지 않습니다."}, status=404)
 
 
 def get_chat_title(request):

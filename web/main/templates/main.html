@@ -116,13 +116,14 @@
                 alert("내용을 입력해주세요!");
                 return;
             }
-
+            console.log("Saving to localStorage:", userInput); // 디버깅
             // 입력 데이터를 localStorage에 저장
             localStorage.setItem('chatMessage', userInput);
 
             // SPA 페이지로 이동
             window.location.href = "/app/";
         }
+
 
         // 입력창 자동 높이 조정 및 버튼 위치 유지
         document.querySelector('.input-box').addEventListener('input', function () {
