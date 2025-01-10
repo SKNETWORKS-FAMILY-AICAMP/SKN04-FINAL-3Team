@@ -210,7 +210,7 @@ body {
     border-left: 1px solid #ddd;
 }
 
-.content1 {
+.panel {
     position: relative;
     width: 400px;
     height: 100%;
@@ -220,7 +220,7 @@ body {
     background-color: #ffffff;
 }
 
-[data-theme="dark"] .content1 {
+[data-theme="dark"] .panel {
     position: relative;
     width: 400px;
     height: 100%;
@@ -289,7 +289,7 @@ body {
     flex-direction: column;
     gap: 5px; /* 메시지 간격 */
     padding: 5px;
-    width: 100%; /* 부모 요소(content1)의 너비에 맞춤 */
+    width: 100%; 
     border: 1px solid #ddd;
     box-sizing: border-box;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);

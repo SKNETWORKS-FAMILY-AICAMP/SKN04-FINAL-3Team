@@ -5,7 +5,7 @@
 </head>
 
 <div class="container" id="plannerPanel">
-    <div class="content1">
+    <div class="panel">
         <div id="chat-header">
             <div class="title-container">
                 <span id="planner-title" style="display: block;"></span>
@@ -17,20 +17,14 @@
             </div>
         </div>
 
-        <!-- 숨긴 상태로 시작 (CSS .hidden) -->
-        <div class="scroll-to-bottom hidden" id="scrollToBottomBtn" title="Go to bottom">
-            <span class="arrow-down">&#x25BC;</span>
-        </div>
-
-        <div id="chatContentData" style="display: none;">
-            {{ chat_content|default_if_none:''|escapejs }}
-        </div>
-
-        <div id="chat-messages" class="chat-container"><!-- 메시지 표시 영역 --></div>
+        <div id="chat-messages" class="chat-container"></div>
         
         <div class="input-container">
             <textarea id="input_bar" class="input-bar" rows="6"></textarea>
         </div>
+
+        <div class="toggle-button" id="toggleButton"><</div>
     </div>
 </div>
+
 

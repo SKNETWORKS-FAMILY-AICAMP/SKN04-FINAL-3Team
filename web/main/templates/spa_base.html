@@ -56,12 +56,11 @@
         </div>
 
         <!-- 동적 콘텐츠 영역 -->
-        <div id="content1">
+        <div id="content1">            
             <!-- AJAX로 불러온 partial HTML이 여기 들어감 -->
         </div>
-
         <!-- 지도 영역 -->
-        <div id="map" style="flex-grow: 1; height: 100%;"></div>
+        <div id="map" style="flex-grow: 1; height: 100%; z-index: 1;"></div>
     </div>
 
     <!-- 팝업 창 -->
@@ -291,6 +290,28 @@
         // (5) spaContentLoaded 이후 로직
         // ---------------------------
         document.addEventListener("spaContentLoaded", async function () {
+            const content1 = document.querySelector('.panel');
+            const map = document.getElementById("map");
+            const toggleButton = document.getElementById("toggleButton");
+
+            let isChatHidden = false;
+
+            toggleButton.addEventListener("click", function () {
+                if (isChatHidden) {
+                    // 채팅 패널을 다시 표시
+                    content1.style.width = "400px";
+                    map.style.flexGrow = "1"; // 원래 상태로 복구
+                    toggleButton.textContent = "<"; // 버튼 텍스트 변경
+                } else {
+                    // 채팅 패널을 숨김
+                    content1.style.width = "0";
+                    map.style.flexGrow = "2"; // 지도 넓이를 확장
+                    toggleButton.textContent = ">"; // 버튼 텍스트 변경
+                }
+                isChatHidden = !isChatHidden; // 상태 변경
+            });
+
+
             // 1) Planner Panel
             const plannerPanel = document.getElementById("plannerPanel");
             if (plannerPanel) {
@@ -305,7 +326,7 @@
                 const chatMessages = document.getElementById('chat-messages');
                 const initialMessage = localStorage.getItem('chatMessage');
                 const newMessage = document.createElement("div");
-
+                
                 if (initialMessage) {
                     newMessage.className = "bubble left-bubble";
                     newMessage.innerHTML = initialMessage.replace(/\n/g, "<br>");
@@ -315,38 +336,6 @@
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const chatId = urlParams.get("chat_id");
-
-                if (chatId) {
-                    fetch(`/app/partials/planner/get_chat_content/?chat_id=${encodeURIComponent(chatId)}`)
-                        .then((response) => {
-                            if (!response.ok) {
-                                throw new Error(`Failed to fetch chat content: ${response.status}`);
-                            }
-                            return response.json();
-                        })
-                        .then((data) => {
-                            if (data.success && data.content) {
-                                // 기존 채팅 내용을 파싱하여 DOM에 추가
-                                const chatContent = data.content.split("\n");
-                                console.log("chatContent:", chatContent);
-                                chatContent.forEach((line) => {
-                                    const isUserMessage = line.startsWith("<나>");
-                                    const messageText = line.replace(/^<나>|^<봇>/, "").trim();
-
-                                    const newMessage = document.createElement("div");
-                                    newMessage.className = `bubble ${isUserMessage ? "left-bubble" : "right-bubble"}`;
-                                    newMessage.textContent = messageText;
-                                    const chatMessages = document.getElementById("chat-messages");
-                                    chatMessages.appendChild(newMessage);
-                                });
-                            } else {
-                                console.log("No content for the provided chat_id.");
-                            }
-                        })
-                        .catch((error) => {
-                            console.error("Error fetching chat content:", error);
-                        });
-                }
                 
                 if (plannerTitle) {
                     plannerTitle.addEventListener("dblclick", function () {
@@ -415,7 +404,7 @@
                         }                    
                     });
                 }
-                
+
                 if (plannerTitle && chatId) {
                     try {
                         // 서버에서 제목 가져오기
@@ -453,7 +442,8 @@
                         console.error("Error calculating chat count:", error);
                         plannerTitle.textContent = "chat1"; // 기본값 설정
                     }
-                } else {
+                } 
+                else {
                     // 기존 chat_id에 따라 제목 가져오기
                     try {
                         const response = await fetch(`/app/partials/planner/get_title/?chat_id=${encodeURIComponent(chatId)}`);
@@ -467,6 +457,36 @@
                     } catch (error) {
                         console.error("Error fetching title:", error);
                     }
+
+                    fetch(`/app/partials/planner/get_chat_content/?chat_id=${encodeURIComponent(chatId)}`)
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw new Error(`Failed to fetch chat content: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then((data) => {
+                            if (data.success && data.content) {
+                                // 기존 채팅 내용을 파싱하여 DOM에 추가
+                                const chatContent = data.content.split("\n");
+                                console.log("chatContent:", chatContent);
+                                chatContent.forEach((line) => {
+                                    const isUserMessage = line.startsWith("<나>");
+                                    const messageText = line.replace(/^<나>|^<봇>/, "").trim();
+
+                                    const newMessage = document.createElement("div");
+                                    newMessage.className = `bubble ${isUserMessage ? "left-bubble" : "right-bubble"}`;
+                                    newMessage.textContent = messageText;
+                                    const chatMessages = document.getElementById("chat-messages");
+                                    chatMessages.appendChild(newMessage);
+                                });
+                            } else {
+                                console.log("No content for the provided chat_id.");
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching chat content:", error);
+                        });
                 }
 
                 resetButton.addEventListener("click", function () {
