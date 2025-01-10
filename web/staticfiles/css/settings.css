@@ -1,7 +1,7 @@
 /* 제목 스타일 */
 .panel {
     width: 400px; /* 고정된 너비 */
-    height: 100%; /* 화면 전체 높이 */
+    height: 99%; /* 화면 전체 높이 */
     display: flex;
     flex-direction: column;
     border-right: 1px solid #ddd;

@@ -164,7 +164,7 @@ body {
 .container {
     display: flex;
     height: 100vh;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .sidebar {
@@ -211,13 +211,16 @@ body {
 }
 
 .panel {
+    transition: width 0.3s ease-in-out;
+    /* transition: transform 0.3s ease; */
     position: relative;
     width: 400px;
-    height: 100%;
+    height: 99%;
     display: flex;
     flex-direction: column;
     border-right: 1px solid #ddd;
     background-color: #ffffff;
+    z-index: 2;
 }
 
 [data-theme="dark"] .panel {
@@ -270,6 +273,8 @@ body {
 #map {
     display: block;
     position: relative;
+    transition: flex-grow 0.3s ease-in-out; /* 지도 크기 변경 애니메이션 */
+    z-index: 1;
 }
 
 #chat-header {
@@ -430,4 +435,23 @@ body {
 
 .title-container {
     flex-grow: 1; /* 제목이 남은 공간을 차지 */
+}
+
+.toggle-button {
+    position: absolute;
+    top: 45%;
+    right: -20px;
+    transform: translateY(-50%);
+    background-color: #333;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    transition: background-color 0.3s ease, transform 0.3s ease;
 }
