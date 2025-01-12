@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "main",
+    'langgraph',
 ]
 
 AUTH_USER_MODEL = 'main.CustomUser'

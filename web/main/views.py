@@ -1,3 +1,4 @@
+from langraph.langraph import run_gpt_api
 from django.http import HttpResponseForbidden
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth import authenticate, login, logout
@@ -35,8 +36,7 @@ def get_theme_context(user):
             return {"settings": settings}
         except Settings.DoesNotExist:
             pass
-    # 기본값으로 dark 테마 설정
-    return {"settings": {"is_white_theme": False}}
+    return {"settings": {"is_white_theme": True}}
 
 
 # # (1) login_view: GET이면 login.html 렌더링
@@ -271,6 +271,7 @@ def get_chat_content(request):
 
     try:
         chat = Chatting.objects.get(chatting_id=chat_id, profile=request.user)
+        print("chatcontent:", chat.content)
         return JsonResponse({"success": True, "content": chat.content})
     except Chatting.DoesNotExist:
         return JsonResponse({"success": False, "error": "해당 chat_id에 대한 채팅이 존재하지 않습니다."}, status=404)
@@ -593,3 +594,25 @@ def admin_required(view_func):
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
+
+def run_gpt_view(request):
+    if request.method == "POST":
+        try:
+            # JSON 데이터 파싱
+            data = json.loads(request.body)
+            user_input = data.get("question")
+
+            if not user_input:
+                return JsonResponse({"error": "Invalid input"}, status=400)
+            print("q:", user_input)
+            # run_gpt_api 호출
+            answer = run_gpt_api(user_input)
+            print("a:", answer)
+
+            return JsonResponse({"answer": answer}, status=200)
+
+        except Exception as e:
+            # 에러 로그 출력
+            print("Error in run_gpt_view:", e)
+            return JsonResponse({"error": "Internal server error"}, status=500)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
