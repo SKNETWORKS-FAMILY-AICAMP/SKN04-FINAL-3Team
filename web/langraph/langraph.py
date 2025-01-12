@@ -24,124 +24,69 @@ import os
 
 
 
+# GPT API 호출을 처리하는 함수
 def run_gpt_api(question):
-    # Step 1: FAISS 인덱스 파일 로드
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # langraph.py의 위치
-    faiss_index_path = os.path.join(BASE_DIR, "Faiss", "naver_map_gangnam_faiss")
-    # faiss_index_path = "Faiss/naver_map_gangnam_faiss"  # 저장된 Faiss 파일 경로
-    embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
+    # OpenAI 임베딩 객체 초기화
+    embeddings = OpenAIEmbeddings()
 
-    # 저장된 FAISS 인덱스를 불러와서 Retriever 생성
-    retriever_naver_gangnam = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
+    # BASE_DIR은 현재 파일이 위치한 디렉토리를 기준으로 설정
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
+    # FAISS 인덱스 파일 경로를 리스트에 추가
+    faiss_index_paths = []
+    faiss_index_paths.append(os.path.join(BASE_DIR, "Faiss", "naver_map_gangnam_faiss"))
+    faiss_index_paths.append(os.path.join(BASE_DIR, "Faiss", "naver_map_jongro_faiss"))
+    faiss_index_paths.append(os.path.join(BASE_DIR, "Faiss", "naver_map_Junggu_faiss"))
+    faiss_index_paths.append(os.path.join(BASE_DIR, "Faiss", "naver_map_yongsan_faiss"))
+    faiss_index_paths.append(os.path.join(BASE_DIR, "Faiss", "opendata_gangnam_all"))
+    faiss_index_paths.append(os.path.join(BASE_DIR, "Faiss", "opendata_jongro_all"))
+    faiss_index_paths.append(os.path.join(BASE_DIR, "Faiss", "opendata_junggu_all"))
+    faiss_index_paths.append(os.path.join(BASE_DIR, "Faiss", "opendata_yongsan_all"))
+
+    # FAISS 인덱스를 로드하고 리트리버를 생성
+    retrieves = []
+    for path in faiss_index_paths:
+        retrieves.append(FAISS.load_local(path, embeddings, allow_dangerous_deserialization=True).as_retriever())
+
+    # 각 리트리버를 변수에 할당
+    retriever_naver_gangnam = retrieves[0]
+    retriever_naver_jongro = retrieves[1]
+    retriever_naver_Junggu = retrieves[2]
+    retriever_naver_yongsan = retrieves[3]
+    retriever_opendata_gangnam = retrieves[4]
+    retriever_opendata_jongro = retrieves[5]
+    retriever_opendata_junggu = retrieves[6]
+    retriever_opendata_yongsan = retrieves[7]
+
+    # 리트리버의 검색 매개변수를 설정 (검색 결과의 개수)
     retriever_naver_gangnam.search_kwargs = {"k": 8}
-
-    faiss_index_path = os.path.join(BASE_DIR, "Faiss", "naver_map_gangnam_faiss")
-    # faiss_index_path = "./Faiss/naver_map_jongro_faiss"  # 저장된 Faiss 파일 경로
-    embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
-
-    # 저장된 FAISS 인덱스를 불러와서 Retriever 생성
-    retriever_naver_jongro = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
-
-    # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
     retriever_naver_jongro.search_kwargs = {"k": 8}
-
-    # Step 1: FAISS 인덱스 파일 로드
-    faiss_index_path = os.path.join(BASE_DIR, "Faiss", "naver_map_Junggu_faiss")
-    # faiss_index_path = "Faiss/naver_map_Junggu_faiss"  # 저장된 Faiss 파일 경로
-    embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
-
-    # 저장된 FAISS 인덱스를 불러와서 Retriever 생성
-    retriever_naver_Junggu = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
-
-    # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
     retriever_naver_Junggu.search_kwargs = {"k": 8}
-
-    # Step 1: FAISS 인덱스 파일 로드
-    faiss_index_path = os.path.join(BASE_DIR, "Faiss", "naver_map_yongsan_faiss")
-    # faiss_index_path = "Faiss/naver_map_yongsan_faiss"  # 저장된 Faiss 파일 경로
-    embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
-
-    # 저장된 FAISS 인덱스를 불러와서 Retriever 생성
-    retriever_naver_yongsan = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
-
-    # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
     retriever_naver_yongsan.search_kwargs = {"k": 8}
-
-    # Step 1: FAISS 인덱스 파일 로드
-
-    faiss_index_path = os.path.join(BASE_DIR, "Faiss", "opendata_gangnam_all")
-    # faiss_index_path = "Faiss/opendata_gangnam_all"  # 저장된 Faiss 파일 경로
-    print(f"FAISS 인덱스를 로드 중: {faiss_index_path}")
-    retriever_naver_gangnam = FAISS.load_local(
-        faiss_index_path,
-        embeddings,
-        allow_dangerous_deserialization=True
-    ).as_retriever()
-    print(f"Retriever 생성 완료: {retriever_naver_gangnam}")
-
-    embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
-
-    # 저장된 FAISS 인덱스를 불러와서 Retriever 생성
-    retriever_opendata_gangnam = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
-
-    # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
     retriever_opendata_gangnam.search_kwargs = {"k": 10}
-
-    # Step 1: FAISS 인덱스 파일 로드
-    faiss_index_path = os.path.join(BASE_DIR, "Faiss", "opendata_jongro_all")
-    # faiss_index_path = "Faiss/opendata_jongro_all"  # 저장된 Faiss 파일 경로
-    embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
-
-    # 저장된 FAISS 인덱스를 불러와서 Retriever 생성
-    retriever_opendata_jongro = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
-
-    # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
     retriever_opendata_jongro.search_kwargs = {"k": 10}
-
-    # Step 1: FAISS 인덱스 파일 로드
-    faiss_index_path = os.path.join(BASE_DIR, "Faiss", "opendata_junggu_all")
-    # faiss_index_path = "Faiss/opendata_junggu_all"  # 저장된 Faiss 파일 경로
-    embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
-
-    # 저장된 FAISS 인덱스를 불러와서 Retriever 생성
-    retriever_opendata_junggu = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
-
-    # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
     retriever_opendata_junggu.search_kwargs = {"k": 10}
-
-    # Step 1: FAISS 인덱스 파일 로드
-    faiss_index_path = os.path.join(BASE_DIR, "Faiss", "opendata_yongsan_all")
-    # faiss_index_path = "Faiss/opendata_yongsan_all"  # 저장된 Faiss 파일 경로
-    embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
-
-    # 저장된 FAISS 인덱스를 불러와서 Retriever 생성
-    retriever_opendata_yongsan = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
-
-    # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
     retriever_opendata_yongsan.search_kwargs = {"k": 10}
 
-
-    # GraphState 상태 정의
+    # GraphState 클래스 정의 (데이터 상태 저장)
     class GraphState(TypedDict):
-        question: Annotated[List[str], add_messages]  # 질문(누적되는 list)
-        context_naver_gangnam: Annotated[str, "context_naver_gangnam"]  # 문서의 검색 결과
-        context_naver_jongro: Annotated[str, "context_naver_jongro"]  # 문서의 검색 결과
-        context_naver_Junggu: Annotated[str, "context_naver_Junggu"]  # 문서의 검색 결과
-        context_naver_yongsan: Annotated[str, "context_naver_yongsan"]  # 문서의 검색 결과
-        context_opendata: Annotated[str, "context_opendata"]  # 문서의 검색 결과
-        context_web: Annotated[str, "context_web"]  # 문서의 검색 결과
-        answer_llm_Summary_gangnam: Annotated[str, "answer_llm_Summary_gangnam"]  # 답변
-        answer_llm_Summary_junggu: Annotated[str, "answer_llm_Summary_junggu"]  # 답변
-        answer_llm_Summary_jongro: Annotated[str, "answer_llm_Summary_jongro"]  # 답변
-        answer_llm_Summary_yongsan: Annotated[str, "answer_llm_Summary_yongsan"]  # 답변
-        answer_llm_Summary_opendata: Annotated[str, "answer_llm_Summary_opendata"]  # 답변
-        answer: Annotated[str, "Answer"]  # 답변
-        messages: Annotated[list, add_messages]  # 메시지(누적되는 list)
-        webOrRetriever: Annotated[str, "webOrRetriever"]  # 웹 or 리트리버 검색
-        ScheduleOrplace: Annotated[str, "ScheduleOrplace"]  # 일정 or 장소
-        location: Annotated[str, "location"]  # 지역 리스트
+        question: Annotated[List[str], add_messages]  # 사용자의 질문
+        context_naver_gangnam: Annotated[str, "context_naver_gangnam"]  # 강남구 관련 문서 검색 결과
+        context_naver_jongro: Annotated[str, "context_naver_jongro"]  # 종로구 관련 문서 검색 결과
+        context_naver_Junggu: Annotated[str, "context_naver_Junggu"]  # 중구 관련 문서 검색 결과
+        context_naver_yongsan: Annotated[str, "context_naver_yongsan"]  # 용산구 관련 문서 검색 결과
+        context_opendata: Annotated[str, "context_opendata"]  # 공공 데이터 검색 결과
+        context_web: Annotated[str, "context_web"]  # 웹 검색 결과
+        answer_llm_Summary_gangnam: Annotated[str, "answer_llm_Summary_gangnam"]  # 요약된 강남구 문서
+        answer_llm_Summary_junggu: Annotated[str, "answer_llm_Summary_junggu"]  # 요약된 중구 문서
+        answer_llm_Summary_jongro: Annotated[str, "answer_llm_Summary_jongro"]  # 요약된 종로구 문서
+        answer_llm_Summary_yongsan: Annotated[str, "answer_llm_Summary_yongsan"]  # 요약된 용산구 문서
+        answer_llm_Summary_opendata: Annotated[str, "answer_llm_Summary_opendata"]  # 요약된 공공 데이터
+        answer: Annotated[str, "Answer"]  # 최종 답변
+        messages: Annotated[list, add_messages]  # 대화 메시지 기록
+        webOrRetriever: Annotated[str, "webOrRetriever"]  # 웹 또는 리트리버 선택
+        ScheduleOrplace: Annotated[str, "ScheduleOrplace"]  # 일정 또는 장소 선택
+        location: Annotated[str, "location"]  # 사용자 질문에 포함된 지역 정보
 
     #프롬포트
     ##########################################################################################################
@@ -1020,7 +965,9 @@ def run_gpt_api(question):
 
         return res.get('answer')
 
-    run_gpt()
+    return run_gpt()
 
 if __name__ == "__main__":
-    run_gpt_api("안녕 내가 다리를 다쳐서 병원을 가야되는데 용산에 병원 하나 알려줘")
+    # run_gpt_api 호출 및 결과 출력
+    result = run_gpt_api("안녕 내가 다리를 다쳐서 병원을 가야되는데 용산에 병원 하나 알려줘")
+    print("Result:", result)

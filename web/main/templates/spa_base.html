@@ -277,9 +277,12 @@
             });
 
             // Home 버튼 처리
-            document.getElementById('home-btn').addEventListener('click', function () {
-                window.location.href = '/';
-            });
+            const homeButton = document.getElementById('home-btn');
+            if (homeButton) {
+                document.getElementById('home-btn').addEventListener('click', function () {
+                    window.location.href = '/';
+                });
+            }            
 
             // 팝업 창 기능
             document.getElementById('cancel-delete').addEventListener('click', closePopup);
@@ -427,8 +430,7 @@
                         }                    
                     });
                 }
-
-                if (isLoggedIn === "true") { // 로그인된 경우
+                if (isLoggedIn) { // 로그인된 경우
                     if (chatId) {
                         try {
                             // 서버에서 제목 가져오기
@@ -441,7 +443,6 @@
                                 console.error("Failed to fetch title:", result.error || "Unknown error");
                                 plannerTitle.textContent = "Default Title"; // 실패 시 기본값
                             }
-
                             // 채팅 내용 가져오기
                             fetch(`/app/partials/planner/get_chat_content/?chat_id=${encodeURIComponent(chatId)}`)
                                 .then(response => {
@@ -509,7 +510,7 @@
                 });
                 
                 // 1) 스크롤 이벤트 -> 버튼 표시/숨김
-                if (chatMessages) {
+                if (chatMessages & scrollBtn) {
                     chatMessages.addEventListener("scroll", function() {
                         // 만약 스크롤이 '맨 아래'가 아니라면 버튼 보이기
                         // (clientHeight + scrollTop < scrollHeight 이면 아직 위로 스크롤 중)
@@ -1194,7 +1195,7 @@
             }
             
             // 6) 채팅 입력창 로직
-            const inputBar = document.getElementById("input_bar");            
+            const inputBar = document.getElementById("input_bar");  
             const chatMessages = document.getElementById("chat-messages");
             const deleteBtn = document.querySelector('.delete-btn');
             if (deleteBtn) {
@@ -1261,7 +1262,6 @@
                 }
             }
 
-
             function resizeInput() {
                 inputBar.style.height = "auto"; 
                 const scrollHeight = inputBar.scrollHeight;
@@ -1275,24 +1275,26 @@
                 }
             }
             
-            inputBar.addEventListener("keydown", function (e) {
-                if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();               
-                    sendMessage();
-                    return false;
-                } 
-                else if (e.key === "Enter" && e.shiftKey) {
-                    e.preventDefault();
-                    const cursorPosition = inputBar.selectionStart;
-                    inputBar.value =
-                        inputBar.value.slice(0, cursorPosition) + "\n"
-                        + inputBar.value.slice(cursorPosition);
-                    resizeInput();
-                    return false;
-                }
-            });
-            inputBar.addEventListener("input", resizeInput);
-            resizeInput();
+            if (inputBar) {
+                inputBar.addEventListener("keydown", function (e) {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();               
+                        sendMessage();
+                        return false;
+                    } 
+                    else if (e.key === "Enter" && e.shiftKey) {
+                        e.preventDefault();
+                        const cursorPosition = inputBar.selectionStart;
+                        inputBar.value =
+                            inputBar.value.slice(0, cursorPosition) + "\n"
+                            + inputBar.value.slice(cursorPosition);
+                        resizeInput();
+                        return false;
+                    }
+                });
+                inputBar.addEventListener("input", resizeInput);
+                resizeInput();
+            }            
         });
 
         function parseAndDisplayChatContent(chatContent) {
