@@ -1,3 +1,5 @@
+/* style.css */
+
 /* static/css/style.css */
 body {
     font-family: Arial, sans-serif;
@@ -151,20 +153,22 @@ body {
 
 /* 입력창 컨테이너 */
 .input-container {
-    padding: 10px;
+    margin: 10px;
     border: 1px solid #ddd;
+    overflow: hidden;
 }
 
 [data-theme="dark"] .input-container {
-    padding: 10px;
+    margin: 10px;
     background-color: #222;
     border: 1px solid #444;
+    overflow: hidden;
 }
 
 .container {
     display: flex;
     height: 100vh;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .sidebar {
@@ -211,13 +215,16 @@ body {
 }
 
 .panel {
+    transition: width 0.3s ease-in-out;
+    /* transition: transform 0.3s ease; */
     position: relative;
     width: 400px;
-    height: 100%;
+    height: 99%;
     display: flex;
     flex-direction: column;
     border-right: 1px solid #ddd;
     background-color: #ffffff;
+    z-index: 2;
 }
 
 [data-theme="dark"] .panel {
@@ -248,37 +255,37 @@ body {
     font-weight: bold;
     background: #ffffff;
     font-size: 1.5rem;
-    color: white;
-    padding: 10px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    padding-left: 10px;
+    color: #222;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    overflow: hidden;
 }
 
-[data-theme="dark"] #chat-header {
-    padding: 10px;
-    background: #222;
-    border-bottom: 1px solid #222;
+[data-theme="dark"] #chat-header {   
+    display: flex;
+    justify-content: space-between; /* 양쪽 정렬 */
+    align-items: center; /* 수직 정렬 */
     font-weight: bold;
+    border-bottom: 2px solid #222;
+    background: #222;
     font-size: 1.5rem;
     color: #c1c1c1;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    padding-left: 10px;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    overflow: hidden;
 }
 
 #map {
     display: block;
     position: relative;
-}
-
-#chat-header {
-    position: sticky; /* 스크롤 시 고정 */
-    top: 0; /* 컨테이너의 맨 위에 고정 */
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #333;
-    z-index: 1; /* 다른 요소 위에 표시되도록 설정 */
+    transition: flex-grow 0.3s ease-in-out; /* 지도 크기 변경 애니메이션 */
+    z-index: 1;
 }
 
 /* 메시지 목록 컨테이너 (유동적 크기) */
@@ -288,7 +295,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 5px; /* 메시지 간격 */
-    padding: 5px;
     width: 100%; 
     border: 1px solid #ddd;
     box-sizing: border-box;
@@ -430,4 +436,23 @@ body {
 
 .title-container {
     flex-grow: 1; /* 제목이 남은 공간을 차지 */
+}
+
+.toggle-button {
+    position: absolute;
+    top: 45%;
+    right: -20px;
+    transform: translateY(-50%);
+    background-color: #333;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    transition: background-color 0.3s ease, transform 0.3s ease;
 }
