@@ -1,3 +1,5 @@
+/* favorite.css */
+
 /* 전체 레이아웃 */
 .container {
     display: flex;
@@ -23,8 +25,11 @@
     font-weight: bold;
     padding-left: 10px;
     color: #333;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    overflow: hidden;
 }
 
 [data-theme="dark"] .panel h2 {
@@ -32,8 +37,11 @@
     font-weight: bold;
     padding-left: 10px;
     color: #c1c1c1;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    overflow: hidden;
 }
 
 .section {
@@ -49,6 +57,7 @@
     background-color: #fff;
     border-bottom: 1px solid #ddd;
     padding: 10px 0;
+    overflow: hidden;
 }
 
 [data-theme="dark"] .top-menu {
@@ -58,6 +67,7 @@
     background-color: #222;
     border-bottom: 1px solid #444;
     padding: 10px 0;
+    overflow: hidden;
 }
 
 /* 버튼(장소, 일정)을 끝이 뭉툭한 네모로 */

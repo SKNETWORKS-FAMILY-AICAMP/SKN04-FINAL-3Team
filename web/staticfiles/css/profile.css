@@ -1,3 +1,5 @@
+/* profile.css */
+
 .container {
     display: flex;
     height: 100vh;
@@ -20,6 +22,11 @@
     font-weight: bold;
     padding-left: 10px;
     color: #333;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    overflow: hidden;
 }
 
 [data-theme="dark"] .panel h2 {
@@ -27,6 +34,11 @@
     font-weight: bold;
     padding-left: 10px;
     color: #c1c1c1;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    overflow: hidden;
 }
 
 /* 프로필 이미지 영역 */
@@ -35,6 +47,7 @@
     justify-content: center;  /* 가로 가운데 정렬 */
     align-items: center;      /* 세로 가운데 정렬 (필요 시) */
     margin-top: 30px;         /* 위쪽 여백 */
+    overflow: hidden;
 }
 
 /* 실제 이미지 스타일 */
@@ -54,6 +67,7 @@
 
 .nickname-wrapper {
     text-align: center; /* 닉네임 텍스트 중앙 정렬 */
+    overflow: hidden;
 }
 
 .nickname {
@@ -73,16 +87,18 @@
     font-size: 1rem;          /* 볼드 라벨 (Theme, Language 참고) */
     font-weight: bold;
     color: #555;
-    padding: 10px;
+    padding: 10px 0px 10px 10px;
     margin-bottom: 5px;       /* 라벨과 텍스트 사이 간격 */
+    overflow: hidden;
 }
 
 [data-theme="dark"] .section label {
     font-size: 1rem;          /* 볼드 라벨 (Theme, Language 참고) */
     font-weight: bold;
     color: #a2a2a2;
-    padding: 10px;
+    padding: 10px 0px 10px 10px;
     margin-bottom: 5px;       /* 라벨과 텍스트 사이 간격 */
+    overflow: hidden;
 }
 
 .section p {
@@ -90,6 +106,7 @@
     color: #333;
     padding-left: 15px;
     font-size: 15px;
+    overflow: hidden;
 }
 
 [data-theme="dark"] .section p {
@@ -119,6 +136,7 @@
     cursor: pointer;
     font-size: 1rem;
     text-align: center;
+    overflow: hidden;
 }
 
 .logout-btn a{
@@ -141,6 +159,7 @@
     margin-left: 4px; /* 닉네임 텍스트와의 간격 최소화 */
     padding: 0; /* 불필요한 여백 제거 */
     align-self: center; /* 세로 중앙 정렬 */
+    overflow: hidden;
 }
 
 .popup {

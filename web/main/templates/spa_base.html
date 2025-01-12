@@ -88,6 +88,7 @@
         const ncpClientId = "{{ ncp_client_id|default:'' }}";
         let isMapInitialized = false;
         let map = null;
+        const isLoggedIn = {{ user.is_authenticated|yesno:"true,false" }};
 
         // ---------------------------
         // (1) 지도 초기화 함수
@@ -191,8 +192,18 @@
         // ---------------------------
         // (3) 부분 템플릿 로딩 함수
         // ---------------------------
+        let lastLoadedPath = null;
+
         function loadContent(spaPath) {
+            if (lastLoadedPath === spaPath) {
+                console.log("중복된 경로로 로드 중단:", spaPath);
+                return;
+            }
+
+            lastLoadedPath = spaPath;
             const partialUrl = toPartialUrl(spaPath);
+            console.log("Loading content for path:", partialUrl);
+
             fetch(partialUrl)
                 .then(response => {
                     if (!response.ok) {
@@ -244,11 +255,24 @@
             document.querySelectorAll('.nav-btn').forEach(button => {
                 button.addEventListener('click', function (event) {
                     event.preventDefault();
-                    const spaPath = this.getAttribute('data-url');
-                    if (!spaPath) return;
+                    const spaPath = this.getAttribute('data-url'); // 이동하려는 URL
 
-                    history.pushState(null, '', spaPath);
-                    loadContent(spaPath);
+                    if (!spaPath) return; // URL이 없는 경우 무시
+                    
+                    if (isLoggedIn === "false") {
+                        // 비로그인 상태일 경우 alert 창 띄우기
+                        const confirmLogin = confirm("로그인이 필요한 화면입니다. 로그인하시겠습니까?");
+                        if (confirmLogin) {
+                            // 확인 버튼을 눌렀을 경우 로그인 페이지로 이동
+                            const currentPath = window.location.pathname; // 현재 페이지 경로
+                            window.location.href = `/login/?next=${encodeURIComponent(spaPath)}`;
+                        }
+                        // 취소 버튼을 누르면 아무 일도 하지 않음
+                    } else {
+                        // 로그인 상태라면 해당 페이지로 이동
+                        history.pushState(null, '', spaPath);
+                        loadContent(spaPath); // 네비게이션 바의 페이지 로딩
+                    }
                 });
             });
 
@@ -295,28 +319,27 @@
             const toggleButton = document.getElementById("toggleButton");
 
             let isChatHidden = false;
-
-            toggleButton.addEventListener("click", function () {
-                if (isChatHidden) {
-                    // 채팅 패널을 다시 표시
-                    content1.style.width = "400px";
-                    map.style.flexGrow = "1"; // 원래 상태로 복구
-                    toggleButton.textContent = "<"; // 버튼 텍스트 변경
-                } else {
-                    // 채팅 패널을 숨김
-                    content1.style.width = "0";
-                    map.style.flexGrow = "2"; // 지도 넓이를 확장
-                    toggleButton.textContent = ">"; // 버튼 텍스트 변경
-                }
-                isChatHidden = !isChatHidden; // 상태 변경
-            });
-
-
+            if (toggleButton) {
+                toggleButton.addEventListener("click", function () {
+                    if (isChatHidden) {
+                        // 채팅 패널을 다시 표시
+                        content1.style.width = "400px";
+                        map.style.flexGrow = "1"; // 원래 상태로 복구
+                        toggleButton.textContent = "<"; // 버튼 텍스트 변경
+                    } else {
+                        // 채팅 패널을 숨김
+                        content1.style.width = "0";
+                        map.style.flexGrow = "2"; // 지도 넓이를 확장
+                        toggleButton.textContent = ">"; // 버튼 텍스트 변경
+                    }
+                    isChatHidden = !isChatHidden; // 상태 변경
+                });
+            }            
+            
             // 1) Planner Panel
             const plannerPanel = document.getElementById("plannerPanel");
             if (plannerPanel) {
                 console.log("[Planner] panel detected!");
-
                 const scrollBtn = document.getElementById("scrollToBottomBtn");
                 const resetButton = document.getElementById("resetButton");
                 const newPostButton = document.getElementById("newPostButton");
@@ -405,88 +428,76 @@
                     });
                 }
 
-                if (plannerTitle && chatId) {
-                    try {
-                        // 서버에서 제목 가져오기
-                        const response = await fetch(`/app/partials/planner/get_title/?chat_id=${encodeURIComponent(chatId)}`);
-                        const result = await response.json();
+                if (isLoggedIn === "true") { // 로그인된 경우
+                    if (chatId) {
+                        try {
+                            // 서버에서 제목 가져오기
+                            const response = await fetch(`/app/partials/planner/get_title/?chat_id=${encodeURIComponent(chatId)}`);
+                            const result = await response.json();
 
-                        if (result.success && result.title) {
-                            plannerTitle.textContent = result.title; // 제목 업데이트
-                        } else {
-                            console.error("Failed to fetch title:", result.error || "Unknown error");
+                            if (result.success && result.title) {
+                                plannerTitle.textContent = result.title; // 제목 업데이트
+                            } else {
+                                console.error("Failed to fetch title:", result.error || "Unknown error");
+                                plannerTitle.textContent = "Default Title"; // 실패 시 기본값
+                            }
+
+                            // 채팅 내용 가져오기
+                            fetch(`/app/partials/planner/get_chat_content/?chat_id=${encodeURIComponent(chatId)}`)
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(`Failed to fetch chat content: ${response.status}`);
+                                    }
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    if (data.success && data.content) {
+                                        parseAndDisplayChatContent(data.content); // 채팅 내용 파싱 및 UI 표시
+                                    } else {
+                                        console.log("No content for the provided chat_id.");
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error("Error fetching chat content:", error);
+                                });
+                        } catch (error) {
+                            console.error("Error fetching title or chat content:", error);
+                            plannerTitle.textContent = "Default Title"; // 오류 시 기본값
                         }
-                    } catch (error) {
-                        console.error("Error fetching title:", error);
+                    } else {
+                        // chat_id가 없는 경우, 새로운 제목 생성
+                        try {
+                            const response = await fetch("/app/partials/chatting/");
+                            const html = await response.text();
+
+                            const tempDiv = document.createElement("div");
+                            tempDiv.innerHTML = html;
+
+                            const chatItems = tempDiv.querySelectorAll(".chat-item");
+                            const chatCount = chatItems.length;
+
+                            const newTitle = `chat${chatCount + 1}`;
+                            plannerTitle.textContent = newTitle;
+                        } catch (error) {
+                            console.error("Error calculating chat count:", error);
+                            plannerTitle.textContent = "chat1"; // 기본값 설정
+                        }
                     }
                 } else {
-                    console.warn("Planner title element or chat ID not found.");
-                }
-                if (!chatId) {
                     try {
-                        // chat_id가 없을 경우, 현재 채팅 개수를 API로 가져옴
                         const response = await fetch("/app/partials/chatting/");
                         const html = await response.text();
 
-                        // DOM 파싱을 통해 채팅 개수를 계산
                         const tempDiv = document.createElement("div");
                         tempDiv.innerHTML = html;
 
                         const chatItems = tempDiv.querySelectorAll(".chat-item");
                         const chatCount = chatItems.length;
 
-                        // 제목 설정: chat + (채팅 개수 + 1)
-                        const newTitle = `chat${chatCount + 1}`;
-                        plannerTitle.textContent = newTitle;
+                        plannerTitle.textContent = `chat1`;
                     } catch (error) {
                         console.error("Error calculating chat count:", error);
-                        plannerTitle.textContent = "chat1"; // 기본값 설정
                     }
-                } 
-                else {
-                    // 기존 chat_id에 따라 제목 가져오기
-                    try {
-                        const response = await fetch(`/app/partials/planner/get_title/?chat_id=${encodeURIComponent(chatId)}`);
-                        const result = await response.json();
-
-                        if (result.success && result.title) {
-                            plannerTitle.textContent = result.title; // 제목 업데이트
-                        } else {
-                            console.error("Failed to fetch title:", result.error || "Unknown error");
-                        }
-                    } catch (error) {
-                        console.error("Error fetching title:", error);
-                    }
-
-                    fetch(`/app/partials/planner/get_chat_content/?chat_id=${encodeURIComponent(chatId)}`)
-                        .then((response) => {
-                            if (!response.ok) {
-                                throw new Error(`Failed to fetch chat content: ${response.status}`);
-                            }
-                            return response.json();
-                        })
-                        .then((data) => {
-                            if (data.success && data.content) {
-                                // 기존 채팅 내용을 파싱하여 DOM에 추가
-                                const chatContent = data.content.split("\n");
-                                console.log("chatContent:", chatContent);
-                                chatContent.forEach((line) => {
-                                    const isUserMessage = line.startsWith("<나>");
-                                    const messageText = line.replace(/^<나>|^<봇>/, "").trim();
-
-                                    const newMessage = document.createElement("div");
-                                    newMessage.className = `bubble ${isUserMessage ? "left-bubble" : "right-bubble"}`;
-                                    newMessage.textContent = messageText;
-                                    const chatMessages = document.getElementById("chat-messages");
-                                    chatMessages.appendChild(newMessage);
-                                });
-                            } else {
-                                console.log("No content for the provided chat_id.");
-                            }
-                        })
-                        .catch((error) => {
-                            console.error("Error fetching chat content:", error);
-                        });
                 }
 
                 resetButton.addEventListener("click", function () {
@@ -496,28 +507,31 @@
                 newPostButton.addEventListener("click", function () {
                     console.log("새 글 버튼이 눌렸습니다.");
                 });
-
-                if (!chatMessages || !scrollBtn) return;
-
+                
                 // 1) 스크롤 이벤트 -> 버튼 표시/숨김
-                chatMessages.addEventListener("scroll", function() {
-                    // 만약 스크롤이 '맨 아래'가 아니라면 버튼 보이기
-                    // (clientHeight + scrollTop < scrollHeight 이면 아직 위로 스크롤 중)
-                    if (chatMessages.scrollTop + chatMessages.clientHeight 
-                        < chatMessages.scrollHeight - 10) {
-                        scrollBtn.classList.remove("hidden");
-                    } else {
-                        scrollBtn.classList.add("hidden");
-                    }
-                });
-
-                // 2) 버튼 클릭 시 맨 아래로 스크롤
-                scrollBtn.addEventListener("click", function() {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                });
+                if (chatMessages) {
+                    chatMessages.addEventListener("scroll", function() {
+                        // 만약 스크롤이 '맨 아래'가 아니라면 버튼 보이기
+                        // (clientHeight + scrollTop < scrollHeight 이면 아직 위로 스크롤 중)
+                        if (chatMessages.scrollTop + chatMessages.clientHeight 
+                            < chatMessages.scrollHeight - 10) {
+                            scrollBtn.classList.remove("hidden");
+                        } else {
+                            scrollBtn.classList.add("hidden");
+                        }
+                    });
+                }
+                
+                if (scrollBtn) {
+                    // 2) 버튼 클릭 시 맨 아래로 스크롤
+                    scrollBtn.addEventListener("click", function() {
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    });
+                }
 
                 // 숨겨둔 div에서 chat_content 읽기
                 const contentEl = document.getElementById("chatContentData"); 
+                console.log("contentEl:", contentEl);
                 if (contentEl) {
                     const rawChatContent = contentEl.textContent.trim();
                     const decoded = rawChatContent
@@ -525,14 +539,14 @@
                         .replace(/\\u003E/g, ">")
                         .replace(/\\u000D/g, "\r")
                         .replace(/\\u000A/g, "\n");
+                    console.log("decoded:", decoded);
                     parseAndDisplayChatContent(decoded);
                 }
                 else {
                     console.log("DEBUG: #chatContentData not found");
-                    return;
                 }
             }
-
+            
             // 2) Chatting Panel
             const chattingPanel = document.getElementById("chattingPanel");
             if (chattingPanel) {
@@ -545,7 +559,6 @@
                         e.stopPropagation();
 
                         const chatId = this.dataset.id;
-                        console.log("ChatIDD:", chatId);
                         if (!chatId) return;
 
                         const confirmed = confirm("Are you sure you want to delete this chat?");
@@ -585,7 +598,7 @@
                     });
                 });
             }
-
+            
             // 3) Favorites Panel
             const favoritesPanel = document.getElementById("favoritesPanel");
             if (favoritesPanel) {
@@ -1062,11 +1075,13 @@
                 });
 
                 // 팝업 외부 클릭 시 닫기
-                popup.addEventListener("click", function (e) {
-                    if (e.target === popup) {
-                        popup.classList.add("hidden");
-                    }
-                });
+                if (popup) {
+                    popup.addEventListener("click", function (e) {
+                        if (e.target === popup) {
+                            popup.classList.add("hidden");
+                        }
+                    });
+                }
 
                 // 1) 닉네임 수정
                 const nicknameText  = document.getElementById('nickname-text');
@@ -1177,17 +1192,14 @@
                     });
                 }
             }
-
+            
             // 6) 채팅 입력창 로직
             const inputBar = document.getElementById("input_bar");            
             const chatMessages = document.getElementById("chat-messages");
             const deleteBtn = document.querySelector('.delete-btn');
-
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', showPopup);
             }
-
-            if (!inputBar || !chatMessages) return;
 
             function sendMessage() {
                 const message = inputBar.value.trim();
@@ -1258,6 +1270,13 @@
                     .split("\n")
                     .filter(line => line.trim() !== "" && !line.includes("None"))
                     .join("\n");
+
+                console.log("전송할 데이터:", {
+                    chat_id: chatId,
+                    content: validContent,
+                    title: title,
+                });
+
                 fetch("/app/partials/planner/", {
                     method: "POST",
                     headers: {
@@ -1271,7 +1290,9 @@
                         return response.json();
                     })
                     .then(data => {
-                        if (!data.success) {
+                        if (data.success) {
+                            console.log("채팅 내용 업데이트 성공:", data);
+                        } else {
                             console.error("채팅 내용 업데이트 실패:", data.error);
                         }
                     })
@@ -1279,7 +1300,6 @@
                         console.error("서버 통신 오류:", err);
                     });
             }
-
             function resizeInput() {
                 inputBar.style.height = "auto"; 
                 const scrollHeight = inputBar.scrollHeight;
@@ -1292,66 +1312,78 @@
                     inputBar.style.overflowY = "hidden";
                 }
             }
-
+            
             inputBar.addEventListener("keydown", function (e) {
                 if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();                    
+                    e.preventDefault(); 
+                    console.log("log");                   
                     sendMessage();
-                } else if (e.key === "Enter" && e.shiftKey) {
+                    return false;
+                } 
+                else if (e.key === "Enter" && e.shiftKey) {
                     e.preventDefault();
                     const cursorPosition = inputBar.selectionStart;
                     inputBar.value =
                         inputBar.value.slice(0, cursorPosition) + "\n"
                         + inputBar.value.slice(cursorPosition);
                     resizeInput();
+                    return false;
                 }
             });
             inputBar.addEventListener("input", resizeInput);
             resizeInput();
         });
 
-        // ----------------------------
-        // parseAndDisplayChatContent
-        // ----------------------------
         function parseAndDisplayChatContent(chatContent) {
-            if (!chatContent) return;
+            if (!chatContent) {
+                console.warn("chatContent가 비어있습니다.");
+                return;
+            }
 
-            // <나>…<봇>… 로 split
-            let tokens = chatContent.split(/(<나>|<봇>)/g).filter(token => token.trim() !== "");
-            let conversation = [];
+            // HTML Escape 처리 제거
+            chatContent = chatContent
+                .replace(/&lt;/g, "<")
+                .replace(/&gt;/g, ">")
+                .replace(/&amp;/g, "&");
+
+            // <나>, <봇> 기준으로 데이터 분리
+            const tokens = chatContent.split(/(<나>|<봇>)/g).filter(token => token.trim() !== "");
+
+            const chatMessages = document.getElementById("chat-messages");
+            if (!chatMessages) {
+                console.error("#chat-messages 요소를 찾을 수 없습니다.");
+                return;
+            }
+
+            // 기존 DOM 초기화
+            chatMessages.innerHTML = "";
+
+            // 대화 내용 파싱 및 렌더링
             let currentSpeaker = null;
-
             tokens.forEach(token => {
-                token = token.trim();
                 if (token === "<나>") {
                     currentSpeaker = "user";
                 } else if (token === "<봇>") {
                     currentSpeaker = "bot";
                 } else {
-                    if (token && currentSpeaker) {
-                        conversation.push({
-                            speaker: currentSpeaker,
-                            text: token
-                        });
+                    // 메시지 텍스트 처리
+                    const bubble = document.createElement("div");
+                    bubble.classList.add("bubble");
+                    bubble.textContent = token.trim();
+
+                    // 스피커에 따라 스타일 지정
+                    if (currentSpeaker === "user") {
+                        bubble.classList.add("left-bubble");
+                    } else if (currentSpeaker === "bot") {
+                        bubble.classList.add("right-bubble");
                     }
+
+                    chatMessages.appendChild(bubble);
                 }
             });
 
-            // DOM에 말풍선 생성
-            const chatMessages = document.getElementById("chat-messages");
-            if (!chatMessages) return;
-            chatMessages.innerHTML = "";
-            conversation.forEach(msg => {
-                const bubble = document.createElement("div");
-                bubble.classList.add("bubble");
-                bubble.textContent = msg.text;
-                if (msg.speaker === "user") {
-                    bubble.classList.add("left-bubble");
-                } else {
-                    bubble.classList.add("right-bubble");
-                }
-                chatMessages.appendChild(bubble);
-            });
+            // 스크롤 자동 하단 이동
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         function getCSRFToken() {

@@ -1,3 +1,5 @@
+/* style.css */
+
 /* static/css/style.css */
 body {
     font-family: Arial, sans-serif;
@@ -151,14 +153,16 @@ body {
 
 /* 입력창 컨테이너 */
 .input-container {
-    padding: 10px;
+    margin: 10px;
     border: 1px solid #ddd;
+    overflow: hidden;
 }
 
 [data-theme="dark"] .input-container {
-    padding: 10px;
+    margin: 10px;
     background-color: #222;
     border: 1px solid #444;
+    overflow: hidden;
 }
 
 .container {
@@ -251,23 +255,30 @@ body {
     font-weight: bold;
     background: #ffffff;
     font-size: 1.5rem;
-    color: white;
-    padding: 10px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    padding-left: 10px;
+    color: #222;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    overflow: hidden;
 }
 
-[data-theme="dark"] #chat-header {
-    padding: 10px;
-    background: #222;
-    border-bottom: 1px solid #222;
+[data-theme="dark"] #chat-header {   
+    display: flex;
+    justify-content: space-between; /* 양쪽 정렬 */
+    align-items: center; /* 수직 정렬 */
     font-weight: bold;
+    border-bottom: 2px solid #222;
+    background: #222;
     font-size: 1.5rem;
     color: #c1c1c1;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    padding-left: 10px;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    overflow: hidden;
 }
 
 #map {
@@ -275,6 +286,7 @@ body {
     position: relative;
     transition: flex-grow 0.3s ease-in-out; /* 지도 크기 변경 애니메이션 */
     z-index: 1;
+<<<<<<< HEAD
 }
 
 #chat-header {
@@ -284,6 +296,8 @@ body {
     font-weight: bold;
     color: #333;
     z-index: 1; /* 다른 요소 위에 표시되도록 설정 */
+=======
+>>>>>>> frontend
 }
 
 /* 메시지 목록 컨테이너 (유동적 크기) */
@@ -293,7 +307,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 5px; /* 메시지 간격 */
-    padding: 5px;
     width: 100%; 
     border: 1px solid #ddd;
     box-sizing: border-box;
