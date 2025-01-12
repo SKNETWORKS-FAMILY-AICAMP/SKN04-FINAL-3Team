@@ -1,3 +1,4 @@
+from langraph.langraph import run_gpt_api
 from django.http import HttpResponseForbidden
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth import authenticate, login, logout
@@ -593,3 +594,24 @@ def admin_required(view_func):
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
+
+def run_gpt_view(request):
+    if request.method == "POST":
+        try:
+            # JSON 데이터 파싱
+            data = json.loads(request.body)
+            user_input = data.get("question")
+
+            if not user_input:
+                return JsonResponse({"error": "Invalid input"}, status=400)
+
+            # run_gpt_api 호출
+            answer = run_gpt_api(user_input)
+
+            return JsonResponse({"answer": answer}, status=200)
+
+        except Exception as e:
+            # 에러 로그 출력
+            print("Error in run_gpt_view:", e)
+            return JsonResponse({"error": "Internal server error"}, status=500)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
