@@ -191,8 +191,18 @@
         // ---------------------------
         // (3) 부분 템플릿 로딩 함수
         // ---------------------------
+        let lastLoadedPath = null;
+
         function loadContent(spaPath) {
+            if (lastLoadedPath === spaPath) {
+                console.log("중복된 경로로 로드 중단:", spaPath);
+                return;
+            }
+
+            lastLoadedPath = spaPath;
             const partialUrl = toPartialUrl(spaPath);
+            console.log("Loading content for path:", partialUrl);
+
             fetch(partialUrl)
                 .then(response => {
                     if (!response.ok) {
@@ -459,34 +469,23 @@
                     }
 
                     fetch(`/app/partials/planner/get_chat_content/?chat_id=${encodeURIComponent(chatId)}`)
-                        .then((response) => {
-                            if (!response.ok) {
-                                throw new Error(`Failed to fetch chat content: ${response.status}`);
-                            }
-                            return response.json();
-                        })
-                        .then((data) => {
-                            if (data.success && data.content) {
-                                // 기존 채팅 내용을 파싱하여 DOM에 추가
-                                const chatContent = data.content.split("\n");
-                                console.log("chatContent:", chatContent);
-                                chatContent.forEach((line) => {
-                                    const isUserMessage = line.startsWith("<나>");
-                                    const messageText = line.replace(/^<나>|^<봇>/, "").trim();
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Failed to fetch chat content: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success && data.content) {
+                            parseAndDisplayChatContent(data.content);
+                        } else {
+                            console.log("No content for the provided chat_id.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error fetching chat content:", error);
+                    });
 
-                                    const newMessage = document.createElement("div");
-                                    newMessage.className = `bubble ${isUserMessage ? "left-bubble" : "right-bubble"}`;
-                                    newMessage.textContent = messageText;
-                                    const chatMessages = document.getElementById("chat-messages");
-                                    chatMessages.appendChild(newMessage);
-                                });
-                            } else {
-                                console.log("No content for the provided chat_id.");
-                            }
-                        })
-                        .catch((error) => {
-                            console.error("Error fetching chat content:", error);
-                        });
                 }
 
                 resetButton.addEventListener("click", function () {
@@ -518,6 +517,7 @@
 
                 // 숨겨둔 div에서 chat_content 읽기
                 const contentEl = document.getElementById("chatContentData"); 
+                console.log("contentEl:", contentEl);
                 if (contentEl) {
                     const rawChatContent = contentEl.textContent.trim();
                     const decoded = rawChatContent
@@ -525,6 +525,7 @@
                         .replace(/\\u003E/g, ">")
                         .replace(/\\u000D/g, "\r")
                         .replace(/\\u000A/g, "\n");
+                    console.log("decoded:", decoded);
                     parseAndDisplayChatContent(decoded);
                 }
                 else {
@@ -1062,11 +1063,13 @@
                 });
 
                 // 팝업 외부 클릭 시 닫기
-                popup.addEventListener("click", function (e) {
-                    if (e.target === popup) {
-                        popup.classList.add("hidden");
-                    }
-                });
+                if (popup) {
+                    popup.addEventListener("click", function (e) {
+                        if (e.target === popup) {
+                            popup.classList.add("hidden");
+                        }
+                    });
+                }
 
                 // 1) 닉네임 수정
                 const nicknameText  = document.getElementById('nickname-text');
@@ -1310,48 +1313,56 @@
             resizeInput();
         });
 
-        // ----------------------------
-        // parseAndDisplayChatContent
-        // ----------------------------
         function parseAndDisplayChatContent(chatContent) {
-            if (!chatContent) return;
+            if (!chatContent) {
+                console.warn("chatContent가 비어있습니다.");
+                return;
+            }
 
-            // <나>…<봇>… 로 split
-            let tokens = chatContent.split(/(<나>|<봇>)/g).filter(token => token.trim() !== "");
-            let conversation = [];
+            // HTML Escape 처리 제거
+            chatContent = chatContent
+                .replace(/&lt;/g, "<")
+                .replace(/&gt;/g, ">")
+                .replace(/&amp;/g, "&");
+
+            // <나>, <봇> 기준으로 데이터 분리
+            const tokens = chatContent.split(/(<나>|<봇>)/g).filter(token => token.trim() !== "");
+
+            const chatMessages = document.getElementById("chat-messages");
+            if (!chatMessages) {
+                console.error("#chat-messages 요소를 찾을 수 없습니다.");
+                return;
+            }
+
+            // 기존 DOM 초기화
+            chatMessages.innerHTML = "";
+
+            // 대화 내용 파싱 및 렌더링
             let currentSpeaker = null;
-
             tokens.forEach(token => {
-                token = token.trim();
                 if (token === "<나>") {
                     currentSpeaker = "user";
                 } else if (token === "<봇>") {
                     currentSpeaker = "bot";
                 } else {
-                    if (token && currentSpeaker) {
-                        conversation.push({
-                            speaker: currentSpeaker,
-                            text: token
-                        });
+                    // 메시지 텍스트 처리
+                    const bubble = document.createElement("div");
+                    bubble.classList.add("bubble");
+                    bubble.textContent = token.trim();
+
+                    // 스피커에 따라 스타일 지정
+                    if (currentSpeaker === "user") {
+                        bubble.classList.add("left-bubble");
+                    } else if (currentSpeaker === "bot") {
+                        bubble.classList.add("right-bubble");
                     }
+
+                    chatMessages.appendChild(bubble);
                 }
             });
 
-            // DOM에 말풍선 생성
-            const chatMessages = document.getElementById("chat-messages");
-            if (!chatMessages) return;
-            chatMessages.innerHTML = "";
-            conversation.forEach(msg => {
-                const bubble = document.createElement("div");
-                bubble.classList.add("bubble");
-                bubble.textContent = msg.text;
-                if (msg.speaker === "user") {
-                    bubble.classList.add("left-bubble");
-                } else {
-                    bubble.classList.add("right-bubble");
-                }
-                chatMessages.appendChild(bubble);
-            });
+            // 스크롤 자동 하단 이동
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         function getCSRFToken() {

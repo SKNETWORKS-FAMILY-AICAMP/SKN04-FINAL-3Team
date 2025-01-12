@@ -96,15 +96,19 @@
 
                 // 팝업 외부 클릭 시 닫기
                 document.addEventListener('click', function (e) {
-                    if (!popup.classList.contains('hidden')) {
-                        popup.classList.add('hidden');
-                    }
+                    if (popup) {
+                        if (!popup.classList.contains('hidden')) {
+                            popup.classList.add('hidden');
+                        }
+                    }                    
                 });
 
-                // 팝업 내부 클릭 시 닫히지 않음
-                popup.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                });
+                if (popup) {
+                    // 팝업 내부 클릭 시 닫히지 않음
+                    popup.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                    });
+                }                
             }
         });
 
