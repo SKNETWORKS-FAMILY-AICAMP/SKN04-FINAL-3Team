@@ -29,7 +29,7 @@ def main(request):
 
 
 def get_theme_context(user):
-    if user.is_authenticated:
+    if user and user.is_authenticated:
         try:
             settings = Settings.objects.get(profile=user)
             return {"settings": settings}
@@ -39,17 +39,32 @@ def get_theme_context(user):
     return {"settings": {"is_white_theme": False}}
 
 
-# (1) login_view: GET이면 login.html 렌더링
-def login_view(request):
-    countries = get_nationalities()
+# # (1) login_view: GET이면 login.html 렌더링
+# def login_view(request):
+#     countries = get_nationalities()
     
-    if request.method == 'GET':
-        return render(request, 'login.html', {
-            'countries': countries,  # 템플릿에 전달
-        })
-    else:
-        # 혹시 POST로 왔다면 login_process로 넘긴다
-        return redirect('login_process')
+#     if request.method == 'GET':
+#         return render(request, 'login.html', {
+#             'countries': countries,  # 템플릿에 전달
+#         })
+#     else:
+#         # 혹시 POST로 왔다면 login_process로 넘긴다
+#         return redirect('login_process')
+    
+def login_view(request):
+    if request.method == "GET":
+        next_url = request.GET.get("next", "/")  # next 파라미터가 없으면 메인 페이지로 리다이렉트
+        return render(request, "login.html", {"next": next_url})
+    elif request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            next_url = request.POST.get("next", "/")  # POST로 넘어온 next 파라미터
+            return redirect(next_url)
+        else:
+            return render(request, "login.html", {"error": "Invalid credentials", "next": request.POST.get("next", "/")})
 
 
 def signup(request):
@@ -152,45 +167,37 @@ def logout_view(request):
     return redirect('main')  # 로그아웃 후 로그인 페이지로 리다이렉트
 
 
-@login_required
 @csrf_exempt
 def planner(request):
-    context = get_theme_context(request.user)  # 테마 정보 추가
+    context = {}
+
+    # 비로그인 사용자는 기본값으로 None 대신 AnonymousUser를 사용
+    user = request.user if request.user.is_authenticated else None
+    
+    # get_theme_context 호출 시, user가 None이어도 안전하게 처리
+    context.update(get_theme_context(user))
 
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             chat_id = data.get("chat_id")
-            new_message = data.get("content")  # 새로 입력된 메시지
-            title = data.get("title")  # 클라이언트에서 title을 받아옴
+            new_message = data.get("content", "")  # 새로 입력된 메시지
+            title = data.get("title", "Untitled")  # 기본 제목
 
             if not chat_id:
-                # chatting 테이블에서 가장 마지막 인덱스 가져오기
-                last_chat = Chatting.objects.order_by('-chatting_id').first()
-                last_index = int(last_chat.chatting_id.split('_')[1]) if last_chat else 0
+                # 로그인하지 않은 사용자에게 임의 chat_id 생성
+                chat_id = f"guest_{uuid.uuid4().hex[:8]}"  # 비로그인 사용자용 chat_id
 
-                # 새로운 chat_id 생성
-                new_index = last_index + 1
-                chat_id = f"ch_{str(new_index).zfill(5)}"
+            if not user:  # 비로그인 사용자는 데이터베이스에 저장하지 않음
+                return JsonResponse({"success": True, "chat_id": chat_id, "content": new_message})
 
-            # title 값이 없을 경우 기본 제목 설정
-            if not title:
-                title = f"chat{int(chat_id.split('_')[1])}"
-
-            # 기존 채팅 내역 가져오기
+            # 로그인된 사용자만 데이터 저장
             chat, created = Chatting.objects.get_or_create(
                 chatting_id=chat_id,
                 profile=request.user,
                 defaults={"content": "", "title": title}
             )
-
-            # 유효성 검증: new_message가 None이면 처리 중단
-            # if not new_message or new_message.strip() == "":
-            #     return JsonResponse({"success": False, "error": "Empty message received."}, status=400)
-
-            updated_content = "\n".join(filter(None, ["", new_message]))
-            chat.content = updated_content
-            chat.title = title  # title 업데이트
+            chat.content += f"\n{new_message}"
             chat.save()
 
             return JsonResponse({"success": True, "chat_id": chat_id})
@@ -198,17 +205,18 @@ def planner(request):
             return JsonResponse({"success": False, "error": str(e)}, status=500)
 
     elif request.method == "GET":
-        chat_id = request.GET.get('chat_id', None)
+        chat_id = request.GET.get("chat_id", None)
         chat_content = ""
-        if chat_id:
+        if chat_id and user:
             try:
-                chat = Chatting.objects.get(chatting_id=chat_id, profile=request.user)
+                chat = Chatting.objects.get(chatting_id=chat_id, profile=user)
                 chat_content = chat.content
             except Chatting.DoesNotExist:
                 pass
-        context.update({"chat_content": chat_content})  # 추가 정보 업데이트
-        return render(request, "partials/planner.html", context)
 
+        # 비로그인 사용자도 기본 데이터를 제공
+        context.update({"chat_content": chat_content})
+        return render(request, "partials/planner.html", context)
 
 
 def check_duplicate_title(request):
@@ -274,11 +282,15 @@ def get_chat_title(request):
         return JsonResponse({"success": False, "error": "Missing chat_id"})
 
     try:
-        chat = Chatting.objects.get(chatting_id=chat_id)
+        if request.user.is_authenticated:
+            chat = Chatting.objects.get(chatting_id=chat_id, profile=request.user)
+        else:
+            # 비로그인 사용자는 기본 제목 반환
+            return JsonResponse({"success": True, "title": "Default Title"})
         return JsonResponse({"success": True, "title": chat.title})
     except Chatting.DoesNotExist:
         return JsonResponse({"success": False, "error": "Chat not found"})
-
+    
 
 @login_required
 def get_chat_count(request):

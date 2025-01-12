@@ -30,6 +30,7 @@ print("Loaded NCP_CLIENT_ID:", NCP_CLIENT_ID)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
+LOGIN_URL = '/login/'  # 로그인하지 않은 경우 리다이렉트할 경로
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
