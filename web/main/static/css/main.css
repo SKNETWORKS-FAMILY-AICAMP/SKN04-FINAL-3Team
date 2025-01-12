@@ -1,3 +1,5 @@
+/* main.css */
+
 /* 전체 화면 배경 설정 */
 body {
     margin: 0;
@@ -14,6 +16,7 @@ body {
 .container {
     text-align: center;
     max-width: 800px;
+    overflow: visible;
 }
 
 /* 타이틀 스타일 */
