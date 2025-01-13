@@ -380,18 +380,32 @@ body {
     color: white;
 }
 
-/* 왼쪽 (사용자) */
+/* 왼쪽 (사용자) 말풍선 */
 .left-bubble {
     background-color: #4caf50; /* 초록색 */
     color: #fff;
-    margin-left: 20px;    
-    margin-right: 40px;   
+    margin-left: 10px; /* 왼쪽 간격 */
+    margin-right: 40px; /* 오른쪽 간격 */
+    align-self: flex-start; /* 왼쪽 정렬 */
+    border-radius: 12px;
+    padding: 8px 12px;
+    white-space: pre-wrap; /* 공백과 줄 바꿈을 유지 */
+    word-wrap: break-word; /* 긴 단어는 줄바꿈 */
+    max-width: 80%; /* 최대 너비 제한 */
 }
 
-/* 오른쪽 (봇) */
+/* 오른쪽 (봇) 말풍선 */
 .right-bubble {
-    background-color: #eee;
+    background-color: #eee; /* 연한 회색 */
     color: #333;
+    margin-left: 40px; /* 왼쪽 간격 */
+    margin-right: 10px; /* 오른쪽 간격 */
+    align-self: flex-end; /* 오른쪽 정렬 */
+    border-radius: 12px;
+    padding: 8px 12px;
+    white-space: pre-wrap; /* 공백과 줄 바꿈을 유지 */
+    word-wrap: break-word; /* 긴 단어는 줄바꿈 */
+    max-width: 80%; /* 최대 너비 제한 */
 }
 
 /* 아래로 이동 버튼 */

@@ -667,15 +667,13 @@ def run_gpt_view(request):
 
             if not user_input:
                 return JsonResponse({"error": "Invalid input"}, status=400)
-            print("q:", user_input)
             # run_gpt_api 호출
             answer = run_gpt_api(user_input)
-            print("a:", answer)
 
             return JsonResponse({"answer": answer}, status=200)
 
         except Exception as e:
             # 에러 로그 출력
             print("Error in run_gpt_view:", e)
-            return JsonResponse({"answer": "에러가 발생했습니다. 다시 질문해주세요."}, status=500)
+            return JsonResponse({"answer": "에러가 발생했습니다. 다시 질문해주세요."}, status=200)
     return JsonResponse({"error": "Invalid request method"}, status=405)

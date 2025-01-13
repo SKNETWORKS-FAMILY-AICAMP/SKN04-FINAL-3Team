@@ -451,7 +451,6 @@
                             const botBubble = document.createElement("div");
                             botBubble.classList.add("bubble", "right-bubble");
                             // botBubble.innerHTML = gptResponse.replace(/\n/g, "<br>");
-                            console.log("text:", gptResponse);
                             chatMessages.appendChild(botBubble); // DOM에 추가
                             typeText(botBubble, gptResponse, loadingBubble);
                         } else {
@@ -1436,7 +1435,14 @@
                     // 메시지 텍스트 처리
                     const bubble = document.createElement("div");
                     bubble.classList.add("bubble");
-                    bubble.textContent = token.trim();
+
+                    // 서식 그대로 출력
+                    const formattedText = token
+                        .replace(/\\n/g, "<br>")   // 줄바꿈
+                        .replace(/\\r/g, "")      // \r 제거
+                        .replace(/ {2}/g, "&nbsp;&nbsp;"); // 연속된 띄어쓰기 처리
+
+                    bubble.innerHTML = formattedText;
 
                     // 스피커에 따라 스타일 지정
                     if (currentSpeaker === "user") {
@@ -1449,6 +1455,7 @@
                 }
             });
         }
+
 
         function getCSRFToken() {
             const cookies = document.cookie.split("; ");
