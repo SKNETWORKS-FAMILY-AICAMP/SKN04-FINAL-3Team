@@ -40,7 +40,7 @@
     <!-- 메인 컨테이너 -->
     <div class="container">
         <!-- 타이틀 -->
-        <div class="title">SeouLIFE</div>
+        <div class="title">SeouLOGUE</div>
 
         <!-- 입력 섹션 -->
         <div class="input-wrapper">
@@ -126,6 +126,7 @@
             if (isLoggedIn) {
                 window.location.href = "/app/";
             } else {
+                console.log("userInput:", userInput);
                 window.location.href = `/app/planner/?chatMessage=${encodeURIComponent(userInput)}`;
             }
         }

@@ -128,6 +128,7 @@ body {
     border-radius: 5px;
     resize: none; /* 사용자가 직접 크기 조정 불가 */
     height: 120px; /* 고정된 높이 (6줄) */
+    min-height: 112px;
     overflow-y: auto; /* 스크롤바 표시 */
     transition: height 0.2s ease-in-out;
 }
@@ -296,6 +297,7 @@ body {
     flex-direction: column;
     gap: 5px; /* 메시지 간격 */
     width: 100%; 
+    height: calc(100% - 190px); /* 원하는 고정 높이 설정 */
     border: 1px solid #ddd;
     box-sizing: border-box;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -382,14 +384,16 @@ body {
 .left-bubble {
     background-color: #4caf50; /* 초록색 */
     color: #fff;
-    margin-right: auto;   /* 왼쪽 정렬 */
+    margin-left: 20px;    
+    margin-right: 40px;   
 }
 
 /* 오른쪽 (봇) */
 .right-bubble {
     background-color: #eee;
     color: #333;
-    margin-left: auto;    /* 오른쪽 정렬 */
+    margin-left: auto;    
+    margin-right: 20px;    
 }
 
 /* 아래로 이동 버튼 */
@@ -408,7 +412,7 @@ body {
     font-size: 24px;
     cursor: pointer;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    margin-bottom: 40px;
+    margin-bottom: 50px;
 }
 
 /* 숨김 토글용 */
@@ -441,18 +445,79 @@ body {
 .toggle-button {
     position: absolute;
     top: 45%;
-    right: -20px;
+    right: -30px;
     transform: translateY(-50%);
-    background-color: #333;
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    background-color: white;
+    color: #333;
+    width: 30px;
+    height: 50px;
+    border-radius: 0 30px 30px 0;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     z-index: 1000;
+    font-weight: bold;
     transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+[data-theme="dark"] .toggle-button {
+    position: absolute;
+    top: 45%;
+    right: -30px;
+    transform: translateY(-50%);
+    background-color: #222;
+    color: white;
+    width: 30px;
+    height: 50px;
+    border-radius: 0 30px 30px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+/* 로딩 애니메이션 스타일 */
+.loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.loader span {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background-color: #ccc;
+    border-radius: 50%;
+    animation: loader-animation 1.2s infinite ease-in-out;
+}
+
+.loader span:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.loader span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.loader span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes loader-animation {
+    0%, 80%, 100% {
+        transform: scale(0.5);
+        opacity: 0.3;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
