@@ -1051,6 +1051,7 @@
                 // 프로필 이미지를 클릭하면 팝업 표시
                 profileImage.addEventListener("click", function () {
                     popup.classList.remove("hidden");
+                    toggleButton.classList.add("hidden");
                 });
 
                 // 팝업 이미지 클릭 시 서버로 thumbnail_id 업데이트
@@ -1076,11 +1077,12 @@
                             .then(data => {
                                 if (data.success) {
                                     // 성공 시 프로필 이미지 업데이트
-                                    profileImage.src = `/static/images/profiles/profile_${selectedId}.jpg`;
-                                    popup.classList.add("hidden");
+                                    profileImage.src = `/static/images/profiles/profile_${selectedId}.jpg`;                                    
                                 } else {
                                     alert("Failed to update profile image: " + data.error);
                                 }
+                                popup.classList.add("hidden");
+                                toggleButton.classList.remove("hidden");
                             })
                             .catch(err => {
                                 console.error("Error updating profile image:", err);
@@ -1093,6 +1095,7 @@
                     popup.addEventListener("click", function (e) {
                         if (e.target === popup) {
                             popup.classList.add("hidden");
+                            toggleButton.classList.remove("hidden");
                         }
                     });
                 }
