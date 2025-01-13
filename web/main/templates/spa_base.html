@@ -1379,9 +1379,13 @@
 
         function typeText(element, text, loadingBubble, speed = 20) {
             let index = 0;
-            const chatMessages = document.getElementById('chat-messages');
-            chatMessages.removeChild(loadingBubble);
 
+            // 로딩 버블 제거 (항상 즉시 제거)
+            if (loadingBubble && loadingBubble.parentNode) {
+                loadingBubble.parentNode.removeChild(loadingBubble);
+            }
+
+            // 타이핑 애니메이션 처리
             function typeNextChar() {
                 if (index < text.length) {
                     const char = text[index] === "\n" ? document.createElement("br") : document.createTextNode(text[index]);
