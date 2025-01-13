@@ -107,7 +107,7 @@ class Chatting(models.Model):
         if not self.title:  # title이 비어있을 때만 기본값 생성
             # 현재 채팅 개수를 가져와 새로운 title 생성
             chat_count = Chatting.objects.filter(profile=self.profile).count()
-            self.title = f"채팅{chat_count + 1}"
+            self.title = f"chat{chat_count + 1}"
         super().save(*args, **kwargs)
 
     class Meta:

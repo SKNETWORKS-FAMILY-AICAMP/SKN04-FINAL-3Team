@@ -328,12 +328,12 @@
                         // 채팅 패널을 다시 표시
                         content1.style.width = "400px";
                         map.style.flexGrow = "1"; // 원래 상태로 복구
-                        toggleButton.textContent = "<"; // 버튼 텍스트 변경
+                        toggleButton.innerHTML = "&lt;&nbsp;"; // 버튼 HTML 내용 변경
                     } else {
                         // 채팅 패널을 숨김
                         content1.style.width = "0";
                         map.style.flexGrow = "2"; // 지도 넓이를 확장
-                        toggleButton.textContent = ">"; // 버튼 텍스트 변경
+                        toggleButton.innerHTML = "&gt;&nbsp;"; // 버튼 HTML 내용 변경
                     }
                     isChatHidden = !isChatHidden; // 상태 변경
                 });
@@ -342,8 +342,7 @@
             // 1) Planner Panel
             const plannerPanel = document.getElementById("plannerPanel");
             if (plannerPanel) {
-                console.log("[Planner] panel detected!");
-                const scrollBtn = document.getElementById("scrollToBottomBtn");
+                console.log("[Planner] panel detected!");                
                 const resetButton = document.getElementById("resetButton");
                 const newPostButton = document.getElementById("newPostButton");
 
@@ -352,84 +351,9 @@
                 const chatMessages = document.getElementById('chat-messages');
                 const initialMessage = localStorage.getItem('chatMessage');
                 const newMessage = document.createElement("div");
-                
-                if (initialMessage) {
-                    newMessage.className = "bubble left-bubble";
-                    newMessage.innerHTML = initialMessage.replace(/\n/g, "<br>");
-                    chatMessages.appendChild(newMessage);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-
                 const urlParams = new URLSearchParams(window.location.search);
                 const chatId = urlParams.get("chat_id");
-                
-                if (plannerTitle) {
-                    plannerTitle.addEventListener("dblclick", function () {
-                        changeTitle.value = plannerTitle.textContent;
-                        changeTitle.style.display = "block"; // 입력창 표시
-                        plannerTitle.style.display = "none"; // 기존 텍스트 숨김
-                        changeTitle.focus();
-                    });
 
-                    // 2) Enter: 제목 저장, ESC: 취소
-                    changeTitle.addEventListener("keydown", async function (e) {
-                        if (event.key === "Enter") {
-                            const newTitle = changeTitle.value.trim();
-                            const titleText = document.getElementById("planner-title"); 
-                            
-                            if (!newTitle) {
-                                alert("제목을 입력해주세요.");
-                                return;
-                            }
-
-                            plannerTitle.style.display = "block"; // 기존 텍스트 표시
-                            changeTitle.style.display = "none"; // 입력창 숨김
-
-                            try {
-                                // 중복 확인 API 호출
-                                const response = await fetch("/app/partials/planner/check_duplicate_title/", {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        "X-CSRFToken": getCSRFToken(),
-                                    },
-                                    body: JSON.stringify({ title: newTitle }),
-                                });
-
-                                const result = await response.json();
-
-                                if (result.is_duplicate) {
-                                    alert("중복된 제목입니다. 다른 제목을 입력해주세요.");
-                                    return;
-                                }
-
-                                // 제목 업데이트 API 호출
-                                const updateResponse = await fetch("/app/partials/planner/update_title/", {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        "X-CSRFToken": getCSRFToken(),
-                                    },
-                                    body: JSON.stringify({ chat_id: chatId, title: newTitle }),
-                                });
-
-                                const updateResult = await updateResponse.json();
-                                if (updateResult.success) {
-                                    plannerTitle.textContent = newTitle;
-                                    plannerTitle.style.display = "block";
-                                    changeTitle.style.display = "none";
-                                } else {
-                                    console.error("Failed to update title:", updateResult.error || "Unknown error");
-                                }
-                            } catch (error) {
-                                console.error("Error checking/updating title:", error);
-                            }
-                        } else if (event.key === "Escape") {
-                            plannerTitle.style.display = "block"; // 기존 텍스트 표시
-                            changeTitle.style.display = "none";  // 입력창 숨김
-                        }                    
-                    });
-                }
                 if (isLoggedIn) { // 로그인된 경우
                     if (chatId) {
                         try {
@@ -501,50 +425,139 @@
                     }
                 }
 
+                if (initialMessage) {
+                    saveChatToDB(`<나>${initialMessage}`);
+                    newMessage.className = "bubble left-bubble";
+                    newMessage.innerHTML = initialMessage.replace(/\n/g, "<br>");
+                    chatMessages.appendChild(newMessage);
+                    
+                    const loadingBubble = document.createElement("div");
+                    loadingBubble.classList.add("bubble", "right-bubble", "loading-bubble");
+                    loadingBubble.innerHTML = `
+                        <div class="loader">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    `;
+                    chatMessages.appendChild(loadingBubble);
+                            
+                    try {
+                        const gptResponse = await fetchGPTResponse(initialMessage);
+
+                        if (gptResponse) {
+                            saveChatToDB(`<봇>${gptResponse}`);
+                            // GPT 응답 표시
+                            const botBubble = document.createElement("div");
+                            botBubble.classList.add("bubble", "right-bubble");
+                            // botBubble.innerHTML = gptResponse.replace(/\n/g, "<br>");
+                            console.log("text:", gptResponse);
+                            chatMessages.appendChild(botBubble); // DOM에 추가
+                            typeText(botBubble, gptResponse, loadingBubble);
+                        } else {
+                            console.error("GPT 응답이 없습니다.");
+                        }
+                    } catch (error) {
+                        console.error("Error fetching GPT response:", error);
+                        chatMessages.removeChild(loadingBubble); // 오류 시 로딩 애니메이션 삭제
+                    }                    
+                }                
+                if (plannerTitle) {
+                    plannerTitle.addEventListener("dblclick", function () {
+                        changeTitle.value = plannerTitle.textContent;
+                        changeTitle.style.display = "block"; // 입력창 표시
+                        plannerTitle.style.display = "none"; // 기존 텍스트 숨김
+                        changeTitle.focus();
+                    });
+
+                    // 2) Enter: 제목 저장, ESC: 취소
+                    changeTitle.addEventListener("keydown", async function (e) {
+                        if (event.key === "Enter") {
+                            const newTitle = changeTitle.value.trim();
+                            const titleText = document.getElementById("planner-title"); 
+                            
+                            if (!newTitle) {
+                                alert("제목을 입력해주세요.");
+                                return;
+                            }
+
+                            plannerTitle.style.display = "block"; // 기존 텍스트 표시
+                            changeTitle.style.display = "none"; // 입력창 숨김
+
+                            try {
+                                // 중복 확인 API 호출
+                                const response = await fetch("/app/partials/planner/check_duplicate_title/", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRFToken": getCSRFToken(),
+                                    },
+                                    body: JSON.stringify({ title: newTitle }),
+                                });
+
+                                const result = await response.json();
+
+                                if (result.is_duplicate) {
+                                    alert("중복된 제목입니다. 다른 제목을 입력해주세요.");
+                                    return;
+                                }
+
+                                // 제목 업데이트 API 호출
+                                const updateResponse = await fetch("/app/partials/planner/update_title/", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRFToken": getCSRFToken(),
+                                    },
+                                    body: JSON.stringify({ chat_id: chatId, title: newTitle }),
+                                });
+
+                                const updateResult = await updateResponse.json();
+                                if (updateResult.success) {
+                                    plannerTitle.textContent = newTitle;
+                                    plannerTitle.style.display = "block";
+                                    changeTitle.style.display = "none";
+                                } else {
+                                    console.error("Failed to update title:", updateResult.error || "Unknown error");
+                                }
+                            } catch (error) {
+                                console.error("Error checking/updating title:", error);
+                            }
+                        } else if (event.key === "Escape") {
+                            plannerTitle.style.display = "block"; // 기존 텍스트 표시
+                            changeTitle.style.display = "none";  // 입력창 숨김
+                        }                    
+                    });
+                }
+                
+
                 resetButton.addEventListener("click", function () {
                     console.log("초기화 버튼이 눌렸습니다.");
                 });
 
                 newPostButton.addEventListener("click", function () {
                     console.log("새 글 버튼이 눌렸습니다.");
-                });
+                }); 
                 
                 // 1) 스크롤 이벤트 -> 버튼 표시/숨김
-                if (chatMessages & scrollBtn) {
-                    chatMessages.addEventListener("scroll", function() {
-                        // 만약 스크롤이 '맨 아래'가 아니라면 버튼 보이기
-                        // (clientHeight + scrollTop < scrollHeight 이면 아직 위로 스크롤 중)
-                        if (chatMessages.scrollTop + chatMessages.clientHeight 
-                            < chatMessages.scrollHeight - 10) {
-                            scrollBtn.classList.remove("hidden");
-                        } else {
-                            scrollBtn.classList.add("hidden");
-                        }
-                    });
-                }
-                
+                const scrollBtn = document.getElementById("scrollToBottomBtn");
                 if (scrollBtn) {
                     // 2) 버튼 클릭 시 맨 아래로 스크롤
                     scrollBtn.addEventListener("click", function() {
                         chatMessages.scrollTop = chatMessages.scrollHeight;
                     });
-                }
-
-                // 숨겨둔 div에서 chat_content 읽기
-                const contentEl = document.getElementById("chatContentData"); 
-                console.log("contentEl:", contentEl);
-                if (contentEl) {
-                    const rawChatContent = contentEl.textContent.trim();
-                    const decoded = rawChatContent
-                        .replace(/\\u003C/g, "<")
-                        .replace(/\\u003E/g, ">")
-                        .replace(/\\u000D/g, "\r")
-                        .replace(/\\u000A/g, "\n");
-                    console.log("decoded:", decoded);
-                    parseAndDisplayChatContent(decoded);
-                }
-                else {
-                    console.log("DEBUG: #chatContentData not found");
+                    if (chatMessages) {
+                        chatMessages.addEventListener("scroll", function() {
+                            // 만약 스크롤이 '맨 아래'가 아니라면 버튼 보이기
+                            // (clientHeight + scrollTop < scrollHeight 이면 아직 위로 스크롤 중)
+                            if (chatMessages.scrollTop + chatMessages.clientHeight 
+                                < chatMessages.scrollHeight - 10) {
+                                scrollBtn.classList.remove("hidden");
+                            } else {
+                                scrollBtn.classList.add("hidden");
+                            }
+                        });
+                    }
                 }
             }
             
@@ -1206,6 +1219,8 @@
                 const message = inputBar.value.trim(); // 사용자가 입력한 메시지
                 if (message === "") return;
 
+                saveChatToDB(`<나>${message}`);
+
                 // 1. 사용자의 메시지를 채팅창에 추가
                 const userMessage = document.createElement("div");
                 userMessage.className = "bubble left-bubble";
@@ -1214,31 +1229,51 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
 
                 inputBar.value = ""; // 입력창 초기화
-                resizeInput();
+                // resizeInput();
+
+                const loadingBubble = document.createElement("div");
+                loadingBubble.classList.add("bubble", "right-bubble", "loading-bubble");
+                loadingBubble.innerHTML = `
+                    <div class="loader">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                `;
+                chatMessages.appendChild(loadingBubble);
+                // chatMessages.scrollTop = chatMessages.scrollHeight;
 
                 // 2. 서버에 메시지 전송 및 응답 처리
                 fetchGPTResponse(message)
                     .then((response) => {
                         if (response) {
+                            saveChatToDB(`<봇>${response}`);
                             // 2-1. 서버로부터 받은 응답을 채팅창에 추가
                             const botMessage = document.createElement("div");
                             botMessage.className = "bubble right-bubble";
                             botMessage.innerHTML = response.replace(/\n/g, "<br>");
                             chatMessages.appendChild(botMessage);
                             chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                            // 타이핑 효과로 출력
+                            typeText(botMessage, response, loadingBubble);                            
                         }
                     })
                     .catch((error) => {
+                        saveChatToDB(`<봇>오류가 발생했습니다. 다시 시도해주세요.`);
                         console.error("Error fetching GPT response:", error);
                         const errorMessage = document.createElement("div");
                         errorMessage.className = "bubble right-bubble error";
                         errorMessage.innerHTML = "오류가 발생했습니다. 다시 시도해주세요.";
                         chatMessages.appendChild(errorMessage);
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        // chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                        if (loadingBubble && loadingBubble.parentNode) {
+                            loadingBubble.parentNode.removeChild(loadingBubble);
+                        }
                     });
             }
 
-            // fetchGPTResponse 함수
             async function fetchGPTResponse(userInput) {
                 try {
                     const response = await fetch("/app/partials/planner/run-gpt/", {
@@ -1288,14 +1323,76 @@
                         inputBar.value =
                             inputBar.value.slice(0, cursorPosition) + "\n"
                             + inputBar.value.slice(cursorPosition);
-                        resizeInput();
+                        // resizeInput();
                         return false;
                     }
                 });
                 inputBar.addEventListener("input", resizeInput);
-                resizeInput();
+                // resizeInput();
             }            
         });
+
+        function saveChatToDB(chatContent) {
+            // 현재 URL에서 chat_id 추출
+            const urlParams = new URLSearchParams(window.location.search);
+            const chatId = urlParams.get("chat_id");
+            console.log("CHATID:", chatId);
+
+            fetch("/app/partials/planner/save_chat/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken(), // Django CSRF 토큰
+                },
+                body: JSON.stringify({
+                    chat: chatContent,
+                    chat_id: chatId, // URL에서 가져온 chat_id를 전송
+                }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data.success) {
+                    console.error("Failed to save chat to DB:", data.error);
+                } else {
+                    console.log("Chat saved successfully:", data.message || "Success", chatContent);
+                    if (data.new_chat_id) {
+                        // 새 chat_id가 생성되었다면 URL을 업데이트
+                        const newChatId = data.new_chat_id;
+                        const newUrl = new URL(window.location.href);
+                        newUrl.searchParams.set("chat_id", newChatId);
+                        window.history.replaceState(null, "", newUrl.toString());
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("Error saving chat to DB:", error);
+            });
+        }
+
+        function typeText(element, text, loadingBubble, speed = 20) {
+            let index = 0;
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.removeChild(loadingBubble);
+
+            function typeNextChar() {
+                if (index < text.length) {
+                    const char = text[index] === "\n" ? document.createElement("br") : document.createTextNode(text[index]);
+                    if (char instanceof Node) {
+                        element.appendChild(char); // 텍스트 노드 또는 <br> 추가
+                    }
+                    index++;
+
+                    setTimeout(typeNextChar, speed);
+                }
+            }
+
+            typeNextChar();
+        }
 
         function parseAndDisplayChatContent(chatContent) {
             if (!chatContent) {
@@ -1344,9 +1441,6 @@
                     chatMessages.appendChild(bubble);
                 }
             });
-
-            // 스크롤 자동 하단 이동
-            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         function getCSRFToken() {

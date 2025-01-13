@@ -961,7 +961,7 @@ def run_gpt_api(question):
 
         res = app.invoke(input=inputs, config=config)
 
-        typewriter_effect(res.get('answer'), delay=0.01)
+        # typewriter_effect(res.get('answer'), delay=0.01)
 
         return res.get('answer')
 

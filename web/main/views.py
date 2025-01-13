@@ -237,6 +237,69 @@ def check_duplicate_title(request):
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
+def get_authenticated_user(request):
+    """
+    Helper function to retrieve the authenticated user from the request.
+    Returns the CustomUser instance or None if the user is not authenticated.
+    """
+    if request.user.is_authenticated:
+        return request.user
+    return None
+
+
+@csrf_exempt
+def save_chat(request):
+    if request.method == "POST":
+        try:
+            # 요청에서 데이터 파싱
+            data = json.loads(request.body)
+            chat_content = data.get("chat", "").strip()
+            chatting_id = data.get("chat_id", None)  # 클라이언트에서 전달받은 chatting_id
+            user = get_authenticated_user(request)
+
+            if not user:
+                return JsonResponse({"success": False, "error": "User is not authenticated."})
+
+            if not chat_content:
+                return JsonResponse({"success": False, "error": "Chat content cannot be empty."})
+
+            if chatting_id:
+                # chatting_id가 있는 경우: 기존 내용에 추가
+                try:
+                    chatting_instance = Chatting.objects.get(chatting_id=chatting_id, profile=user)
+                    chatting_instance.content += f"\n{chat_content}"  # 기존 내용에 추가
+                    chatting_instance.save()
+                    return JsonResponse({"success": True, "message": "Chat updated.", "chatting_id": chatting_instance.chatting_id})
+                except Chatting.DoesNotExist:
+                    # chatting_id가 있지만 해당 레코드가 없는 경우 새로 생성
+                    chatting_instance = Chatting.objects.create(
+                        chatting_id=chatting_id,
+                        profile=user,
+                        content=chat_content,
+                    )
+                    return JsonResponse({"success": True, "message": "New chat created.", "chatting_id": chatting_instance.chatting_id})
+            else:
+                # chatting_id가 없는 경우: 새로운 레코드 생성
+                last_chat = Chatting.objects.filter(profile=user).order_by('-chatting_id').first()
+
+                if last_chat:
+                    # 마지막 chatting_id에서 숫자 추출 후 증가
+                    last_id = int(last_chat.chatting_id.split('_')[1])
+                    new_id = f"ch_{last_id + 1:05d}"  # 5자리 패딩 유지
+
+                chatting_instance = Chatting.objects.create(
+                    chatting_id=new_id,
+                    profile=user,
+                    content=chat_content,
+                )
+                return JsonResponse({"success": True, "message": "New chat created.", "chatting_id": chatting_instance.chatting_id})
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid request method."})
+
+
 @csrf_exempt
 @login_required
 def update_title(request):
@@ -614,5 +677,5 @@ def run_gpt_view(request):
         except Exception as e:
             # 에러 로그 출력
             print("Error in run_gpt_view:", e)
-            return JsonResponse({"error": "Internal server error"}, status=500)
+            return JsonResponse({"answer": "에러가 발생했습니다. 다시 질문해주세요."}, status=500)
     return JsonResponse({"error": "Invalid request method"}, status=405)
