@@ -4,6 +4,7 @@
     {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>Styled Layout</title>
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
 </head>
@@ -112,7 +113,7 @@
             }
         });
 
-        function goToEnterPage() {
+        async function goToEnterPage() {
             const inputBox = document.querySelector('.input-box');
             const userInput = inputBox.value.trim();
 
@@ -124,9 +125,34 @@
             localStorage.setItem("chatMessage", userInput);
 
             if (isLoggedIn) {
-                window.location.href = "/app/";
+                // 로그인한 사용자일 경우 chat_id 가져오기
+                try {
+                    const response = await fetch("/app/partials/planner/get_or_create_chat_id/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCSRFToken(),
+                        },
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    if (data.success && data.chat_id) {
+                        // chat_id를 URL에 포함하여 이동
+                        window.location.href = `/app/planner/?chat_id=${encodeURIComponent(data.chat_id)}`;
+                    } else {
+                        console.error("Failed to get chat_id:", data.error || "Unknown error");
+                        alert("chat_id를 가져오는 데 실패했습니다.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching chat_id:", error);
+                    alert("chat_id를 가져오는 도중 오류가 발생했습니다.");
+                }
             } else {
-                console.log("userInput:", userInput);
+                // 비로그인 사용자일 경우
                 window.location.href = `/app/planner/?chatMessage=${encodeURIComponent(userInput)}`;
             }
         }
@@ -156,6 +182,11 @@
                 document.querySelector('.send-button').click();
             }
         });
+
+        function getCSRFToken() {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            return csrfToken;
+        }
     </script>
 </body>
 </html>

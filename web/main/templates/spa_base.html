@@ -82,7 +82,7 @@
             // 또는 모든 데이터 삭제
             // localStorage.clear();
 
-            console.log("LocalStorage cleared or specific key removed.");
+            // console.log("LocalStorage cleared or specific key removed.");
         };
 
         const ncpClientId = "{{ ncp_client_id|default:'' }}";
@@ -202,7 +202,7 @@
 
             lastLoadedPath = spaPath;
             const partialUrl = toPartialUrl(spaPath);
-            console.log("Loading content for path:", partialUrl);
+            // console.log("Loading content for path:", partialUrl);
 
             fetch(partialUrl)
                 .then(response => {
@@ -322,6 +322,8 @@
             const toggleButton = document.getElementById("toggleButton");
             const scrollToBottomBtn = document.getElementById("scrollToBottomBtn");
             const chatMessages = document.getElementById("chat-messages");
+            let isLoading = false; // 로딩 상태를 관리하는 전역 변수
+            let activeAbortController = null; // 현재 활성화된 AbortController
 
             let isChatHidden = false;
             let isScrollPaused = false; // 스크롤 이벤트 잠시 멈춤 플래그
@@ -359,7 +361,9 @@
                         content1.style.width = "0";
                         map.style.flexGrow = "2";
                         toggleButton.innerHTML = "&gt;&nbsp;";
-                        scrollToBottomBtn.classList.add("hidden"); // ▼ 버튼 숨김
+                        if (scrollToBottomBtn) {
+                            scrollToBottomBtn.classList.add("hidden"); // ▼ 버튼 숨김
+                        }
                     }
                     isChatHidden = !isChatHidden; // 상태 변경
                 });
@@ -677,15 +681,26 @@
                 const scheduleBtn = document.getElementById('scheduleBtn');
                 const placesSection = document.getElementById('placesSection');
                 const scheduleSection = document.getElementById('scheduleSection');
+                const bodyElement = document.body; // 테마를 확인하기 위한 body 요소
+
                 if (placeBtn && scheduleBtn && placesSection && scheduleSection) {
                     placeBtn.addEventListener('click', function() {
                         placesSection.style.display = 'block';
                         scheduleSection.style.display = 'none';
+
+                        placeBtn.style.backgroundColor = 'white';
+                        scheduleBtn.style.backgroundColor = '#bbbbbb';
                     });
+
                     scheduleBtn.addEventListener('click', function() {
-                        placesSection.style.display = 'none';
                         scheduleSection.style.display = 'block';
+                        placesSection.style.display = 'none';
+
+                        scheduleBtn.style.backgroundColor = 'white';
+                        placeBtn.style.backgroundColor = '#bbbbbb';
                     });
+
+                    placeBtn.click();
                 }
 
                 // --------------------------------
@@ -1267,13 +1282,19 @@
                 deleteBtn.addEventListener('click', showPopup);
             }
 
-            function sendMessage() {
+            async function sendMessage() {
+                if (isLoading) return; // 로딩 중일 때 메시지 전송 방지
+
                 const message = inputBar.value.trim(); // 사용자가 입력한 메시지
                 if (message === "") return;
 
                 saveChatToDB(`<나>${message}`);
 
-                // 1. 사용자의 메시지를 채팅창에 추가
+                // 1. 로딩 상태로 설정
+                isLoading = true;
+                inputBar.disabled = true; // 입력창 비활성화
+
+                // 사용자의 메시지를 채팅창에 추가
                 const userMessage = document.createElement("div");
                 userMessage.className = "bubble left-bubble";
                 userMessage.innerHTML = message.replace(/\n/g, "<br>");
@@ -1281,7 +1302,6 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
 
                 inputBar.value = ""; // 입력창 초기화
-                // resizeInput();
 
                 const loadingBubble = document.createElement("div");
                 loadingBubble.classList.add("bubble", "right-bubble", "loading-bubble");
@@ -1293,40 +1313,43 @@
                     </div>
                 `;
                 chatMessages.appendChild(loadingBubble);
-                // chatMessages.scrollTop = chatMessages.scrollHeight;
 
-                // 2. 서버에 메시지 전송 및 응답 처리
-                fetchGPTResponse(message)
-                    .then((response) => {
-                        if (response) {
-                            saveChatToDB(`<봇>${response}`);
-                            // 2-1. 서버로부터 받은 응답을 채팅창에 추가
-                            const botMessage = document.createElement("div");
-                            botMessage.className = "bubble right-bubble";
-                            botMessage.innerHTML = response.replace(/\n/g, "<br>");
-                            chatMessages.appendChild(botMessage);
-                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                try {
+                    // 이전 AbortController가 있다면 중단
+                    if (activeAbortController) {
+                        activeAbortController.abort();
+                    }
 
-                            // 타이핑 효과로 출력
-                            typeText(botMessage, response, loadingBubble);                            
-                        }
-                    })
-                    .catch((error) => {
-                        saveChatToDB(`<봇>오류가 발생했습니다. 다시 시도해주세요.`);
+                    // 새로운 AbortController 생성
+                    activeAbortController = new AbortController();
+                    const { signal } = activeAbortController;
+
+                    // 서버 요청 (AbortController로 취소 가능)
+                    const response = await fetchGPTResponse(message, signal);
+
+                    if (response) {
+                        const botMessage = document.createElement("div");
+                        botMessage.className = "bubble right-bubble";
+                        chatMessages.appendChild(botMessage);
+                        typeText(botMessage, response, loadingBubble); // 타이핑 효과
+                    }
+                } catch (error) {
+                    if (error.name === "AbortError") {
+                        console.log("비동기 작업이 취소되었습니다.");
+                    } else {
                         console.error("Error fetching GPT response:", error);
                         const errorMessage = document.createElement("div");
                         errorMessage.className = "bubble right-bubble error";
                         errorMessage.innerHTML = "오류가 발생했습니다. 다시 시도해주세요.";
                         chatMessages.appendChild(errorMessage);
-                        // chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                        if (loadingBubble && loadingBubble.parentNode) {
-                            loadingBubble.parentNode.removeChild(loadingBubble);
-                        }
-                    });
+                    }
+                } finally {
+                    isLoading = false;
+                    inputBar.disabled = false; // 입력창 활성화
+                    inputBar.focus();
+                }
             }
-
-            async function fetchGPTResponse(userInput) {
+            async function fetchGPTResponse(userInput, signal) {
                 try {
                     const response = await fetch("/app/partials/planner/run-gpt/", {
                         method: "POST",
@@ -1334,7 +1357,8 @@
                             "Content-Type": "application/json",
                             "X-CSRFToken": getCSRFToken(),
                         },
-                        body: JSON.stringify({ question: userInput }), // JSON 형식으로 메시지 전송
+                        body: JSON.stringify({ question: userInput }),
+                        signal, // AbortController에서 받은 signal 추가
                     });
 
                     if (!response.ok) {
@@ -1344,8 +1368,11 @@
                     const data = await response.json();
                     return data.answer; // 서버로부터 받은 답변
                 } catch (error) {
-                    console.error("Error interacting with the server:", error);
-                    return null;
+                    if (error.name === "AbortError") {
+                        console.log("요청이 취소되었습니다.");
+                    } else {
+                        throw error;
+                    }
                 }
             }
 
@@ -1365,6 +1392,12 @@
             if (inputBar) {
                 inputBar.addEventListener("keydown", function (e) {
                     if (e.key === "Enter" && !e.shiftKey) {
+                        if (isLoading) {
+                            e.preventDefault(); // 로딩 중일 때 입력 방지
+                            alert("현재 봇 응답이 생성 중입니다. 잠시만 기다려주세요!");
+                            return;
+                        }
+
                         e.preventDefault();               
                         sendMessage();
                         return false;
@@ -1439,14 +1472,15 @@
                 if (index < text.length) {
                     const char = text[index] === "\n" ? document.createElement("br") : document.createTextNode(text[index]);
                     if (char instanceof Node) {
-                        element.appendChild(char); // 텍스트 노드 또는 <br> 추가
+                        element.appendChild(char);
                     }
                     index++;
-
                     setTimeout(typeNextChar, speed);
+                } else {
+                    // 애니메이션 종료 후 로딩 상태 해제
+                    isLoading = false;
                 }
             }
-
             typeNextChar();
         }
 

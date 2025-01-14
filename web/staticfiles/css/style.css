@@ -460,6 +460,7 @@ body {
     display: flex;
     gap: 10px; /* 버튼 사이 간격 */
     justify-content: flex-end; /* 오른쪽 정렬 */
+    margin-right: 10px;
 }
 
 .header-buttons img {

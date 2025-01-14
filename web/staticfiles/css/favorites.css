@@ -191,3 +191,13 @@
 .folder-item .delete-icon:hover {
     opacity: 1.0;
 }
+
+[data-theme="light"] .active-highlight {
+    background-color: rgb(0, 123, 255); /* 밝은 파란색 */
+    background-color: white;
+}
+
+[data-theme="dark"] .active-highlight {
+    background-color: rgb(0, 123, 255); /* 밝은 파란색 */
+    background-color: white;
+}

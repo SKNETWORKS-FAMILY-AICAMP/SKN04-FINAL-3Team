@@ -15,6 +15,7 @@ urlpatterns = [
     # Partial 전용 라우트
     path('app/partials/planner/', views.planner, name='planner'),
     path('app/partials/planner/run-gpt/', views.run_gpt_view, name='run_gpt'),
+    path("app/partials/planner/get_or_create_chat_id/", views.get_or_create_chat_id, name="get_or_create_chat_id"),
     path('app/partials/planner/get_chat_content/', views.get_chat_content, name='get_chat_content'),
     path("app/partials/planner/get_title/", views.get_chat_title, name="get_chat_title"),
     path("app/partials/planner/update_title/", views.update_title, name="update_title"),

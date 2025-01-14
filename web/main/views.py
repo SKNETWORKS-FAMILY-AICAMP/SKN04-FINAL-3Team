@@ -29,6 +29,47 @@ def main(request):
     return render(request, 'main.html')  
 
 
+@csrf_exempt
+@login_required
+def get_or_create_chat_id(request):
+    """
+    로그인한 사용자의 chat_id를 반환하거나 새로 생성.
+    데이터가 10개 이상이면 경고 메시지를 반환하고 chatting 페이지로 리다이렉트.
+    """
+    if request.method == "POST":
+        try:
+            user = request.user
+
+            # 사용자와 연관된 채팅 데이터 개수 확인
+            chat_count = Chatting.objects.filter(profile=user).count()
+            if chat_count >= 10:
+                # 데이터가 10개 이상이면 경고 메시지와 함께 chatting 페이지로 리다이렉트
+                return JsonResponse({
+                    "success": False,
+                    "error": "채팅 내역이 꽉 찼습니다!",
+                    "redirect_url": "/app/chatting/"
+                })
+
+            # 마지막 chat_id 가져오기
+            last_chat = Chatting.objects.filter(profile=user).order_by('-chatting_id').first()
+
+            if last_chat:
+                # 마지막 chat_id에서 숫자 추출 후 1 증가
+                last_id = int(last_chat.chatting_id.split('_')[1])
+                new_chat_id = f"ch_{last_id + 1:05d}"  # 5자리 형식 유지
+            else:
+                # 기존 chat_id가 없으면 처음 chat_id 생성
+                new_chat_id = "ch_00001"
+
+            # 새 chat_id 생성
+            Chatting.objects.create(chatting_id=new_chat_id, profile=user, content="")
+            return JsonResponse({"success": True, "chat_id": new_chat_id})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
+    else:
+        return JsonResponse({"success": False, "error": "Invalid request method."}, status=405)
+
+
 def get_theme_context(user):
     if user and user.is_authenticated:
         try:
@@ -267,7 +308,11 @@ def save_chat(request):
                 # chatting_id가 있는 경우: 기존 내용에 추가
                 try:
                     chatting_instance = Chatting.objects.get(chatting_id=chatting_id, profile=user)
-                    chatting_instance.content += f"\n{chat_content}"  # 기존 내용에 추가
+                    if not chatting_instance.content.strip():
+                        chatting_instance.content += f"{chat_content}"  # 기존 내용이 없으면 바로 추가
+                    else:
+                        chatting_instance.content += f"\n{chat_content}"  # 기존 내용이 있으면 줄바꿈 추가
+                        
                     chatting_instance.save()
                     return JsonResponse({"success": True, "message": "Chat updated.", "chatting_id": chatting_instance.chatting_id})
                 except Chatting.DoesNotExist:
