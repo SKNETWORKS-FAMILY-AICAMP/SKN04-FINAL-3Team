@@ -60,7 +60,16 @@
             <!-- AJAX로 불러온 partial HTML이 여기 들어감 -->
         </div>
         <!-- 지도 영역 -->
-        <div id="map" style="flex-grow: 1; height: 100%; z-index: 1;"></div>
+        <div id="map-container">
+            <div id="map" style="flex-grow: 1; height: 100%; z-index: 1;"></div>
+            <div id="map-panel">
+                <div id="drag-handle"></div> <!-- 드래그 핸들 추가 -->
+                <div class="map-panel-content">
+                    <h4>Map Panel</h4>
+                    <p>This is a floating panel on the map.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 팝업 창 -->
@@ -250,7 +259,6 @@
             }
             loadContent(currentPath);
 
-            
             // 네비게이션 버튼 클릭 시
             document.querySelectorAll('.nav-btn').forEach(button => {
                 button.addEventListener('click', function (event) {
@@ -294,7 +302,46 @@
             // 뒤로가기/앞으로가기 처리
             window.addEventListener('popstate', function () {
                 loadContent(window.location.pathname);
-            });            
+            });   
+            
+            const mapPanel = document.getElementById("map-panel");
+            const dragHandle = document.getElementById("drag-handle");
+
+            let isDragging = false;
+            let startY = 0;
+            let startHeight = 0;
+
+            // 드래그 시작
+            dragHandle.addEventListener("mousedown", function (e) {
+                isDragging = true;
+                startY = e.clientY; // 마우스 시작 위치
+                startHeight = mapPanel.offsetHeight; // 패널의 시작 높이
+
+                document.body.style.userSelect = "none"; // 드래그 중 텍스트 선택 방지
+            });
+
+            // 드래그 진행
+            document.addEventListener("mousemove", function (e) {
+                if (!isDragging) return;
+
+                const deltaY = e.clientY - startY; // 드래그된 거리
+                const newHeight = startHeight - deltaY; // 패널 높이 조정 (위로 드래그 시 높이 증가)
+
+                // 높이를 제한 (최소 10px, 최대 화면 높이)
+                const maxHeight = window.innerHeight;
+                const minHeight = 10; // 최소 높이
+                if (newHeight >= minHeight && newHeight <= maxHeight) {
+                    mapPanel.style.height = `${newHeight}px`;
+                }
+            });
+
+            // 드래그 종료
+            document.addEventListener("mouseup", function () {
+                if (isDragging) {
+                    isDragging = false;
+                    document.body.style.userSelect = ""; // 텍스트 선택 복구
+                }
+            });
         });
         
         function getCSRFToken() {
@@ -565,8 +612,7 @@
                             changeTitle.style.display = "none";  // 입력창 숨김
                         }                    
                     });
-                }
-                
+                }                
 
                 resetButton.addEventListener("click", function () {
                     // URL에서 chat_id 추출
