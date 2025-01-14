@@ -92,57 +92,68 @@ def run_gpt_api(question):
     ##########################################################################################################
     # Query Rewrite 프롬프트 정의
     prompt = PromptTemplate(
-        template="""Create a travel itinerary bot that generates schedules based on user questions. The schedule should be divided into morning, lunch, and evening plans for each travel day, and for each time of day, recommend a restaurant and tourist attractions or streets.
+        template="""사용자의 질문을 바탕으로 여행 일정을 생성하는 봇을 만들어 주세요. 생성된 일정은 아침, 점심, 저녁으로 나누어 구성하며, 각 시간대에 **실제로 존재하는** 식당, 관광 명소, 거리 등을 추천해야 합니다.
 
-        Extract key details from the user's questions to create a travel itinerary. Identify dates, times, and activities, then structure a plan with specific restaurant and sightseeing recommendations for morning, lunch, and evening.
+        ### 여행 일정 생성 가이드라인
 
-        #유의사항
+        1. **정확한 데이터 기반 추천**:
+        - 제공된 데이터 또는 신뢰할 수 있는 출처(예: 공공 데이터, 지도 서비스)를 바탕으로 실제 존재하는 장소만 추천하세요.
+        - 추천된 장소는 이름, 주소, 운영 시간, 특징 등 주요 정보를 반드시 포함해야 합니다.
 
-        - 첫날에는 아침일정을 추천하지마.
-        - 추천했던 장소를 한번더 추천하지마.
-        - 아침, 점심, 저녁 이동 경로가 가까워야돼
+        2. **반복 추천 방지**:
+        - 각 일자에 추천된 장소는 다른 일자에 다시 추천하지 마.
+        - 이미 방문한 장소를 제외하고, 새로운 장소를 추천해야 해.
 
-        # Steps
+        4. **핵심 정보 추출**:
+        - 사용자의 질문에서 다음 정보를 추출하세요:
+        - 여행 날짜 및 시간
+        - 방문하고 싶은 지역
+        - 요청한 활동(예: 관광, 식사, 쇼핑 등)
 
-        1. **Request Analysis**: Carefully analyze the user's input to understand the itinerary requirements, including any specified food or sightseeing preferences.
-        2. **Confirm Details**: Verify dates, times, locations, activity preferences, and any specific requests for restaurants or attractions.
-        3. **Create Itinerary**: Using confirmed details, write a structured schedule detailing morning, lunch, and evening sections for each day, recommending one restaurant and tourist attraction or street for each time slot.
+        5. **이동 동선 최소화**:
+        - 일정에서의 경로는 효율적이어야 합니다.
+        - 추천된 장소들이 서로 가까운 곳에 위치하도록 구성하세요.
 
-        # Output Format
+        6. **사용자 맞춤 일정 생성**:
+        - 사용자 요청에 따라 여행 일정을 맞춤화하세요. 예를 들어, 음식 취향이나 특정 활동 요청을 반영하세요.
+        - 사용자가 특정 지역(예: 서울)을 언급하면, 강남구, 종로구, 용산구, 중구 등의 인기 있는 지역을 기준으로 일정을 생성하세요.
 
-        - Provide a detailed itinerary in a bullet-point list or table format, itemizing each day's morning, lunch, and evening plans.
+        7. **추천 장소 검증**:
+        - 추천된 장소가 실제로 존재하는지 데이터로 검증하세요.
+        - 운영 정보나 주소 등이 없는 장소는 제외하세요.
 
-        # Examples
+        ### 출력 형식
+        답변은 명확하고 구조적인 형식으로 작성하세요. 각 시간대에 대해 장소 이름, 주소, 운영 시간, 특징 등을 포함해야 합니다.
 
-        **Input**: "용산구에 1박2일 방문 할 예정이야. 일정을 생성 해줄 수 있어?"
+        **예시 출력**:
+        - **1일차**:
+        - **점심**:
+            - 식당: [식당 이름], [주소], [운영 시간], [특징]
+            - 관광 명소: [명소 이름], [설명], [주소], [운영 시간]
+        - **저녁**:
+            - 식당: [식당 이름], [주소], [운영 시간], [특징]
+            - 쇼핑몰: [쇼핑몰 이름], [특징], [주소], [운영 시간]
+            - 숙소: [숙소 이름], [주소], [운영 정보]
 
-        **Schedule**:
-        - 1일차
-
-        - 점심: 점심 식사 장소: [점심 식사 장소] [음식점 주소] [영업 시간] [음식점 특징] [기타 정보] ,
-                명소: [관광할 명소 또는 거리] [영업 시간] [명소 특징] [명소 위치] [기타 정보]
-                카페 : [카페 주소] [영업 시간] [카페 정보] [카페 특징] 
-        - 저녁: 저녁 식사 장소: [저녁 식사 장소] [음식점 주소] [음식점 특징] [기타 정보], 명소: [관광할 명소 또는 거리] [명소 특징] [명소 위치] [기타 정보]
-                쇼핑몰 : [쇼핑몰 주소] [쇼핑몰 특징]
-                숙소 : [숙소 위치] [숙소 정보] [숙소 특징] *숙소 정보 없으면 출력 하지 않기
-        - 2일차
-        - 아침: 아침 식사 장소: [음식점 이름] [음식점 주소] [음식점 특징] [기타 정보]
-                명소: [관광할 명소 또는 거리] [명소 특징] [명소 위치] [기타 정보]
-        - 점심: 점심 식사 장소: [점심 식사 장소] [음식점 주소] [영업 시간] [음식점 특징] [기타 정보],
-                명소: [관광할 명소 또는 거리] [영업 시간] [명소 특징] [명소 위치] [기타 정보]
-                카페 : [카페 주소] [영업 시간] [카페 정보] [카페 특징]
-        - 저녁: 저녁 식사 장소: [저녁 식사 장소] [음식점 주소] [음식점 특징] [기타 정보], 명소: [관광할 명소 또는 거리] [명소 특징] [명소 위치] [기타 정보]
-                쇼핑몰 : [쇼핑몰 주소] [쇼핑몰 특징]
-                숙소 : [숙소 위치] [숙소 정보] [숙소 특징] *숙소 정보 없으면 출력 하지 않기
-
-        # Notes
-
-        - Ensure that all parts of the itinerary are complete and relevant to the user's request.
-        - Attempt to clarify any ambiguous details related to time, location, or activity preferences.
-        - Include clear recommendations for restaurants and tourist attractions for each part of the day.
+        - **2일차**:
+        - **아침**:
+            - 아침 식사 장소: [식당 이름], [주소], [운영 시간], [특징]
+            - 관광 명소: [명소 이름], [설명], [주소], [운영 시간]
+        - **점심**:
+            - 식당: [식당 이름], [주소], [운영 시간], [특징]
+            - 카페: [카페 이름], [특징], [주소], [운영 시간]
+        - **저녁**:
+            - 식당: [식당 이름], [주소], [운영 시간], [특징]
+            - 쇼핑몰: [쇼핑몰 이름], [특징], [주소], [운영 시간]
+            - 숙소: [숙소 이름], [주소], [운영 정보]
 
 
-        #답변언어 : 한국어
+        ### 주의사항
+        - 추천된 장소는 반드시 실제로 존재해야 합니다.
+        - 비현실적이거나 가상의 장소는 추천하지 마세요.
+        - 답변은 사용자가 쉽게 이해할 수 있도록 간결하게 작성하세요.
+        - 장소의 신뢰성을 확인하기 위해 데이터 검증을 수행하세요.
+
 
         # 장소 정보: {context}
 
@@ -347,6 +358,9 @@ def run_gpt_api(question):
         답변 예시 4: ['종로구']
 
         #####
+        입력 예시 4 : 종로와 용산, 강남에서 맛있는 고기집을 찾고 있어. 찾아줘
+        답변 예시 4: ['종로구', '용산구', '강남구']
+        #####
 
 
         #사용자의 질문: {question}
@@ -438,6 +452,9 @@ def run_gpt_api(question):
         여행 일정에 대한 동선이 짧도록 추천해줘.
         언어는 사용자가 입력한 언어를 기준으로 알려줘. 
         화폐 기준도 사용자가 입력한 언어를 사용하는 국가의 화폐를 기준으로 적용해줘.
+
+        *유의사항
+        - 너 마음대로 식당을 만들지 말고 반드시 존재하는 식당을 추천해야 해
 
 
         - 너가 제공한 내용의 출처를 링크로 남겨줘
