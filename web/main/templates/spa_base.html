@@ -342,6 +342,8 @@
                     document.body.style.userSelect = ""; // 텍스트 선택 복구
                 }
             });
+
+            
         });
         
         function getCSRFToken() {
@@ -535,7 +537,6 @@
                             // GPT 응답 표시
                             const botBubble = document.createElement("div");
                             botBubble.classList.add("bubble", "right-bubble");
-                            // botBubble.innerHTML = gptResponse.replace(/\n/g, "<br>");
                             chatMessages.appendChild(botBubble); // DOM에 추가
                             typeText(botBubble, gptResponse, loadingBubble);
                         } else {
@@ -1565,6 +1566,34 @@
                     // 메시지 텍스트 처리
                     const bubble = document.createElement("div");
                     bubble.classList.add("bubble");
+                    bubble.addEventListener("mouseenter", function () {
+                        const currentBackgroundColor = window.getComputedStyle(this).backgroundColor;
+                        if (currentBackgroundColor === "rgb(76, 175, 80)") { // #4caf50의 RGB 값
+                            this.style.backgroundColor = "#85b187"; // 새로운 하이라이트 색상
+                        } else {
+                            this.style.backgroundColor = "#f0f8ff"; // 기본 하이라이트 색상
+                        }
+                    });
+
+                    // 마우스 아웃 이벤트
+                    bubble.addEventListener("mouseleave", function () {
+                        this.style.backgroundColor = ""; // 원래 배경색 복구
+                    });
+
+                    bubble.addEventListener("click", function () {
+                        const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
+
+                        // 서식을 유지한 상태로 출력
+                        const formattedMessage = messageContent
+                            .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
+                            .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
+
+                        // console.log(formattedMessage);
+                        // Example Usage
+                        const outputDebug = parseItineraryToJson(formattedMessage);
+                        console.log("Clicked Message:", outputDebug);
+                        // console.log("ogtiae:", outputDebug[0]['meals']);
+                    });
 
                     // 서식 그대로 출력
                     const formattedText = token
@@ -1584,6 +1613,97 @@
                     chatMessages.appendChild(bubble);
                 }
             });
+        }
+
+        function parseItineraryToJson(text) {
+            const lines = text.split("\n");
+            const result = [];
+            let currentDay = null;
+            let currentMeal = null;
+            let currentSection = null;
+
+            lines.forEach(line => {
+                const trimmedLine = line.trim();
+
+                if (!trimmedLine) return; // 빈 줄 무시
+
+                const isDayHeader = trimmedLine.startsWith("###");
+                const isMealHeader = trimmedLine.match(/- \*\*(아침|점심|저녁)\*\*/);
+                const isKeyValuePair = trimmedLine.startsWith("-");
+
+                // Day header 처리
+                if (isDayHeader) {
+                    const dayMatch = trimmedLine.match(/^### (\d+)일차/);
+                    if (dayMatch) {
+                        currentDay = {
+                            day: parseInt(dayMatch[1]),
+                            meals: {}
+                        };
+                        result.push(currentDay);
+                    }
+                    return;
+                }
+
+                // Meal header 처리
+                if (isMealHeader) {
+                    const mealMatch = trimmedLine.match(/- \*\*(.*?)\*\*/);
+                    if (mealMatch) {
+                        currentMeal = mealMatch[1];
+                        if (currentDay && !currentDay.meals[currentMeal]) {
+                            currentDay.meals[currentMeal] = {
+                                식사장소: {
+                                    장소: null,
+                                    주소: null,
+                                    영업시간: null,
+                                    음식점특징: null,
+                                    기타정보: null
+                                },
+                                명소: {
+                                    명소이름: null,
+                                    영업시간: null,
+                                    명소특징: null,
+                                    명소위치: null,
+                                    기타정보: null
+                                }
+                            };
+                        }
+                        currentSection = null;
+                    }
+                    return;
+                }
+
+                // Key-Value 처리
+                if (isKeyValuePair) {
+                    const keyValueMatch = trimmedLine.match(/- \*\*(.*?)\*\*: (.*)/);
+                    if (keyValueMatch && currentDay && currentMeal) {
+                        const [, key, value] = keyValueMatch;
+                        const mealSection = currentDay.meals[currentMeal];
+
+                        // 식사 장소와 명소 구분
+                        if (key.includes("식사 장소")) {
+                            mealSection.식사장소.장소 = value;
+                            currentSection = "식사장소";
+                        } else if (key === "명소") {
+                            mealSection.명소.명소이름 = value;
+                            currentSection = "명소";
+                        } else if (currentSection) {
+                            if (currentSection === "식사장소") {
+                                if (key === "주소") mealSection.식사장소.주소 = value;
+                                if (key === "영업 시간") mealSection.식사장소.영업시간 = value;
+                                if (key === "음식점 특징") mealSection.식사장소.음식점특징 = value;
+                                if (key === "기타 정보") mealSection.식사장소.기타정보 = value;
+                            } else if (currentSection === "명소") {
+                                if (key === "영업 시간") mealSection.명소.영업시간 = value;
+                                if (key === "명소 특징") mealSection.명소.명소특징 = value;
+                                if (key === "명소 위치") mealSection.명소.명소위치 = value;
+                                if (key === "기타 정보") mealSection.명소.기타정보 = value;
+                            }
+                        }
+                    }
+                }
+            });
+
+            return result;
         }
 
 
