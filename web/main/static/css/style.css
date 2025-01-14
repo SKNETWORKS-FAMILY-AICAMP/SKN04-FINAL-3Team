@@ -423,8 +423,28 @@ body {
     align-self: center;
     font-size: 24px;
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
     margin-bottom: 50px;
+    border: none;
+}
+
+[data-theme="dark"] .scroll-to-bottom {
+    position: absolute;      /* 위치를 자유롭게 조정할 수 있도록 absolute/fixed */
+    bottom: 100px;          /* 화면 아래에서 100px 떨어짐 (입력창 위로) */
+    width: 40px;
+    height: 40px;
+    background-color: rgb(255, 255, 255); 
+    color: rgb(0, 0, 0);
+    border-radius: 50%;      /* 둥근 원 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    margin-bottom: 50px;
+    border: none;
 }
 
 /* 숨김 토글용 */
@@ -432,10 +452,15 @@ body {
     display: none !important;
 }
 
+.toggle-button-hidden {
+    display: none !important;
+}
+
 .header-buttons {
     display: flex;
     gap: 10px; /* 버튼 사이 간격 */
     justify-content: flex-end; /* 오른쪽 정렬 */
+    margin-right: 10px;
 }
 
 .header-buttons img {

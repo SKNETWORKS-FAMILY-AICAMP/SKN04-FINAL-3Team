@@ -380,20 +380,32 @@ body {
     color: white;
 }
 
-/* 왼쪽 (사용자) */
+/* 왼쪽 (사용자) 말풍선 */
 .left-bubble {
     background-color: #4caf50; /* 초록색 */
     color: #fff;
-    margin-left: 20px;    
-    margin-right: 40px;   
+    margin-left: 10px; /* 왼쪽 간격 */
+    margin-right: 40px; /* 오른쪽 간격 */
+    align-self: flex-start; /* 왼쪽 정렬 */
+    border-radius: 12px;
+    padding: 8px 12px;
+    white-space: pre-wrap; /* 공백과 줄 바꿈을 유지 */
+    word-wrap: break-word; /* 긴 단어는 줄바꿈 */
+    max-width: 80%; /* 최대 너비 제한 */
 }
 
-/* 오른쪽 (봇) */
+/* 오른쪽 (봇) 말풍선 */
 .right-bubble {
-    background-color: #eee;
+    background-color: #eee; /* 연한 회색 */
     color: #333;
-    margin-left: auto;    
-    margin-right: 20px;    
+    margin-left: 40px; /* 왼쪽 간격 */
+    margin-right: 10px; /* 오른쪽 간격 */
+    align-self: flex-end; /* 오른쪽 정렬 */
+    border-radius: 12px;
+    padding: 8px 12px;
+    white-space: pre-wrap; /* 공백과 줄 바꿈을 유지 */
+    word-wrap: break-word; /* 긴 단어는 줄바꿈 */
+    max-width: 80%; /* 최대 너비 제한 */
 }
 
 /* 아래로 이동 버튼 */
@@ -411,12 +423,36 @@ body {
     align-self: center;
     font-size: 24px;
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
     margin-bottom: 50px;
+    border: none;
+}
+
+[data-theme="dark"] .scroll-to-bottom {
+    position: absolute;      /* 위치를 자유롭게 조정할 수 있도록 absolute/fixed */
+    bottom: 100px;          /* 화면 아래에서 100px 떨어짐 (입력창 위로) */
+    width: 40px;
+    height: 40px;
+    background-color: rgb(255, 255, 255); 
+    color: rgb(0, 0, 0);
+    border-radius: 50%;      /* 둥근 원 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    margin-bottom: 50px;
+    border: none;
 }
 
 /* 숨김 토글용 */
 .hidden {
+    display: none !important;
+}
+
+.toggle-button-hidden {
     display: none !important;
 }
 
@@ -457,7 +493,7 @@ body {
     align-items: center;
     cursor: pointer;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
+    z-index: 100;
     font-weight: bold;
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
@@ -467,7 +503,7 @@ body {
     top: 45%;
     right: -30px;
     transform: translateY(-50%);
-    background-color: #333;
+    background-color: #222;
     color: white;
     width: 30px;
     height: 50px;

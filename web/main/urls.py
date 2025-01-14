@@ -20,6 +20,7 @@ urlpatterns = [
     path("app/partials/planner/update_title/", views.update_title, name="update_title"),
     path('app/partials/planner/check_duplicate_title/', views.check_duplicate_title, name='check_duplicate_title'),
     path("app/partials/planner/save_chat/", views.save_chat, name="save_chat"),
+    path("app/partials/planner/init_chat/", views.init_chat, name="init_chat"),
     path('app/partials/chatting/', views.chatting, name='chatting'),
     path('app/partials/chatting/count/', views.get_chat_count, name='get_chat_count'),
     path('app/partials/chatting/delete/', views.delete_chat, name='delete_chat'),

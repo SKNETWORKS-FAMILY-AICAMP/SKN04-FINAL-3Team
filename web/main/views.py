@@ -301,6 +301,31 @@ def save_chat(request):
 
 
 @csrf_exempt
+def init_chat(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            chat_id = data.get("chat_id")
+
+            if not chat_id:
+                return JsonResponse({"success": False, "error": "chat_id가 제공되지 않았습니다."}, status=400)
+
+            # chat_id로 DB 내용 초기화 (내용을 빈 문자열로 업데이트)
+            chat = Chatting.objects.filter(chatting_id=chat_id).first()
+
+            if chat:
+                chat.content = ""  # 채팅 내용을 빈 문자열로 초기화
+                chat.save()       # 변경 사항 저장
+                return JsonResponse({"success": True})
+            else:
+                return JsonResponse({"success": False, "error": "해당 chat_id를 찾을 수 없습니다."}, status=404)
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
+    return JsonResponse({"success": False, "error": "잘못된 요청입니다."}, status=400)
+
+
+@csrf_exempt
 @login_required
 def update_title(request):
     """DB에 채팅 제목 업데이트"""

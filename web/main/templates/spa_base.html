@@ -320,32 +320,66 @@
             const content1 = document.querySelector('.panel');
             const map = document.getElementById("map");
             const toggleButton = document.getElementById("toggleButton");
+            const scrollToBottomBtn = document.getElementById("scrollToBottomBtn");
+            const chatMessages = document.getElementById("chat-messages");
 
             let isChatHidden = false;
+            let isScrollPaused = false; // 스크롤 이벤트 잠시 멈춤 플래그
+
+            function scrollHandler() {
+                if (isScrollPaused) return; // 스크롤 이벤트 멈춘 상태라면 실행하지 않음
+
+                if (!isChatHidden) {
+                    const isAtBottom = chatMessages.scrollTop + chatMessages.clientHeight >= chatMessages.scrollHeight - 10;
+                    if (!isAtBottom) {
+                        scrollToBottomBtn.classList.remove("hidden"); // ▼ 버튼 보이기
+                    } else {
+                        scrollToBottomBtn.classList.add("hidden"); // ▼ 버튼 숨김
+                    }
+                } else {
+                    scrollToBottomBtn.classList.add("hidden"); // 채팅창이 숨겨진 경우 ▼ 버튼 숨김
+                }
+            }
+
             if (toggleButton) {
                 toggleButton.addEventListener("click", function () {
                     if (isChatHidden) {
-                        // 채팅 패널을 다시 표시
+                        // 채팅 패널 다시 표시
+                        isScrollPaused = true; // 스크롤 이벤트 잠시 멈춤
                         content1.style.width = "400px";
-                        map.style.flexGrow = "1"; // 원래 상태로 복구
-                        toggleButton.innerHTML = "&lt;&nbsp;"; // 버튼 HTML 내용 변경
+                        map.style.flexGrow = "1";
+                        toggleButton.innerHTML = "&lt;&nbsp;";
+
+                        setTimeout(() => {
+                            isScrollPaused = false; // 일정 시간 후 스크롤 이벤트 재개
+                            chatMessages.dispatchEvent(new Event("scroll")); // 스크롤 강제 트리거
+                        }, 100); // 100ms 대기 후 재개
                     } else {
-                        // 채팅 패널을 숨김
+                        // 채팅 패널 숨김
                         content1.style.width = "0";
-                        map.style.flexGrow = "2"; // 지도 넓이를 확장
-                        toggleButton.innerHTML = "&gt;&nbsp;"; // 버튼 HTML 내용 변경
+                        map.style.flexGrow = "2";
+                        toggleButton.innerHTML = "&gt;&nbsp;";
+                        scrollToBottomBtn.classList.add("hidden"); // ▼ 버튼 숨김
                     }
                     isChatHidden = !isChatHidden; // 상태 변경
                 });
-            }            
+            }
+
+            if (chatMessages && scrollToBottomBtn) {
+                chatMessages.addEventListener("scroll", scrollHandler);
+
+                scrollToBottomBtn.addEventListener("click", function () {
+                    // ▼ 버튼 클릭 시 채팅창 맨 아래로 스크롤
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    scrollToBottomBtn.classList.add("hidden"); // 버튼 숨김
+                });
+            }
             
             // 1) Planner Panel
             const plannerPanel = document.getElementById("plannerPanel");
             if (plannerPanel) {
                 console.log("[Planner] panel detected!");                
                 const resetButton = document.getElementById("resetButton");
-                const newPostButton = document.getElementById("newPostButton");
-
                 const plannerTitle = document.getElementById("planner-title");
                 const changeTitle = document.getElementById("change-title");
                 const chatMessages = document.getElementById('chat-messages');
@@ -531,33 +565,50 @@
                 
 
                 resetButton.addEventListener("click", function () {
-                    console.log("초기화 버튼이 눌렸습니다.");
-                });
+                    // URL에서 chat_id 추출
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const chatId = urlParams.get("chat_id");
+                    console.log("ChatID:", chatId);
 
-                newPostButton.addEventListener("click", function () {
-                    console.log("새 글 버튼이 눌렸습니다.");
-                }); 
-                
-                // 1) 스크롤 이벤트 -> 버튼 표시/숨김
-                const scrollBtn = document.getElementById("scrollToBottomBtn");
-                if (scrollBtn) {
-                    // 2) 버튼 클릭 시 맨 아래로 스크롤
-                    scrollBtn.addEventListener("click", function() {
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
-                    });
-                    if (chatMessages) {
-                        chatMessages.addEventListener("scroll", function() {
-                            // 만약 스크롤이 '맨 아래'가 아니라면 버튼 보이기
-                            // (clientHeight + scrollTop < scrollHeight 이면 아직 위로 스크롤 중)
-                            if (chatMessages.scrollTop + chatMessages.clientHeight 
-                                < chatMessages.scrollHeight - 10) {
-                                scrollBtn.classList.remove("hidden");
-                            } else {
-                                scrollBtn.classList.add("hidden");
-                            }
-                        });
+                    if (!chatId) {
+                        alert("삭제할 chat_id를 찾을 수 없습니다.");
+                        return;
                     }
-                }
+
+                    // 사용자 확인
+                    const confirmReset = confirm("정말 이 채팅 내용을 초기화하시겠습니까?");
+                    if (!confirmReset) return;
+
+                    // 서버로 삭제 요청
+                    fetch("/app/partials/planner/init_chat/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCSRFToken(),
+                        },
+                        body: JSON.stringify({ chat_id: chatId }),
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                alert("채팅 내용이 초기화되었습니다.");
+                                // UI에서 내용을 비웁니다.
+                                const chatMessages = document.getElementById("chat-messages");
+                                if (chatMessages) chatMessages.innerHTML = "";
+                            } else {
+                                alert("초기화 실패: " + (data.error || "알 수 없는 오류"));
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error resetting chat content:", error);
+                            alert("서버 오류가 발생했습니다. 다시 시도해주세요.");
+                        });
+                });
             }
             
             // 2) Chatting Panel
@@ -1211,7 +1262,6 @@
             
             // 6) 채팅 입력창 로직
             const inputBar = document.getElementById("input_bar");  
-            const chatMessages = document.getElementById("chat-messages");
             const deleteBtn = document.querySelector('.delete-btn');
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', showPopup);
