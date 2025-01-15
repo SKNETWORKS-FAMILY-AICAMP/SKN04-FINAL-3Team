@@ -93,6 +93,7 @@
         };
 
         const ncpClientId = "{{ ncp_client_id|default:'' }}";
+        const ncpClientSecret = "{{ ncp_client_secret|default:'' }}";
         let isMapInitialized = false;
         let map = null;
         const isLoggedIn = {{ user.is_authenticated|yesno:"true,false" }};
@@ -115,7 +116,7 @@
                 // 여러 마커의 정보를 배열로 관리
                 const markerData = [
                     {
-                        position: new naver.maps.LatLng(37.5296, 126.9644), // 용산역
+                        position: new naver.maps.LatLng(37.5489463, 126.9894131), // 용산역
                         title: '용산역',
                         icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_number&chld=1|FF0000|000000',
                     },
@@ -1793,73 +1794,88 @@
             return result;
         }
 
-        function generateDynamicPlanContent(jsonData) {
-            // map-panel-content 요소를 찾음
+        async function generateDynamicPlanContent(jsonData) {
             const mapPanelContent = document.querySelector('.map-panel-content');
             if (!mapPanelContent) {
                 console.error('map-panel-content 요소를 찾을 수 없습니다.');
                 return;
             }
 
-            // map-panel-content 내부를 초기화
-            mapPanelContent.innerHTML = '';
+            // 네이버 Geocoding API를 통해 경도와 위도를 가져오는 함수
+            async function getCoordinates(address) {
+                const url = `http://127.0.0.1:8000/proxy/geocode/?address=${encodeURIComponent(address)}`;
 
-            // 콘텐츠 컨테이너 생성
-            const planContent = document.createElement('div');
-            planContent.className = 'plan-content';
-            mapPanelContent.appendChild(planContent);
-
-            // Day 데이터를 렌더링하는 함수
-            function renderDayContent(day) {
-                if (!planContent) {
-                    console.error("planContent가 정의되지 않았습니다. DOM에서 누락되었거나, 잘못된 참조입니다.");
-                    return;
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    if (data.addresses && data.addresses.length > 0) {
+                        const { x: lng, y: lat } = data.addresses[0]; // x: 경도, y: 위도
+                        console.log(`Address: ${address}, Latitude: ${lat}, Longitude: ${lng}`); // 좌표 출력
+                        return [parseFloat(lat), parseFloat(lng)];
+                    } else {
+                        console.error('No valid address found:', data);
+                        return null;
+                    }
+                } catch (error) {
+                    console.error('Error fetching coordinates:', error);
+                    return null;
                 }
-                // 기존 내용을 초기화
-                planContent.innerHTML = '';
-                // Meals 순회
+            }
+
+            // 마커 데이터를 저장하는 배열
+            let markerData = [];
+
+            function renderDayContent(day) {
+                mapPanelContent.innerHTML = ''; // 기존 내용 초기화
+                const planContent = document.createElement('div');
+                planContent.className = 'plan-content';
+                mapPanelContent.appendChild(planContent);
+
                 Object.keys(day.meals).forEach(mealType => {
                     const mealData = day.meals[mealType];
-
-                    // Meal 섹션 추가
                     const mealSection = document.createElement('div');
                     mealSection.className = 'meal-section';
-                    mealSection.innerHTML = `<h4><span>${mealType}</span></h4>`; // 아침, 점심, 저녁 등
+                    mealSection.innerHTML = `<h4>${mealType}</h4>`;
 
-                    // 식사장소와 명소 순회
                     Object.keys(mealData).forEach(section => {
                         const sectionData = mealData[section];
                         if (sectionData) {
-                            // 섹션 컨테이너 생성
-                            const sectionDiv = document.createElement('div');
-                            sectionDiv.className = 'dynamic-section';
-                            sectionDiv.innerHTML = `<h5><span>${section}</span></h5>`; // 식사장소 또는 명소
+                            const name = sectionData["장소"] || sectionData["명소이름"];
+                            const address = sectionData["주소"] || sectionData["명소위치"];
 
-                            // 하위 데이터 렌더링
-                            const contentList = document.createElement('ul');
-                            Object.keys(sectionData).forEach(key => {
-                                const sectionValue = sectionData[key];
-                                if (sectionValue) {
-                                    const listItem = document.createElement('li');
-                                    listItem.innerHTML = `<strong>${key}:</strong> ${sectionValue}`;
-                                    contentList.appendChild(listItem);
-                                }
-                            });
+                            if (name && address) {
+                                const listItem = document.createElement('p');
+                                listItem.innerHTML = `<strong>${name}</strong> (${address})`;
+                                mealSection.appendChild(listItem);
 
-                            // 섹션 컨테이너에 리스트 추가
-                            sectionDiv.appendChild(contentList);
-                            mealSection.appendChild(sectionDiv);
+                                // Geolocation API 호출 및 마커 데이터 생성
+                                getCoordinates(address).then(coordinates => {
+                                    if (coordinates) {
+                                        const [lat, lng] = coordinates;
+                                        markerData.push({
+                                            position: new naver.maps.LatLng(lat, lng),
+                                            title: name,
+                                            icon: `https://chart.googleapis.com/chart?chst=d_map_pin_number&chld=${markerData.length + 1}|FF0000|000000`,
+                                        });
+
+                                        console.log(markerData); // 생성된 마커 데이터 확인
+                                    }
+                                });
+                            }
                         }
                     });
 
-                    // Meal 섹션을 메인 콘텐츠에 추가
                     planContent.appendChild(mealSection);
                 });
             }
 
-            // 버튼 생성 및 초기 데이터 렌더링
+            // 버튼 생성 및 이벤트 바인딩
             generateDayButtons(jsonData, (day) => {
-                renderDayContent(day);
+                markerData = []; // 새로운 일차 선택 시 기존 마커 데이터 초기화
+                renderDayContent(day); // 선택된 일차의 데이터 렌더링
             });
         }
 
@@ -1870,18 +1886,16 @@
                 return;
             }
 
-            // 버튼 컨테이너를 찾거나 생성
             let buttonContainer = document.getElementById('day-button-container');
             if (!buttonContainer) {
                 buttonContainer = document.createElement('div');
                 buttonContainer.id = 'day-button-container';
                 buttonContainer.style.position = 'absolute';
-                buttonContainer.style.top = `${mapPanel.getBoundingClientRect().top - 50}px`; // 위치 조정
+                buttonContainer.style.top = `${mapPanel.getBoundingClientRect().top - 50}px`;
                 buttonContainer.style.left = '40px';
                 buttonContainer.style.display = 'flex';
                 buttonContainer.style.gap = '10px';
                 buttonContainer.style.zIndex = '100';
-                buttonContainer.style.pointerEvents = 'auto';
 
                 const mapContainer = document.getElementById('map-container');
                 if (mapContainer) {
@@ -1896,7 +1910,6 @@
 
             let firstButton = null;
 
-            // 버튼 생성 및 이벤트 바인딩
             jsonData.forEach((day, index) => {
                 const dayButton = document.createElement('button');
                 dayButton.textContent = `${day.day}일차`;
@@ -1905,22 +1918,14 @@
                 dayButton.style.borderRadius = '20px';
                 dayButton.style.backgroundColor = '#ddd';
                 dayButton.style.cursor = 'pointer';
-                dayButton.style.transition = 'background-color 0.3s ease';
 
-                // Hover 스타일
-
-                // 클릭 이벤트: renderDayContentCallback 호출
                 dayButton.addEventListener('click', () => {
                     const allButtons = buttonContainer.querySelectorAll('button');
-                    allButtons.forEach(btn => {
-                        btn.style.backgroundColor = '#ddd'; // 기본 배경색
-                    });
-
-                    // 현재 클릭된 버튼의 배경색을 흰색으로 변경
+                    allButtons.forEach(btn => (btn.style.backgroundColor = '#ddd'));
                     dayButton.style.backgroundColor = 'white';
-                    
+
                     if (typeof renderDayContentCallback === 'function') {
-                        renderDayContentCallback(day); // 콜백 함수 실행
+                        renderDayContentCallback(day);
                     }
                 });
 
@@ -1928,13 +1933,9 @@
                     firstButton = dayButton;
                 }
 
-                const buttonContainer = document.getElementById('day-button-container');
-                if (buttonContainer) {
-                    buttonContainer.appendChild(dayButton);
-                }
+                buttonContainer.appendChild(dayButton);
             });
 
-            // 첫 번째 버튼 클릭
             if (firstButton) {
                 firstButton.click();
             } else {
@@ -1942,6 +1943,46 @@
             }
         }
 
+        async function generateMarkerData(jsonData) {
+            const markerData = [];
+            let markerIndex = 1; // 아이콘 숫자 카운터
+
+            // JSON 데이터 순회
+            for (const day of jsonData) {
+                for (const mealType in day.meals) {
+                    const mealData = day.meals[mealType];
+
+                    for (const section in mealData) {
+                        const sectionData = mealData[section];
+
+                        const name = sectionData["장소"] || sectionData["명소이름"];
+                        const address = sectionData["주소"] || sectionData["명소위치"];
+
+                        if (name && address) {
+                            // Geolocation API 호출
+                            const coordinates = await getCoordinates(address);
+                            if (coordinates) {
+                                const [lat, lng] = coordinates;
+
+                                // markerData에 추가
+                                markerData.push({
+                                    position: new naver.maps.LatLng(lat, lng),
+                                    title: name,
+                                    icon: `https://chart.googleapis.com/chart?chst=d_map_pin_number&chld=${markerIndex}|FF0000|000000`,
+                                });
+
+                                markerIndex++; // 숫자 증가
+                            }
+                        }
+                    }
+                }
+            }
+
+            console.log(markerData);
+            return markerData;
+        }
+        
+        
         function getCSRFToken() {
             const cookies = document.cookie.split("; ");
             for (let cookie of cookies) {
