@@ -540,35 +540,39 @@
                             // GPT 응답 표시
                             const botBubble = document.createElement("div");
                             botBubble.classList.add("bubble", "right-bubble");
-                            botBubble.addEventListener("mouseenter", function () {
+                            botBubble.addEventListener("mouseenter", function (event) {
                                 const currentBackgroundColor = window.getComputedStyle(this).backgroundColor;
-                                if (currentBackgroundColor === "rgb(76, 175, 80)") { // #4caf50의 RGB 값
-                                    this.style.backgroundColor = "#85b187"; // 새로운 하이라이트 색상
-                                } else {
+                                if (currentBackgroundColor !== "rgb(76, 175, 80)") {
                                     this.style.backgroundColor = "#f0f8ff"; // 기본 하이라이트 색상
                                 }
                             });
 
                             // 마우스 아웃 이벤트
-                            botBubble.addEventListener("mouseleave", function () {
-                                this.style.backgroundColor = ""; // 원래 배경색 복구
+                            botBubble.addEventListener("mouseleave", function (event) {
+                                const target = event.target;
+                                const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
+                                if (currentBackgroundColor !== "rgb(76, 175, 80)") {
+                                    this.style.backgroundColor = ""; // 원래 배경색 복구
+                                }
                             });
 
-                            botBubble.addEventListener("click", function () {
+                            botBubble.addEventListener("click", function (event) {
+                                const target = event.target;
+                                const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
                                 const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
 
-                                // 서식을 유지한 상태로 출력
-                                const formattedMessage = messageContent
-                                    .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
-                                    .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
+                                if (currentBackgroundColor !== "rgb(76, 175, 80)") {
+                                    // 서식을 유지한 상태로 출력
+                                    const formattedMessage = messageContent
+                                        .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
+                                        .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
-                                // console.log(formattedMessage);
-                                // Example Usage
-                                const jsonData = parseItineraryToJson(formattedMessage);
-                                console.log("Clicked Message:", jsonData);
-                                generateDayButtons(jsonData);
-                                generateDynamicPlanContent(jsonData);
-                                // console.log("ogtiae:", jsonData[0]['meals']);
+                                    // Example Usage
+                                    const jsonData = parseItineraryToJson(formattedMessage);
+                                    console.log("Clicked Message:", jsonData);
+                                    generateDayButtons(jsonData);
+                                    generateDynamicPlanContent(jsonData);
+                                }
                             });
                             chatMessages.appendChild(botBubble); // DOM에 추가
                             typeText(botBubble, gptResponse, loadingBubble);
@@ -1411,36 +1415,42 @@
                         const botMessage = document.createElement("div");
                         botMessage.className = "bubble right-bubble";
                         chatMessages.appendChild(botMessage);
-                        botMessage.addEventListener("mouseenter", function () {
-                            const currentBackgroundColor = window.getComputedStyle(this).backgroundColor;
-                            if (currentBackgroundColor === "rgb(76, 175, 80)") { // #4caf50의 RGB 값
-                                this.style.backgroundColor = "#85b187"; // 새로운 하이라이트 색상
-                            } else {
+                        botMessage.addEventListener("mouseenter", function (event) {
+                            const target = event.target;
+                            const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
+                            if (currentBackgroundColor !== "rgb(76, 175, 80)") {
                                 this.style.backgroundColor = "#f0f8ff"; // 기본 하이라이트 색상
                             }
                         });
 
                         // 마우스 아웃 이벤트
-                        botMessage.addEventListener("mouseleave", function () {
-                            this.style.backgroundColor = ""; // 원래 배경색 복구
+                        botMessage.addEventListener("mouseleave", function (event) {
+                            const target = event.target;
+                            const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
+                            if (currentBackgroundColor !== "rgb(76, 175, 80)") {
+                                this.style.backgroundColor = ""; // 원래 배경색 복구
+                            }
                         });
 
-                        botMessage.addEventListener("click", function () {
+                        botMessage.addEventListener("click", function (event) {
+                            const target = event.target;
+                            const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
                             const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
 
-                            // 서식을 유지한 상태로 출력
-                            const formattedMessage = messageContent
-                                .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
-                                .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
+                            if (currentBackgroundColor !== "rgb(76, 175, 80)") {
+                                // 서식을 유지한 상태로 출력
+                                const formattedMessage = messageContent
+                                    .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
+                                    .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
-                            // console.log(formattedMessage);
-                            // Example Usage
-                            const jsonData = parseItineraryToJson(formattedMessage);
-                            console.log("Clicked Message:", jsonData);
-                            generateDayButtons(jsonData);
-                            generateDynamicPlanContent(jsonData);
-                            // console.log("ogtiae:", jsonData[0]['meals']);
+                                // Example Usage
+                                const jsonData = parseItineraryToJson(formattedMessage);
+                                console.log("Clicked Message:", jsonData);
+                                generateDayButtons(jsonData);
+                                generateDynamicPlanContent(jsonData);
+                            }
                         });
+                        saveChatToDB(`<봇>${botMessage}`);
                         typeText(botMessage, response, loadingBubble); // 타이핑 효과
                     }
                 } catch (error) {
@@ -1509,7 +1519,9 @@
                             return;
                         }
 
-                        e.preventDefault();               
+                        e.preventDefault();    
+                        const chatMessages = document.getElementById("chat-messages");
+                        chatMessages.scrollTop = chatMessages.scrollHeight;           
                         sendMessage();
                         return false;
                     } 
@@ -1532,7 +1544,7 @@
             // 현재 URL에서 chat_id 추출
             const urlParams = new URLSearchParams(window.location.search);
             const chatId = urlParams.get("chat_id");
-            console.log("CHATID:", chatId);
+            console.log("saveChatToDB CHATID:", chatId);
 
             fetch("/app/partials/planner/save_chat/", {
                 method: "POST",
@@ -1573,7 +1585,7 @@
         function typeText(element, text, loadingBubble, speed = 5) {
             let index = 0;
 
-            // 로딩 버블 제거 (항상 즉시 제거)
+            // 로딩 버블 제거
             if (loadingBubble && loadingBubble.parentNode) {
                 loadingBubble.parentNode.removeChild(loadingBubble);
             }
@@ -1586,6 +1598,10 @@
                         element.appendChild(char);
                     }
                     index++;
+
+                    // 스크롤을 강제하지 않고도 실행
+                    // element.scrollTop = element.scrollHeight;
+
                     setTimeout(typeNextChar, speed);
                 } else {
                     // 애니메이션 종료 후 로딩 상태 해제
@@ -1630,35 +1646,40 @@
                     // 메시지 텍스트 처리
                     const bubble = document.createElement("div");
                     bubble.classList.add("bubble");
-                    bubble.addEventListener("mouseenter", function () {
-                        const currentBackgroundColor = window.getComputedStyle(this).backgroundColor;
-                        if (currentBackgroundColor === "rgb(76, 175, 80)") { // #4caf50의 RGB 값
-                            this.style.backgroundColor = "#85b187"; // 새로운 하이라이트 색상
-                        } else {
+                    bubble.addEventListener("mouseenter", function (event) {
+                        const target = event.target;
+                        const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
+                        if (currentBackgroundColor !== "rgb(76, 175, 80)") {
                             this.style.backgroundColor = "#f0f8ff"; // 기본 하이라이트 색상
                         }
                     });
 
                     // 마우스 아웃 이벤트
-                    bubble.addEventListener("mouseleave", function () {
-                        this.style.backgroundColor = ""; // 원래 배경색 복구
+                    bubble.addEventListener("mouseleave", function (event) {
+                        const target = event.target;
+                        const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
+                        if (currentBackgroundColor !== "rgb(76, 175, 80)") {
+                            this.style.backgroundColor = ""; // 원래 배경색 복구
+                        }
                     });
 
-                    bubble.addEventListener("click", function () {
+                    bubble.addEventListener("click", function (event) {
+                        const target = event.target;
+                        const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
                         const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
 
-                        // 서식을 유지한 상태로 출력
-                        const formattedMessage = messageContent
-                            .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
-                            .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
+                        if (currentBackgroundColor !== "rgb(76, 175, 80)") {
+                            // 서식을 유지한 상태로 출력
+                            const formattedMessage = messageContent
+                                .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
+                                .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
-                        // console.log(formattedMessage);
-                        // Example Usage
-                        const jsonData = parseItineraryToJson(formattedMessage);
-                        console.log("Clicked Message:", jsonData);
-                        generateDayButtons(jsonData);
-                        generateDynamicPlanContent(jsonData);
-                        // console.log("ogtiae:", jsonData[0]['meals']);
+                            // Example Usage
+                            const jsonData = parseItineraryToJson(formattedMessage);
+                            console.log("Clicked Message:", jsonData);
+                            generateDayButtons(jsonData);
+                            generateDynamicPlanContent(jsonData);
+                        }
                     });
 
                     // 서식 그대로 출력
@@ -1783,99 +1804,88 @@
             // map-panel-content 내부를 초기화
             mapPanelContent.innerHTML = '';
 
-            // 버튼 컨테이너 생성
-            const buttonContainer = document.createElement('div');
-            buttonContainer.className = 'button-container';
-
-            // 새로운 콘텐츠 컨테이너 생성
+            // 콘텐츠 컨테이너 생성
             const planContent = document.createElement('div');
             planContent.className = 'plan-content';
-
-            // 각 일차 버튼 생성 및 클릭 이벤트 추가
-            jsonData.forEach((day, index) => {
-                const dayButton = document.createElement('button');
-                dayButton.className = 'day-button';
-                dayButton.textContent = `${day.day}일차`;
-                dayButton.addEventListener('click', () => {
-                    // 버튼 클릭 시 해당 일차의 데이터만 출력
-                    renderDayContent(day);
-                });
-                buttonContainer.appendChild(dayButton);
-            });
-
-            // map-panel-content에 버튼 컨테이너 추가
-            mapPanelContent.appendChild(buttonContainer);
             mapPanelContent.appendChild(planContent);
 
-            // 첫 번째 일차의 데이터 출력
-            if (jsonData.length > 0) {
-                renderDayContent(jsonData[0]);
-            }
-
-            // 일차 데이터를 렌더링하는 함수
+            // Day 데이터를 렌더링하는 함수
             function renderDayContent(day) {
+                if (!planContent) {
+                    console.error("planContent가 정의되지 않았습니다. DOM에서 누락되었거나, 잘못된 참조입니다.");
+                    return;
+                }
                 // 기존 내용을 초기화
                 planContent.innerHTML = '';
-
-                // Day 헤더 추가
-                const dayHeader = document.createElement('h4');
-                dayHeader.textContent = `${day.day}일차`;
-                planContent.appendChild(dayHeader);
-
                 // Meals 순회
                 Object.keys(day.meals).forEach(mealType => {
                     const mealData = day.meals[mealType];
 
-                    // 식사 장소와 명소 정보 순회
+                    // Meal 섹션 추가
+                    const mealSection = document.createElement('div');
+                    mealSection.className = 'meal-section';
+                    mealSection.innerHTML = `<h4><span>${mealType}</span></h4>`; // 아침, 점심, 저녁 등
+
+                    // 식사장소와 명소 순회
                     Object.keys(mealData).forEach(section => {
                         const sectionData = mealData[section];
                         if (sectionData) {
-                            // sectionData의 value 개수만큼 <div> 생성
+                            // 섹션 컨테이너 생성
+                            const sectionDiv = document.createElement('div');
+                            sectionDiv.className = 'dynamic-section';
+                            sectionDiv.innerHTML = `<h5><span>${section}</span></h5>`; // 식사장소 또는 명소
+
+                            // 하위 데이터 렌더링
+                            const contentList = document.createElement('ul');
                             Object.keys(sectionData).forEach(key => {
                                 const sectionValue = sectionData[key];
-
                                 if (sectionValue) {
-                                    // <div> 동적 생성
-                                    const panelDiv = document.createElement('div');
-                                    panelDiv.className = 'dynamic-panel';
-                                    panelDiv.innerHTML = `
-                                        <h5>${section}</h5>
-                                        <p><strong>${key}:</strong> ${sectionValue}</p>
-                                    `;
-                                    planContent.appendChild(panelDiv);
+                                    const listItem = document.createElement('li');
+                                    listItem.innerHTML = `<strong>${key}:</strong> ${sectionValue}`;
+                                    contentList.appendChild(listItem);
                                 }
                             });
+
+                            // 섹션 컨테이너에 리스트 추가
+                            sectionDiv.appendChild(contentList);
+                            mealSection.appendChild(sectionDiv);
                         }
                     });
+
+                    // Meal 섹션을 메인 콘텐츠에 추가
+                    planContent.appendChild(mealSection);
                 });
             }
+
+            // 버튼 생성 및 초기 데이터 렌더링
+            generateDayButtons(jsonData, (day) => {
+                renderDayContent(day);
+            });
         }
 
-        function generateDayButtons(jsonData) {
+        function generateDayButtons(jsonData, renderDayContentCallback) {
             const mapPanel = document.getElementById('map-panel');
             if (!mapPanel) {
                 console.error('map-panel 요소를 찾을 수 없습니다.');
                 return;
             }
 
-            // 버튼 컨테이너 생성
+            // 버튼 컨테이너를 찾거나 생성
             let buttonContainer = document.getElementById('day-button-container');
-
             if (!buttonContainer) {
                 buttonContainer = document.createElement('div');
                 buttonContainer.id = 'day-button-container';
                 buttonContainer.style.position = 'absolute';
-                buttonContainer.style.top = `${document.getElementById("map-panel").getBoundingClientRect().top - buttonContainer.offsetHeight - 50}px`;
+                buttonContainer.style.top = `${mapPanel.getBoundingClientRect().top - 50}px`; // 위치 조정
                 buttonContainer.style.left = '40px';
                 buttonContainer.style.display = 'flex';
                 buttonContainer.style.gap = '10px';
-                buttonContainer.style.zIndex = '100'; // 강제 z-index 설정
-                buttonContainer.style.pointerEvents = 'auto'; // 클릭 가능
+                buttonContainer.style.zIndex = '100';
+                buttonContainer.style.pointerEvents = 'auto';
 
-                // 지도 상단에 직접 추가
                 const mapContainer = document.getElementById('map-container');
                 if (mapContainer) {
-                    mapContainer.appendChild(buttonContainer); // 지도 위에 위치
+                    mapContainer.appendChild(buttonContainer);
                 } else {
                     console.error('map-container 요소를 찾을 수 없습니다.');
                     return;
@@ -1884,8 +1894,10 @@
                 buttonContainer.innerHTML = ''; // 기존 버튼 초기화
             }
 
-            // 버튼 생성
-            jsonData.forEach(day => {
+            let firstButton = null;
+
+            // 버튼 생성 및 이벤트 바인딩
+            jsonData.forEach((day, index) => {
                 const dayButton = document.createElement('button');
                 dayButton.textContent = `${day.day}일차`;
                 dayButton.style.padding = '8px 16px';
@@ -1896,20 +1908,38 @@
                 dayButton.style.transition = 'background-color 0.3s ease';
 
                 // Hover 스타일
-                dayButton.addEventListener('mouseenter', () => {
-                    dayButton.style.backgroundColor = '#bbb';
-                });
-                dayButton.addEventListener('mouseleave', () => {
-                    dayButton.style.backgroundColor = '#ddd';
-                });
 
-                // 클릭 이벤트
+                // 클릭 이벤트: renderDayContentCallback 호출
                 dayButton.addEventListener('click', () => {
-                    alert(`${day.day}일차 버튼이 클릭되었습니다.`);
+                    const allButtons = buttonContainer.querySelectorAll('button');
+                    allButtons.forEach(btn => {
+                        btn.style.backgroundColor = '#ddd'; // 기본 배경색
+                    });
+
+                    // 현재 클릭된 버튼의 배경색을 흰색으로 변경
+                    dayButton.style.backgroundColor = 'white';
+                    
+                    if (typeof renderDayContentCallback === 'function') {
+                        renderDayContentCallback(day); // 콜백 함수 실행
+                    }
                 });
 
-                buttonContainer.appendChild(dayButton);
+                if (index === 0) {
+                    firstButton = dayButton;
+                }
+
+                const buttonContainer = document.getElementById('day-button-container');
+                if (buttonContainer) {
+                    buttonContainer.appendChild(dayButton);
+                }
             });
+
+            // 첫 번째 버튼 클릭
+            if (firstButton) {
+                firstButton.click();
+            } else {
+                console.error('생성된 버튼이 없습니다.');
+            }
         }
 
         function getCSRFToken() {

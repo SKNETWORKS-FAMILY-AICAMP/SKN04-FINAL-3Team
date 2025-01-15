@@ -304,6 +304,7 @@ def save_chat(request):
             if not chat_content:
                 return JsonResponse({"success": False, "error": "Chat content cannot be empty."})
 
+            print("chatting_id:", chatting_id)
             if chatting_id:
                 # chatting_id가 있는 경우: 기존 내용에 추가
                 try:
@@ -312,7 +313,8 @@ def save_chat(request):
                         chatting_instance.content += f"{chat_content}"  # 기존 내용이 없으면 바로 추가
                     else:
                         chatting_instance.content += f"\n{chat_content}"  # 기존 내용이 있으면 줄바꿈 추가
-                        
+                    print("chat_content:", chat_content)
+                    print("chatting_instance.content:", chatting_instance.content)
                     chatting_instance.save()
                     return JsonResponse({"success": True, "message": "Chat updated.", "chatting_id": chatting_instance.chatting_id})
                 except Chatting.DoesNotExist:

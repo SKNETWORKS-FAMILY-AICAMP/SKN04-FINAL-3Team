@@ -602,7 +602,7 @@ body {
 }
 
 .map-panel-content {
-    padding: 20px;
+    padding: 10px;
 }
 
 #day-button-container {
@@ -618,4 +618,24 @@ body {
 .dynamic-panel {
     border: 2px solid black;
     color: black;
+}
+
+.meal-section {
+    border: 2px solid black;
+    border-radius: 25px;
+    color: black;
+    margin-bottom: 10px;
+}
+
+.meal-section h4 span {
+    color: black;
+    padding: 5px;
+}
+
+.dynamic-section h5 span {
+    padding: 10px;
+}
+
+.dynamic-section ul li {
+    padding: 10px;
 }
