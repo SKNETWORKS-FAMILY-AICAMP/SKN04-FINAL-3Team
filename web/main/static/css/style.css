@@ -568,12 +568,15 @@ body {
     flex-direction: column;
     position: relative;
     height: 100%;
+    z-index: 1; 
 }
 
 #map {
     flex-grow: 1; /* 지도는 남은 공간을 채운다 */
     position: relative;
     background-color: #e0e0e0; /* 지도 대체용 색상 */
+    z-index: 1;
+    height: 100%;
 }
 
 #map-panel {
@@ -600,4 +603,19 @@ body {
 
 .map-panel-content {
     padding: 20px;
+}
+
+#day-button-container {
+    position: absolute;
+    top: -15px;
+    left: 10px;
+    display: flex;
+    gap: 10px; /* 버튼 간격 */
+    z-index: 100; /* 매우 높은 값으로 설정 */
+    pointer-events: auto; /* 클릭 이벤트 활성화 */
+}
+
+.dynamic-panel {
+    border: 2px solid black;
+    color: black;
 }
