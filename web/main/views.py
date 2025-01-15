@@ -9,7 +9,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db import models
 from main.models import Chatting, Bookmark, Settings, Country, CustomUser
+from urllib.parse import quote
 from dotenv import load_dotenv
+import requests
 import os
 import json
 import uuid
@@ -17,9 +19,41 @@ import uuid
 
 load_dotenv()
 
+
+def geocode_proxy(request):
+    address = request.GET.get('address')
+    if not address:
+        return JsonResponse({'error': 'Missing address parameter'}, status=400)
+
+    encoded_address = quote(address)  # 주소 인코딩
+    url = f"https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query={encoded_address}"
+
+    ncp_client_id = os.getenv('NCP_CLIENT_ID')  # 환경 변수에서 NCP_CLIENT_ID 가져오기
+    ncp_client_secret = os.getenv('NCP_CLIENT_SECRET')  # 환경 변수에서 NCP_CLIENT_ID 가져오기
+
+    headers = {
+        "X-NCP-APIGW-API-KEY-ID": ncp_client_id,
+        "X-NCP-APIGW-API-KEY": ncp_client_secret,
+    }
+
+    print(f"Geocode API URL: {url}")
+    print(f"Headers: {headers}")
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return JsonResponse(response.json(), safe=False)
+    except requests.exceptions.RequestException as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 def spa(request):
     ncp_client_id = os.getenv('NCP_CLIENT_ID')  # 환경 변수에서 NCP_CLIENT_ID 가져오기
-    context = {'ncp_client_id': ncp_client_id}  # 기본 컨텍스트
+    ncp_client_secret = os.getenv('NCP_CLIENT_SECRET')  # 환경 변수에서 NCP_CLIENT_ID 가져오기
+    context = {
+                'ncp_client_id': ncp_client_id,
+                'ncp_client_secret': ncp_client_secret,
+            }  # 기본 컨텍스트
     context.update(get_theme_context(request.user))  # 테마 정보 추가
     return render(request, 'spa_base.html', context)
 

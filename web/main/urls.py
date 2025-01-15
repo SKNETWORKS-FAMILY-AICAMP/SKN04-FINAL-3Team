@@ -38,5 +38,7 @@ urlpatterns = [
 
     # SPA Fallback
     re_path(r'^app(?:/.*)?$', views.spa, name='spa'),
-    
+
+    # 기존 경로들...
+    path('proxy/geocode/', views.geocode_proxy, name='geocode_proxy'),    
 ]
