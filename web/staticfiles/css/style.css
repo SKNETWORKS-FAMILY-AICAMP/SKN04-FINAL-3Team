@@ -6,6 +6,7 @@ body {
     background-color: #f4f4f4;
     color: #000;
     margin: 0;
+    overflow: hidden; /* 스크롤 방지 */
 }
 
 .theme-box {
@@ -580,6 +581,7 @@ body {
     border-top-right-radius: 10px;
     overflow-y: auto;
     z-index: 1;
+    overflow: hidden; /* 슬라이드 중 내용이 보이지 않게 */
 }
 
 [data-theme="dark"] #map-panel {
@@ -654,4 +656,20 @@ body {
 
 .dynamic-section ul li {
     padding: 10px;
+}
+
+#button-panel {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    height: 30px;
+}
+
+#button-panel button{
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
+    background-color: #222;
+    color: white;
+    border: none;
 }
