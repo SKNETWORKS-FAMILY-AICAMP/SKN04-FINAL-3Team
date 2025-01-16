@@ -18,6 +18,8 @@ bookmarks = [
     {"bookmark": "bm_00007", "username": "user1", "title": "명동 일정", "is_place": False},
     {"bookmark": "bm_00008", "username": "user1", "title": "서울", "is_place": False},
     {"bookmark": "bm_00009", "username": "user1", "title": "종로구", "is_place": False},
+    {"bookmark": "bm_00010", "username": "user1", "title": "종로구", "is_place": False},
+    {"bookmark": "bm_00011", "username": "user1", "title": "종로구", "is_place": False},
 ]
 
 for data in bookmarks:

@@ -76,7 +76,7 @@ class Place(models.Model):
 class Schedule(models.Model):
     schedule_id = models.CharField(max_length=10, primary_key=True)
     name = models.CharField(max_length=30)
-    json_data = models.TextField(null=True, blank=True)
+    json_data = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -97,10 +97,9 @@ class Bookmark(models.Model):
 
 
 class BookmarkList(models.Model):
-    place = models.ForeignKey(Place, on_delete=models.CASCADE)
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, null=True, blank=True)
+    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, null=True, blank=True)
     bookmark = models.ForeignKey(Bookmark, on_delete=models.CASCADE)
-    day_num = models.IntegerField()
-    order = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
