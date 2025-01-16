@@ -10,6 +10,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    overflow: hidden;
 }
 
 /* 컨테이너 스타일 */
@@ -25,6 +26,7 @@ body {
     font-weight: bold;
     color: #000;
     margin-bottom: 50px;
+    min-height: 66.67px;
 }
 
 .input-wrapper {

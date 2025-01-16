@@ -64,7 +64,11 @@
             <div id="map"></div>
             <div id="map-panel">
                 <div id="drag-handle"></div> <!-- 드래그 핸들 추가 -->
+                <div id="button-panel">
+                    <button id="toggleUIBtn" onclick="toggleMapPanel()">⮟</button>
+                </div> 
                 <div class="map-panel-content">
+                    <div class="button-panel" style="height:10px"></div>
                 </div>
             </div>
         </div>
@@ -309,6 +313,13 @@
                 const minHeight = 15; // 최소 높이
                 if (newHeight >= minHeight && newHeight <= maxHeight) {
                     mapPanel.style.height = `${newHeight}px`;
+                    // 버튼 텍스트 업데이트
+                    const toggleUIBtn = document.getElementById("toggleUIBtn");
+                    if (newHeight > 45) {
+                        toggleUIBtn.textContent = "⮟";
+                    } else {
+                        toggleUIBtn.textContent = "⮝";
+                    }
                     const buttonContainer = document.getElementById("day-button-container");
                     if (buttonContainer) {
                         const mapPanelTop = mapPanel.getBoundingClientRect().top;
@@ -2131,6 +2142,33 @@
             }
             return null;
         }
+        
+        function toggleMapPanel() {
+            const minHeight = "45px";
+            const toggleUIBtn = document.getElementById("toggleUIBtn");
+            const mapPanel = document.getElementById("map-panel");
+
+            // transition 적용
+            mapPanel.style.transition = "height 0.5s ease";
+
+            if (toggleUIBtn.textContent === "⮝") {
+                // 높이가 최소인 경우, 원래 높이로 복원
+                mapPanel.style.height = "50%"; // 원하는 초기 높이
+                toggleUIBtn.textContent = "⮟";
+                console.log("UI restored");
+            } else {
+                // 슬라이드 효과로 높이를 최소 높이로 설정
+                mapPanel.style.height = minHeight;
+                toggleUIBtn.textContent = "⮝";
+                console.log("UI hidden");
+            }
+
+            // transition을 제거하기 위해 500ms 후 실행
+            setTimeout(() => {
+                mapPanel.style.transition = "none";
+            }, 500); // transition 시간과 동일하게 설정
+        }
+
     </script>
 </body>
 </html>

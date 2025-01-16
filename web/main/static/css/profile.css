@@ -27,6 +27,7 @@
     padding-top: 20px;
     padding-bottom: 20px;
     overflow: hidden;
+    min-height: 29px;
 }
 
 [data-theme="dark"] .panel h2 {
@@ -39,6 +40,7 @@
     padding-top: 20px;
     padding-bottom: 20px;
     overflow: hidden;
+    min-height: 29px;
 }
 
 /* 프로필 이미지 영역 */
