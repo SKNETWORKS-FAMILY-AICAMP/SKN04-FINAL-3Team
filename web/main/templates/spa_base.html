@@ -685,6 +685,22 @@
             if (chattingPanel) {
                 console.log("[Chatting] panel detected!");
 
+                const chatList = document.querySelector(".chat-list");
+
+                function updateChatListScroll() {
+                    if (chatList.children.length > 10) {
+                        chatList.classList.remove("fewer-than-ten");
+                    } else {
+                        chatList.classList.add("fewer-than-ten");
+                    }
+                }
+
+                // 페이지 로드 시 실행
+                updateChatListScroll();
+
+                // 채팅 아이템이 추가되거나 제거될 때 실행 (예시 이벤트 리스너)
+                document.addEventListener("chatListUpdated", updateChatListScroll);
+
                 const deleteIcons = document.querySelectorAll(".delete-icon");
 
                 deleteIcons.forEach((icon) => {
@@ -1549,7 +1565,13 @@
                 if (!data.success) {
                     console.error("Failed to save chat to DB:", data.error);
                 } else {
-                    console.log("Chat saved successfully:", data.message || "Success", chatContent);
+                    console.log("chat id:", data.chatting_id, "Chat saved successfully:", data.message || "Success", chatContent);
+                    if (data.chatting_id) {
+                        // 기존의 chat_id가 있었다면 URL을 업데이트
+                        const newUrl = new URL(window.location.href);
+                        newUrl.searchParams.set("chat_id", data.chatting_id); 
+                        window.history.replaceState(null, "", newUrl.toString());
+                    }
                     if (data.new_chat_id) {
                         // 새 chat_id가 생성되었다면 URL을 업데이트
                         const newChatId = data.new_chat_id;

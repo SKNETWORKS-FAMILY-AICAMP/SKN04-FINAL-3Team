@@ -12,11 +12,6 @@ body {
     border: 2px solid #000;
 }
 
-.panel {
-    background-color: #f9f9f9;
-    border: 1px solid #ccc;
-}
-
 /* 어두운 테마 */
 [data-theme="dark"] {
     background-color: #121212;
@@ -25,11 +20,6 @@ body {
 
 [data-theme="dark"] .theme-box {
     border: 2px solid #fff;
-}
-
-[data-theme="dark"] .panel {
-    background-color: #222;
-    border: 1px solid #444;
 }
 
 /* Sidebar 변경 */
@@ -222,7 +212,7 @@ body {
     /* transition: transform 0.3s ease; */
     position: relative;
     width: 400px;
-    height: 99%;
+    height: 99.8%;
     display: flex;
     flex-direction: column;
     border-right: 1px solid #ddd;
@@ -233,7 +223,7 @@ body {
 [data-theme="dark"] .panel {
     position: relative;
     width: 400px;
-    height: 100%;
+    height: 99.8%;
     display: flex;
     flex-direction: column;
     border-right: 1px solid #222;
