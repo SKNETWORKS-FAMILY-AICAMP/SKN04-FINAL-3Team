@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db import models
-from main.models import Chatting, Bookmark, Settings, Country, CustomUser
+from main.models import Chatting, Bookmark, BookmarkList, Settings, Country, CustomUser, Place, Schedule
 from urllib.parse import quote
 from dotenv import load_dotenv
 import requests
@@ -796,3 +796,43 @@ def run_gpt_view(request):
             print("Error in run_gpt_view:", e)
             return JsonResponse({"answer": "에러가 발생했습니다. 다시 질문해주세요."}, status=200)
     return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+@login_required
+def bookmark_detail(request, bookmark_id):
+    try:
+        # Bookmark 조회
+        bookmark = get_object_or_404(Bookmark, bookmark=bookmark_id)
+        print("bookmark_id:", bookmark.bookmark)
+
+        # BookmarkList에서 관련 Place 또는 Schedule 조회
+        bookmark_list_entry = BookmarkList.objects.filter(bookmark=bookmark).first()
+
+        if not bookmark_list_entry:
+            return JsonResponse({"error": "No related data found in BookmarkList."}, status=404)
+
+        if bookmark_list_entry.place:
+            # Place 데이터 반환
+            place = bookmark_list_entry.place
+            print("Place name:", place.name)
+            print("Place address:", place.address)
+            return JsonResponse({
+                "type": "place",
+                "name": place.name,
+                "address": place.address,
+            })
+        elif bookmark_list_entry.schedule:
+            # Schedule 데이터 반환
+            schedule = bookmark_list_entry.schedule
+            print("Schedule name:", schedule.name)
+            print("Schedule json_data:", schedule.json_data)
+            return JsonResponse({
+                "type": "schedule",
+                "name": schedule.name,
+                "json_data": schedule.json_data,
+            })
+        else:
+            return JsonResponse({"error": "No related Place or Schedule found."}, status=404)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

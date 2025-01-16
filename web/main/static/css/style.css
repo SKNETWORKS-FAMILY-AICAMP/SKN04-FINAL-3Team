@@ -673,3 +673,13 @@ body {
     color: white;
     border: none;
 }
+
+.item-section {
+    border: 2px solid black;
+    border-radius: 25px;
+}
+
+[data-theme="dark"] .item-section {
+    border: 2px solid white;
+    border-radius: 25px;
+}

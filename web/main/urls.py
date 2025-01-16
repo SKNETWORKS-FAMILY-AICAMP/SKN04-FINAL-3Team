@@ -26,6 +26,7 @@ urlpatterns = [
     path('app/partials/chatting/count/', views.get_chat_count, name='get_chat_count'),
     path('app/partials/chatting/delete/', views.delete_chat, name='delete_chat'),
     path('app/partials/favorites/', views.favorites_places, name='favorites_places'),
+    path('app/partials/favorites/bookmark-detail/<str:bookmark_id>/', views.bookmark_detail, name='bookmark_detail'),
     path('app/partials/favorites/add/', views.add_folder, name='add_folder'),
     path('app/partials/favorites/delete/', views.delete_favorite, name='delete_favorite'),
     path('add_folder/', views.add_folder, name='add_folder'),  # 폴더 생성용 엔드포인트
@@ -41,4 +42,6 @@ urlpatterns = [
 
     # 기존 경로들...
     path('proxy/geocode/', views.geocode_proxy, name='geocode_proxy'),    
+
+    # 다른 URL 패턴...
 ]
