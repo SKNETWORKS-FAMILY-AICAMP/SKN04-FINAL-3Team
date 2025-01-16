@@ -781,16 +781,16 @@
                         placesSection.style.display = 'block';
                         scheduleSection.style.display = 'none';
 
-                        placeBtn.style.backgroundColor = 'white';
-                        scheduleBtn.style.backgroundColor = '#bbbbbb';
+                        placeBtn.style.backgroundColor = '#999';
+                        scheduleBtn.style.backgroundColor = '';
                     });
 
                     scheduleBtn.addEventListener('click', function() {
                         scheduleSection.style.display = 'block';
                         placesSection.style.display = 'none';
 
-                        scheduleBtn.style.backgroundColor = 'white';
-                        placeBtn.style.backgroundColor = '#bbbbbb';
+                        scheduleBtn.style.backgroundColor = '#999';
+                        placeBtn.style.backgroundColor = '';
                     });
 
                     placeBtn.click();
@@ -1034,6 +1034,12 @@
                 // 각 folder-item에 클릭 이벤트 추가
                 folderItems.forEach(item => {
                     item.addEventListener("click", async function () {
+                        document.querySelectorAll(".folder-item").forEach(folder => {
+                            folder.style.backgroundColor = ""; // 원래 색으로 복원 (CSS 초기값)
+                        });
+
+                        this.style.backgroundColor = "#999";
+
                         const bookmarkId = this.id; // folder-item의 ID 값
                         console.log("id:::", bookmarkId);
                         if (!bookmarkId || bookmarkId === "plus-place" || bookmarkId === "plus-schedule") {
@@ -1066,31 +1072,24 @@
                             // 기존 내용 제거
                             mapPanelContent.innerHTML = '';
 
-                            const dynamicSection = document.createElement('div');
-                            dynamicSection.className = 'item-section';
+                            const itemSection = document.createElement('div');
+                            itemSection.className = 'item-section';
 
                             if (data.type === 'place') {
-                                dynamicSection.innerHTML = `
+                                itemSection.innerHTML = `
                                     <h3>장소 정보</h3>
                                     <p><strong>이름:</strong> ${data.name}</p>
                                     <p><strong>주소:</strong> ${data.address}</p>
                                 `;
+                                mapPanelContent.appendChild(itemSection);
                             } else if (data.type === 'schedule') {
-                                dynamicSection.innerHTML = `
-                                    <h3>일정 정보</h3>
-                                    <p><strong>이름:</strong> ${data.name}</p>
-                                    <pre><strong>JSON 데이터:</strong> ${JSON.stringify(data.json_data, null, 2)}</pre>
-                                `;
                                 let jsonData = typeof data.json_data === "string" ? JSON.parse(data.json_data) : data.json_data;
                                 generateDayButtons(jsonData);
                                 generateDynamicPlanContent(jsonData);
                             } else {
-                                dynamicSection.innerHTML = '<p>관련 데이터가 없습니다.</p>';
+                                itemSection.innerHTML = '<p>관련 데이터가 없습니다.</p>';
+                                mapPanelContent.appendChild(itemSection);
                             }
-
-                            // mapPanelContent에 추가
-                            mapPanelContent.appendChild(dynamicSection);
-
                         } catch (error) {
                             console.error("Error fetching bookmark data:", error);
                         }
@@ -2042,8 +2041,6 @@
         }
 
         function generateDayButtons(jsonData, renderDayContentCallback) {
-            console.log("jsijs1:", jsonData);
-            console.log("jsijs2:", jsonData, typeof jsonData, Array.isArray(jsonData));
             const mapPanel = document.getElementById('map-panel');
             if (!mapPanel) {
                 console.error('map-panel 요소를 찾을 수 없습니다.');
@@ -2073,7 +2070,6 @@
             }
 
             let firstButton = null;
-            console.log("jsd:", jsonData);
             jsonData.forEach((day, index) => {
                 const dayButton = document.createElement('button');
                 dayButton.textContent = `${day.day}일차`;

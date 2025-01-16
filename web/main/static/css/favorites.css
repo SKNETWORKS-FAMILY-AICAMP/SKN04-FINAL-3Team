@@ -110,8 +110,9 @@
 .top-menu button {
     width: 120px;
     height: 50px;
-    background-color: #bbbbbb;
-    border: 1px solid #ccc;
+    background-color: white;
+    color: #222;
+    border: 1px solid #222;
     border-radius: 30px;
     cursor: pointer;
     font-size: 16px;
@@ -122,8 +123,9 @@
 [data-theme="dark"] .top-menu button {
     width: 120px;
     height: 50px;
-    background-color: #bbbbbb;
-    border: 1px solid #ccc;
+    background-color: #222;
+    color: white;
+    border: 1px solid white;
     border-radius: 30px;
     cursor: pointer;
     font-size: 16px;

@@ -669,6 +669,15 @@ body {
     width: 30px;
     height: 30px;
     font-size: 20px;
+    background-color: white;
+    color: #222;
+    border: none;
+}
+
+[data-theme="dark"] #button-panel button{
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
     background-color: #222;
     color: white;
     border: none;
@@ -683,3 +692,4 @@ body {
     border: 2px solid white;
     border-radius: 25px;
 }
+
