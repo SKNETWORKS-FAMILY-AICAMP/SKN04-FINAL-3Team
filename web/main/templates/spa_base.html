@@ -515,6 +515,7 @@
                         const gptResponse = await fetchGPTResponse(initialMessage);
 
                         if (gptResponse) {
+                            console.log("봇1:", gptResponse);
                             saveChatToDB(`<봇>${gptResponse}`);
                             // GPT 응답 표시
                             const botBubble = document.createElement("div");
@@ -554,6 +555,7 @@
                                 }
                             });
                             chatMessages.appendChild(botBubble); // DOM에 추가
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
                             typeText(botBubble, gptResponse, loadingBubble);
                         } else {
                             console.error("GPT 응답이 없습니다.");
@@ -1361,8 +1363,7 @@
                 const userMessage = document.createElement("div");
                 userMessage.className = "bubble left-bubble";
                 userMessage.innerHTML = message.replace(/\n/g, "<br>");
-                chatMessages.appendChild(userMessage);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                chatMessages.appendChild(userMessage);                
 
                 inputBar.value = ""; // 입력창 초기화
 
@@ -1394,6 +1395,7 @@
                         const botMessage = document.createElement("div");
                         botMessage.className = "bubble right-bubble";
                         chatMessages.appendChild(botMessage);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
                         botMessage.addEventListener("mouseenter", function (event) {
                             const target = event.target;
                             const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
@@ -1429,7 +1431,8 @@
                                 generateDynamicPlanContent(jsonData);
                             }
                         });
-                        saveChatToDB(`<봇>${botMessage}`);
+                        console.log("봇2:", response); // botMessage의 HTML 내용을 출력
+                        saveChatToDB(`<봇>${response}`); // HTML 내용을 문자열로 저장
                         typeText(botMessage, response, loadingBubble); // 타이핑 효과
                     }
                 } catch (error) {
