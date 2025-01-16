@@ -61,6 +61,7 @@ class Settings(models.Model):
 class Place(models.Model):
     place_id = models.CharField(max_length=10, primary_key=True)
     name = models.CharField(max_length=30)
+    address = models.CharField(max_length=40)
     category = models.CharField(max_length=30)
     longitude = models.FloatField()
     latitude = models.FloatField()
@@ -69,6 +70,17 @@ class Place(models.Model):
 
     class Meta:
         db_table = 'place'
+        managed = True
+
+
+class Schedule(models.Model):
+    schedule_id = models.CharField(max_length=10, primary_key=True)
+    name = models.CharField(max_length=30)
+    json_data = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'schedule'
         managed = True
         
 

@@ -25,22 +25,25 @@ bookmarklists = [
     {"place_id": "pc_00013", "bookmark_id": "bm_00007", "day_num": 2, "order": 5},
 ]
 
-# 중복되지 않은 데이터만 삽입
-new_bookmarklists = []
-for data in bookmarklists:
-    place = Place.objects.get(place_id=data["place_id"])
-    bookmark = Bookmark.objects.get(bookmark=data["bookmark_id"])
-    
-    # 중복 여부 확인
-    if not BookmarkList.objects.filter(place=place, bookmark=bookmark, day_num=data["day_num"], order=data["order"]).exists():
-        new_bookmarklists.append(
-            BookmarkList(
-                place=place,
-                bookmark=bookmark,
-                day_num=data["day_num"],
-                order=data["order"],
+try:
+    # 중복되지 않은 데이터만 삽입
+    new_bookmarklists = []
+    for data in bookmarklists:
+        place = Place.objects.get(place_id=data["place_id"])
+        bookmark = Bookmark.objects.get(bookmark=data["bookmark_id"])
+        
+        # 중복 여부 확인
+        if not BookmarkList.objects.filter(place=place, bookmark=bookmark, day_num=data["day_num"], order=data["order"]).exists():
+            new_bookmarklists.append(
+                BookmarkList(
+                    place=place,
+                    bookmark=bookmark,
+                    day_num=data["day_num"],
+                    order=data["order"],
+                )
             )
-        )
+except Bookmark.DoesNotExist:
+    print(f"Bookmark with ID {data['bookmark_id']} does not exist.")
 
 # 새로운 데이터만 bulk_create
 if new_bookmarklists:
