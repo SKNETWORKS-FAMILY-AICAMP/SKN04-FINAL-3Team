@@ -21,49 +21,50 @@ import time
 import sys
 import ast
 
+import random
 
-
+from langchain.vectorstores import FAISS
+from langchain.embeddings import OpenAIEmbeddings
 
 # Step 1: FAISS 인덱스 파일 로드
-faiss_index_path = "Faiss/naver_map_gangnam_faiss"  # 저장된 Faiss 파일 경로
+faiss_index_path = "Faiss/naver_map_gangnam_faiss_"  # 저장된 Faiss 파일 경로
 embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
 
 # 저장된 FAISS 인덱스를 불러와서 Retriever 생성
 retriever_naver_gangnam = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
 
 # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
-retriever_naver_gangnam.search_kwargs = {"k": 8}
+retriever_naver_gangnam.search_kwargs = {"k": 50}
 
-
-
-faiss_index_path = "Faiss/naver_map_jongro_faiss"  # 저장된 Faiss 파일 경로
+# Step 1: FAISS 인덱스 파일 로드
+faiss_index_path = "Faiss/naver_map_jongro_faiss_"  # 저장된 Faiss 파일 경로
 embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
 
 # 저장된 FAISS 인덱스를 불러와서 Retriever 생성
 retriever_naver_jongro = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
 
 # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
-retriever_naver_jongro.search_kwargs = {"k": 8}
+retriever_naver_jongro.search_kwargs = {"k": 50}
 
 # Step 1: FAISS 인덱스 파일 로드
-faiss_index_path = "Faiss/naver_map_Junggu_faiss"  # 저장된 Faiss 파일 경로
+faiss_index_path = "Faiss/naver_map_Junggu_faiss_"  # 저장된 Faiss 파일 경로
 embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
 
 # 저장된 FAISS 인덱스를 불러와서 Retriever 생성
 retriever_naver_Junggu = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
 
 # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
-retriever_naver_Junggu.search_kwargs = {"k": 8}
+retriever_naver_Junggu.search_kwargs = {"k": 50}
 
 # Step 1: FAISS 인덱스 파일 로드
-faiss_index_path = "Faiss/naver_map_yongsan_faiss"  # 저장된 Faiss 파일 경로
+faiss_index_path = "Faiss/naver_map_yongsan_faiss_"  # 저장된 Faiss 파일 경로
 embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
 
 # 저장된 FAISS 인덱스를 불러와서 Retriever 생성
 retriever_naver_yongsan = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
 
 # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
-retriever_naver_yongsan.search_kwargs = {"k": 8}
+retriever_naver_yongsan.search_kwargs = {"k": 50}
 
 # Step 1: FAISS 인덱스 파일 로드
 faiss_index_path = "Faiss/opendata_gangnam_all"  # 저장된 Faiss 파일 경로
@@ -73,7 +74,7 @@ embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
 retriever_opendata_gangnam = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
 
 # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
-retriever_opendata_gangnam.search_kwargs = {"k": 10}
+retriever_opendata_gangnam.search_kwargs = {"k": 50}
 
 # Step 1: FAISS 인덱스 파일 로드
 faiss_index_path = "Faiss/opendata_jongro_all"  # 저장된 Faiss 파일 경로
@@ -83,7 +84,7 @@ embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
 retriever_opendata_jongro = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
 
 # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
-retriever_opendata_jongro.search_kwargs = {"k": 10}
+retriever_opendata_jongro.search_kwargs = {"k": 50}
 
 # Step 1: FAISS 인덱스 파일 로드
 faiss_index_path = "Faiss/opendata_junggu_all"  # 저장된 Faiss 파일 경로
@@ -93,7 +94,7 @@ embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
 retriever_opendata_junggu = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
 
 # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
-retriever_opendata_junggu.search_kwargs = {"k": 10}
+retriever_opendata_junggu.search_kwargs = {"k": 50}
 
 # Step 1: FAISS 인덱스 파일 로드
 faiss_index_path = "Faiss/opendata_yongsan_all"  # 저장된 Faiss 파일 경로
@@ -103,117 +104,121 @@ embeddings = OpenAIEmbeddings()  # 임베딩 객체 초기화
 retriever_opendata_yongsan = FAISS.load_local(faiss_index_path, embeddings,allow_dangerous_deserialization=True).as_retriever()
 
 # 검색 매개변수 설정 (예: 검색 결과 상위 10개 반환)
-retriever_opendata_yongsan.search_kwargs = {"k": 10}
-
+retriever_opendata_yongsan.search_kwargs = {"k": 50}
 
 # GraphState 상태 정의
 class GraphState(TypedDict):
     question: Annotated[List[str], add_messages]  # 질문(누적되는 list)
-    context_naver_gangnam: Annotated[str, "context_naver_gangnam"]  # 문서의 검색 결과
-    context_naver_jongro: Annotated[str, "context_naver_jongro"]  # 문서의 검색 결과
-    context_naver_Junggu: Annotated[str, "context_naver_Junggu"]  # 문서의 검색 결과
-    context_naver_yongsan: Annotated[str, "context_naver_yongsan"]  # 문서의 검색 결과
-    context_opendata: Annotated[str, "context_opendata"]  # 문서의 검색 결과
-    context_web: Annotated[str, "context_web"]  # 문서의 검색 결과
-    answer_llm_Summary_gangnam: Annotated[str, "answer_llm_Summary_gangnam"]  # 답변
-    answer_llm_Summary_junggu: Annotated[str, "answer_llm_Summary_junggu"]  # 답변
-    answer_llm_Summary_jongro: Annotated[str, "answer_llm_Summary_jongro"]  # 답변
-    answer_llm_Summary_yongsan: Annotated[str, "answer_llm_Summary_yongsan"]  # 답변
-    answer_llm_Summary_opendata: Annotated[str, "answer_llm_Summary_opendata"]  # 답변
+    context_naver_gangnam: Annotated[List, "context_naver_gangnam"]  # 문서의 검색 결과
+    context_naver_jongro: Annotated[List, "context_naver_jongro"]  # 문서의 검색 결과
+    context_naver_Junggu: Annotated[List, "context_naver_Junggu"]  # 문서의 검색 결과
+    context_naver_yongsan: Annotated[List, "context_naver_yongsan"]  # 문서의 검색 결과
+    context_opendata: Annotated[List, "context_opendata"]  # 문서의 검색 결과
     answer: Annotated[str, "Answer"]  # 답변
     messages: Annotated[list, add_messages]  # 메시지(누적되는 list)
     webOrRetriever: Annotated[str, "webOrRetriever"]  # 웹 or 리트리버 검색
     ScheduleOrplace: Annotated[str, "ScheduleOrplace"]  # 일정 or 장소
     location: Annotated[str, "location"]  # 지역 리스트
+    dayCheck: Annotated[str, "dayCheck"]  # 몇일 여행?
 
-#프롬포트
-##########################################################################################################
-# Query Rewrite 프롬프트 정의
+####-----프롬포트----------#####
+##############################
 prompt = PromptTemplate(
-    template="""Create a travel itinerary bot that generates schedules based on user questions. The schedule should be divided into morning, lunch, and evening plans for each travel day, and for each time of day, recommend a restaurant and tourist attractions or streets.
+    template="""
+    너는 여러 장소들의 정보를 받게될거야.
+    여러 장소들의 구분은 <content> </content> 태그로 구분 되어 있어
+    이 장소들을 바탕으로 일정을 만들어줘.
+    Create a travel itinerary bot that generates schedules based on user questions. The schedule should be divided into morning, lunch, and evening plans for each travel day, and for each time of day, recommend a restaurant and tourist attractions or streets.
 
-    Extract key details from the user's questions to create a travel itinerary. Identify dates, times, and activities, then structure a plan with specific restaurant and sightseeing recommendations for morning, lunch, and evening.
+Extract key details from the user's questions to create a travel itinerary. Identify dates, times, and activities, then structure a plan with specific restaurant and sightseeing recommendations for morning, lunch, and evening.
 
-    #유의사항
+#유의사항
 
-    - 첫날에는 아침일정을 추천하지마.
-    - 추천했던 장소를 한번더 추천하지마.
-    - 아침, 점심, 저녁 이동 경로가 가까워야돼
+- 일차가 1 일차면 아침일정을 추천하지마. 일차가 1 이 아니면 아침 일정을 만들어줘.
+- 추천했던 장소를 한번더 추천하지마.
+- 아침, 점심, 저녁 이동 경로가 가까워야돼
+- {day}일차의 하루의 일정만 생성해줘.
+- 질문에 여러일차를 추천해 달라고 해도 '일차' 에있는 하루의 일정만 생성해
+- 일정을 만들고 마무리 멘트는 넣지마.
 
-    # Steps
+# Steps
 
-    1. **Request Analysis**: Carefully analyze the user's input to understand the itinerary requirements, including any specified food or sightseeing preferences.
-    2. **Confirm Details**: Verify dates, times, locations, activity preferences, and any specific requests for restaurants or attractions.
-    3. **Create Itinerary**: Using confirmed details, write a structured schedule detailing morning, lunch, and evening sections for each day, recommending one restaurant and tourist attraction or street for each time slot.
+1. **Request Analysis**: Carefully analyze the user's input to understand the itinerary requirements, including any specified food or sightseeing preferences.
+2. **Confirm Details**: Verify dates, times, locations, activity preferences, and any specific requests for restaurants or attractions.
+3. **Create Itinerary**: Using confirmed details, write a structured schedule detailing morning, lunch, and evening sections for each day, recommending one restaurant and tourist attraction or street for each time slot.
 
-    # Output Format
+# Output Format
 
-    - Provide a detailed itinerary in a bullet-point list or table format, itemizing each day's morning, lunch, and evening plans.
+- Provide a detailed itinerary in a bullet-point list or table format, itemizing each day's morning, lunch, and evening plans.
 
-    # Examples
+# Examples
 
-    **Input**: "용산구에 1박2일 방문 할 예정이야. 일정을 생성 해줄 수 있어?"
+**Input**: "용산구에 1박2일 방문 할 예정이야. 일정을 생성 해줄 수 있어?"
 
-    **Schedule**:
-    - 1일차
+**Schedule**:
+- {day}일차
 
-    - 점심: 점심 식사 장소: [점심 식사 장소] [음식점 주소] [영업 시간] [음식점 특징] [기타 정보] ,
-            명소: [관광할 명소 또는 거리] [영업 시간] [명소 특징] [명소 위치] [기타 정보]
-            카페 : [카페 주소] [영업 시간] [카페 정보] [카페 특징] 
-    - 저녁: 저녁 식사 장소: [저녁 식사 장소] [음식점 주소] [음식점 특징] [기타 정보], 명소: [관광할 명소 또는 거리] [명소 특징] [명소 위치] [기타 정보]
-            쇼핑몰 : [쇼핑몰 주소] [쇼핑몰 특징]
-            숙소 : [숙소 위치] [숙소 정보] [숙소 특징] *숙소 정보 없으면 출력 하지 않기
-    - 2일차
-    - 아침: 아침 식사 장소: [음식점 이름] [음식점 주소] [음식점 특징] [기타 정보]
-            명소: [관광할 명소 또는 거리] [명소 특징] [명소 위치] [기타 정보]
-    - 점심: 점심 식사 장소: [점심 식사 장소] [음식점 주소] [영업 시간] [음식점 특징] [기타 정보],
-            명소: [관광할 명소 또는 거리] [영업 시간] [명소 특징] [명소 위치] [기타 정보]
-            카페 : [카페 주소] [영업 시간] [카페 정보] [카페 특징]
-    - 저녁: 저녁 식사 장소: [저녁 식사 장소] [음식점 주소] [음식점 특징] [기타 정보], 명소: [관광할 명소 또는 거리] [명소 특징] [명소 위치] [기타 정보]
-            쇼핑몰 : [쇼핑몰 주소] [쇼핑몰 특징]
-            숙소 : [숙소 위치] [숙소 정보] [숙소 특징] *숙소 정보 없으면 출력 하지 않기
-
-    # Notes
-
-    - Ensure that all parts of the itinerary are complete and relevant to the user's request.
-    - Attempt to clarify any ambiguous details related to time, location, or activity preferences.
-    - Include clear recommendations for restaurants and tourist attractions for each part of the day.
+  - 점심: 점심 식사 장소: [점심 식사 장소] [음식점 주소] [영업 시간] [음식점 특징] [기타 정보] ,
+         명소: [관광할 명소 또는 거리] [영업 시간] [명소 특징] [명소 위치] [기타 정보]
+         카페 : [카페 주소] [영업 시간] [카페 정보] [카페 특징] 
+  - 저녁: 저녁 식사 장소: [저녁 식사 장소] [음식점 주소] [음식점 특징] [기타 정보], 명소: [관광할 명소 또는 거리] [명소 특징] [명소 위치] [기타 정보]
+        쇼핑몰 : [쇼핑몰 주소] [쇼핑몰 특징]
+        숙소 : [숙소 위치] [숙소 정보] [숙소 특징] *숙소 정보 없으면 출력 하지 않기
 
 
-    #답변언어 : 한국어
+# Notes
 
-    # 장소 정보: {context}
+- Ensure that all parts of the itinerary are complete and relevant to the user's request.
+- Attempt to clarify any ambiguous details related to time, location, or activity preferences.
+- Include clear recommendations for restaurants and tourist attractions for each part of the day.
+- 이전에 추천했던 장소는 넣지 말아줘
+#답변언어 : 한국어
 
-    #사용자의 질문: {question}
+    # 장소 정보 : {context}
+
+    # 사용자의 질문 : {question}
     
-    #이전 대화 내용 {chat_history} 
+    # 이전 대화 내용 : {chat_history} 
+
+    # 일차 : {day}
     """,
-        input_variables=["context", "question"],
+        input_variables=["context", "question","chat_history","day"],
     )
 
 # LLM
+
+# callback_manager = CallbackManager([NaturalTextStreamCallbackHandler()])
+
+chat = ChatOpenAI(
+    model_name="gpt-4o",
+    temperature=0,
+    streaming=True,
+    # callback_manager=callback_manager
+)
+
 model = ChatOpenAI(model_name="gpt-4o",
-                    temperature=0, streaming=True)
+                    temperature=0, 
+                    streaming=True,
+                    # callback_manager=callback_manager,
+                    )
 
 chain = (
-    {
-        "question": itemgetter("question"),
-        # "context_web": itemgetter("context_web"),
-        "context": itemgetter("context"),
-        "chat_history": itemgetter("chat_history"),
-    }
-    | prompt
+
+     prompt
     | model
     | StrOutputParser()
 )
 
+
 prompt_place_search = PromptTemplate(
-    template="""너는 입력받은 장소 정보를 정리하여 사용자의 질문에 맞는 정보를 출력해 주는 봇이야.
+    template="""
+    너는 여러 장소들의 정보를 받게될거야.
+    여러 장소들의 구분은 <content> </content> 태그로 구분 되어 있어.
+    너는 입력받은 장소 정보를 정리하여 사용자의 질문에 맞는 정보를 출력해 주는 봇이야.
     장소의 정보를 잘 요약해서 출력해줘.
     장소를 출력할때 각 장소의 어떤 점이 좋은지도 간단하게 요약해서 알려줘.
 
-
-
+  
 
     # 장소 정보: {context}
 
@@ -221,7 +226,7 @@ prompt_place_search = PromptTemplate(
     
     #이전 대화 내용 {chat_history} 
     """,
-        input_variables=["context", "question"],
+        input_variables=["context", "question","chat_history"],
     )
 
 # LLM
@@ -229,124 +234,103 @@ model_place_search = ChatOpenAI(model_name="gpt-4o",
                     temperature=0, streaming=True)
 
 chain_place_search = (
-    {
-        "question": itemgetter("question"),
-        # "context_web": itemgetter("context_web"),
-        "context": itemgetter("context"),
-        "chat_history": itemgetter("chat_history"),
-    }
-    | prompt_place_search
+    # {
+    #     "question": itemgetter("question"),
+    #     # "context_web": itemgetter("context_web"),
+    #     "context": itemgetter("context"),
+    #     "chat_history": itemgetter("chat_history"),
+    # }
+     prompt_place_search
     | model_place_search
     | StrOutputParser()
 )
 
-prompt_opendata_Summary = PromptTemplate(
-    template="""너는 입력받은 내용을 요약해주는 봇이야.
-    입력 받는 내용은 특정 장소의 특징을 알려주는 내용이야.
+prompt_day = PromptTemplate(
+    template="""
 
-    요약은 다음과 같이 해줬으면 좋겠어.
+    너는 사용자의 질문을 보고 의도를 파악해서 사용자가 몇일의 여행을 가는지 알아내야돼.
+    몇일을 가는지 알게되면 그 결과를 숫자로 반환해.
+    
 
-    아래 항목에서 없는 데이터는 빼도 돼.
+    # Examples 1
 
-    - 장소 이름:
-    - 위치 :
-    - 전화번호 :
-    - 웹사이트 URL :
-    - 운영 날짜 및 시간:
-    - 교통정보
-    - 기타 편의 여부 :
-    - 지원언어 :
+    **Input**: "용산구에 1박2일 방문 할 예정이야. 일정을 생성 해줄 수 있어?"
 
-    # 요약 해야할 내용: {answer_llm_Summary}
+    **answer**: 2
 
 
-    """,
-        input_variables=["answer_llm_Summary"],
-    )
+    # Examples 2
+
+    **Input**: "서울시에 5박6일 방문 할 예정이야. 일정을 생성 해줄 수 있어?"
+
+    **answer**: 6
 
 
-# LLM
-model_summary = ChatOpenAI(model_name="gpt-4o-mini",
-                    temperature=0, streaming=True)
+    # Examples 3
 
-chain_Summary_opendata = (
-    # {
-    #     "answer_llm_Summary": itemgetter("answer_llm_Summary_opendata")
-    # }
-    prompt_opendata_Summary
-    | model_summary
-    | StrOutputParser()
-)
+    **Input**: "종로구에 여행을 가려고해 9일동안 머물건데 일정을 만들어줘"
+
+    **answer**: 9
+    
 
 
-prompt_naver_Summary = PromptTemplate(
-    template="""너는 입력받은 내용을 요약해주는 봇이야.
-    입력 받는 내용은 특정 장소의 특징을 알려주는 내용이야.
-
-    요약은 다음과 같이 해줬으면 좋겠어
-
-       - "store_name": 
-       - "category":  
-       - "rating":  
-       - "directions_text": 
-       - "store_id": 
-       - "address": 
-       - "phone_num": 
-       - "business_hours": 
-       - "info": 
-       - "convenience_facilities_and_services": 
-       - "Parking": 
-       - "sns": 
-       - "store의 좋은점": 
-       - "menu": 
-
-
-
-    # 요약 해야할 내용: {answer_llm_Summary}
-
+    #사용자의 질문: {question}
 
     """,
-        input_variables=["answer_llm_Summary"],
+        input_variables=["question"],
     )
 
+model_day = ChatOpenAI(model_name="gpt-4o-mini",
+                    temperature=0, streaming=False)
 
-# LLM
-model_summary = ChatOpenAI(model_name="gpt-4o-mini",
-                    temperature=0, streaming=True)
-
-chain_Summary_gangnam = (
-    # {
-    #     "answer_llm_Summary": itemgetter("answer_llm_Summary_gangnam")
-    # }
-    prompt_naver_Summary
-    | model_summary
-    | StrOutputParser()
-)
-chain_Summary_Junggu = (
-    # {
-    #     "answer_llm_Summary": itemgetter("answer_llm_Summary_junggu")
-    # }
-     prompt_naver_Summary
-    | model_summary
-    | StrOutputParser()
-)
-chain_Summary_jongro = (
-    # {
-    #     "answer_llm_Summary": itemgetter("answer_llm_Summary_jongro")
-    # }
-     prompt_naver_Summary
-    | model_summary
-    | StrOutputParser()
-)
-chain_Summary_yongsan = (
-    # {
-    #     "answer_llm_Summary": itemgetter("answer_llm_Summary_yongsan")
-    # }
-     prompt_naver_Summary
-    | model_summary
+chain_day = (
+    {
+        "question": itemgetter("question"),
+    }
+    | prompt_day
+    | model_day
     | StrOutputParser()
 )
 
+
+prompt_keyword = PromptTemplate(
+    template="""
+        사용자의 질문에서 중요 키워드를 추출하는 작업을 수행하세요.
+
+        # Steps
+
+        1. **질문 분석**: 사용자가 입력한 질문을 주의 깊게 읽고 분석합니다.
+        2. **중요 키워드 식별**: 질문의 핵심 내용을 파악하고, 문장에서 중요한 의미를 지닌 단어, 구문, 또는 개념을 식별합니다.
+        3. **키워드 추출**: 식별한 중요한 요소들을 키워드로 추출합니다.
+
+        # Output Format
+
+        - 추출된 중요 키워드를 콤마(,)로 구분한 리스트로 제공합니다.
+
+        # Examples
+
+        **Input**: "자동차 산업의 현재 트렌드와 미래 전망은 무엇인가요?"
+
+        **Keywords**: "자동차 산업, 현재 트렌드, 미래 전망"
+
+        **Input**: "Python을 사용한 머신러닝 알고리즘 구현 방법은?"
+
+        #사용자의 질문 : {question}
+    """,
+        input_variables=["question"],
+    )
+
+model_keyword = ChatOpenAI(model_name="gpt-4o-mini",
+                    temperature=0, streaming=False)
+
+chain_keyword = (
+    {
+        "question": itemgetter("question"),
+    }
+    | prompt_keyword
+    | model_keyword
+    | StrOutputParser()
+)
 
 prompt_location = PromptTemplate(
     template="""너는 질문에 대해서 list를 반환해야돼.
@@ -394,7 +378,7 @@ prompt_location = PromptTemplate(
     )
 
 model_location = ChatOpenAI(model_name="gpt-4o-mini",
-                    temperature=0, streaming=True)
+                    temperature=0, streaming=False)
 
 chain_location = (
     {
@@ -424,7 +408,7 @@ prompt_sch_or_placeSearch = PromptTemplate(
     )
 
 model_sch_or_placeSearch = ChatOpenAI(model_name="gpt-4o-mini",
-                    temperature=0, streaming=True)
+                    temperature=0, streaming=False)
 
 chain_sch_or_placeSearch = (
     {
@@ -434,6 +418,7 @@ chain_sch_or_placeSearch = (
     | model_sch_or_placeSearch
     | StrOutputParser()
 )
+
 
 
 prompt_Web_or_retriever = PromptTemplate(
@@ -451,7 +436,7 @@ prompt_Web_or_retriever = PromptTemplate(
         input_variables=["question"],
     )
 model_web_check = ChatOpenAI(model_name="gpt-4o-mini",
-                    temperature=0, streaming=True)
+                    temperature=0, streaming=False)
 
 chain_Web_or_retriever = (
     {
@@ -461,6 +446,7 @@ chain_Web_or_retriever = (
     | model_web_check
     | StrOutputParser()
 )
+
 
 prompt_web = PromptTemplate(
     template="""너는 웹 검색을 통한 {context_web}의 내용를 종합해서 서울시의 중구,종로구,용산구,강남구 관광 일정을 추천해주는 봇이야.
@@ -488,10 +474,15 @@ prompt_web = PromptTemplate(
     """,
         input_variables=["context_web", "question"],
     )
+
+
+
+
+
 #input_variables=["context_web","context_opendata","context_naver", "question"],
 # LLM
 model_web = ChatOpenAI(model_name="gpt-4o",
-                    temperature=0, streaming=True)
+                    temperature=0, streaming=False)
 
 chain_web = (
     {
@@ -506,7 +497,25 @@ chain_web = (
     | StrOutputParser()
 )
 
+####-----프롬포트 끝----------#####
+##############################
+
+
+####-----노드 함수--------#####
+##############################
+
+
+
+# from rag.utils import format_docs
 # 웹 검색 or 리트리버 검색
+def Schedule_day_check(state: GraphState) -> GraphState:
+    
+    response = chain_day.invoke(
+        {"question": state["question"][-1].content}
+    )
+
+    return {"dayCheck": response}
+
 def web_or_retriever_check(state: GraphState) -> GraphState:
     
     response = chain_Web_or_retriever.invoke(
@@ -567,45 +576,64 @@ def retrieve_document_naver(state: GraphState) -> GraphState:
     retrieved_docs_gangman = []
     retrieved_docs_junggu = []
 
+    # if yongsan in location:
+    #     retrieved_docs_yongsan = retriever_naver_yongsan.invoke(latest_question)
+    #     retrieved_docs_yongsan = "\n".join(
+    #     [
+    #         f"<content>{doc.page_content}</content>"
+    #         for doc in retrieved_docs_yongsan
+    #     ]
+    #     )
+
+    # if jonglo in location:
+    #     retrieved_docs_jongro = retriever_naver_jongro.invoke(latest_question)
+    #     retrieved_docs_jongro = "\n".join(
+    #     [
+    #         f"<content>{doc.page_content}</content>"
+    #         for doc in retrieved_docs_jongro
+    #     ]
+    #     )
+
+    # if gangman in location:
+    #     retrieved_docs_gangman = retriever_naver_gangnam.invoke(latest_question)
+    #     retrieved_docs_gangman = "\n".join(
+    #     [
+    #         f"<content>{doc.page_content}</content>"
+    #         for doc in retrieved_docs_gangman
+    #     ]
+    #     )
+
+    # if junggu in location:
+    #     retrieved_docs_junggu = retriever_naver_Junggu.invoke(latest_question)
+    #     retrieved_docs_junggu = "\n".join(
+    #     [
+    #         f"<content>{doc.page_content}</content>"
+    #         for doc in retrieved_docs_junggu
+    #     ]
+    #     )
     if yongsan in location:
         retrieved_docs_yongsan = retriever_naver_yongsan.invoke(latest_question)
-        retrieved_docs_yongsan = "\n".join(
-        [
-            f"<document><content>{doc.page_content}</content>"
-            for doc in retrieved_docs_yongsan
-        ]
-        )
+
 
     if jonglo in location:
         retrieved_docs_jongro = retriever_naver_jongro.invoke(latest_question)
-        retrieved_docs_jongro = "\n".join(
-        [
-            f"<document><content>{doc.page_content}</content>"
-            for doc in retrieved_docs_jongro
-        ]
-        )
+
 
     if gangman in location:
         retrieved_docs_gangman = retriever_naver_gangnam.invoke(latest_question)
-        retrieved_docs_gangman = "\n".join(
-        [
-            f"<document><content>{doc.page_content}</content>"
-            for doc in retrieved_docs_gangman
-        ]
-        )
+
 
     if junggu in location:
         retrieved_docs_junggu = retriever_naver_Junggu.invoke(latest_question)
-        retrieved_docs_junggu = "\n".join(
-        [
-            f"<document><content>{doc.page_content}</content>"
-            for doc in retrieved_docs_junggu
-        ]
-        )
+
 
     # 검색된 문서를 형식화합니다.(프롬프트 입력으로 넣어주기 위함)
 
         # 검색된 문서를 context 키에 저장합니다.
+    # return {"context_naver_gangnam": retrieved_docs_gangman,
+    #         "context_naver_jongro": retrieved_docs_jongro,
+    #         "context_naver_Junggu": retrieved_docs_junggu,
+    #         "context_naver_yongsan": retrieved_docs_yongsan}
     return {"context_naver_gangnam": retrieved_docs_gangman,
             "context_naver_jongro": retrieved_docs_jongro,
             "context_naver_Junggu": retrieved_docs_junggu,
@@ -650,97 +678,19 @@ def retrieve_document_opendata(state: GraphState) -> GraphState:
     doc_list.extend(retrieved_docs_gangman)
     doc_list.extend(retrieved_docs_junggu)
 
-    # 검색된 문서를 형식화합니다.(프롬프트 입력으로 넣어주기 위함)
-    retrieved_docs = "\n".join(
-        [
-            f"<document><content>{doc.page_content}</content>"
-            for doc in doc_list
-        ]
-)
+#     # 검색된 문서를 형식화합니다.(프롬프트 입력으로 넣어주기 위함)
+#     retrieved_docs = "\n".join(
+#         [
+#             f"<document><content>{doc.page_content}</content>"
+#             for doc in doc_list
+#         ]
+# )
 
+#     # 검색된 문서를 context 키에 저장합니다.
+#     return {"context_opendata": retrieved_docs}
     # 검색된 문서를 context 키에 저장합니다.
-    return {"context_opendata": retrieved_docs}
+    return {"context_opendata": doc_list}
 
-# 요약 생성 노드----------------------------------------------------------------------------
-def llm_Summary_naver(state: GraphState) -> GraphState:
-    location_str = state['location']
-
-    location = ast.literal_eval(location_str)
-
-    yongsan = '용산구'
-    jonglo = '종로구'
-    gangman = '강남구'
-    junggu = '중구'
-    response_yongsan ='none'
-    response_jongro ='none'
-    response_junggu ='none'
-    response_gangnam ='none'
-
-    if yongsan in location:
-        context_naver_yongsan = state["context_naver_yongsan"]
-
-        # 체인을 호출하여 답변을 생성합니다.
-        response_yongsan = chain_Summary_yongsan.invoke(
-            {
-                "answer_llm_Summary": context_naver_yongsan,
-            }
-        )
-    # 생
-    if jonglo in location:
-        context_naver_jongro = state["context_naver_jongro"]
-
-        # 체인을 호출하여 답변을 생성합니다.
-        response_jongro = chain_Summary_jongro.invoke(
-            {
-                "answer_llm_Summary": context_naver_jongro,
-            }
-        )
-    if gangman in location:
-        context_naver_gangnam = state["context_naver_gangnam"]
-
-        # 체인을 호출하여 답변을 생성합니다.
-        response_gangnam = chain_Summary_gangnam.invoke(
-            {
-                "answer_llm_Summary": context_naver_gangnam,
-            }
-        )
-    if junggu in location:
-        context_naver_Junggu = state["context_naver_Junggu"]
-
-        # 체인을 호출하여 답변을 생성합니다.
-        response_junggu = chain_Summary_Junggu.invoke(
-            {
-                "answer_llm_Summary": context_naver_Junggu,
-            }
-        )
-    
-    # 생성된 답변, (유저의 질문, 답변) 메시지를 상태에 저장합니다.
-    return {
-        "answer_llm_Summary_gangnam": response_gangnam,
-        "answer_llm_Summary_jongro": response_jongro,
-        "answer_llm_Summary_junggu": response_junggu,
-        "answer_llm_Summary_yongsan": response_yongsan
-    } 
-
-
-def llm_Summary_opendata(state: GraphState) -> GraphState:
-
-    # 검색된 문서를 상태에서 가져옵니다.
-    context_opendata = state["context_opendata"]
-
-    # 체인을 호출하여 답변을 생성합니다.
-    response = chain_Summary_opendata.invoke(
-        {
-            "answer_llm_Summary": context_opendata,
-        }
-    )
-    # 생성된 답변, (유저의 질문, 답변) 메시지를 상태에 저장합니다.
-    return {
-        "answer_llm_Summary_opendata": response
-    } 
-
-
-# 요약 생성 노드 끝----------------------------------------------------------------------------
 
 
 
@@ -750,60 +700,68 @@ def llm_Schedule_answer(state: GraphState) -> GraphState:
     # 질문을 상태에서 가져옵니다.
     latest_question = state["question"][-1].content
     location_str = state['location']
+    day_str = state['dayCheck']
 
     location = ast.literal_eval(location_str)
+    day = ast.literal_eval(day_str)
 
-    Summary_list = []
-    Summary_yongsan =[]
-    Summary_jongro =[]
-    Summary_gangman =[]
-    Summary_junggu =[]
+    place_list = []
+    place_yongsan =[]
+    place_jongro =[]
+    place_gangman =[]
+    place_junggu =[]
     # 문서에서 검색하여 관련성 있는 문서를 찾습니다.
     yongsan = '용산구'
-    jonglo = '종로구'
+    jongro = '종로구'
     gangman = '강남구'
     junggu = '중구'
 
-    if yongsan in location:
-        Summary_yongsan = state["answer_llm_Summary_yongsan"]
+    for i in range(1, day+1):
+        if yongsan in location:
+            place_yongsan = state["context_naver_yongsan"]
 
-    if jonglo in location:
-        Summary_jongro = state["answer_llm_Summary_jongro"]
+            place_list.extend(random.sample(place_yongsan, 5))
 
-    if gangman in location:
-        Summary_gangman = state["answer_llm_Summary_gangnam"]
+        if jongro in location:
+            place_jongro = state["context_naver_jongro"]
+            place_list.extend(random.sample(place_jongro, 5))
 
-    if junggu in location:
-        Summary_junggu = state["answer_llm_Summary_junggu"]
+        if gangman in location:
+            place_gangman = state["context_naver_gangnam"]
+            place_list.extend(random.sample(place_gangman, 5))
 
-   
-    Summary_opendata = state["answer_llm_Summary_opendata"]
+        if junggu in location:
+            place_junggu = state["context_naver_Junggu"]
 
- 
-    Summary_list.extend(Summary_yongsan)
-    Summary_list.extend(Summary_jongro)
-    Summary_list.extend(Summary_gangman)
-    Summary_list.extend(Summary_junggu)
-    Summary_list.extend(Summary_opendata)
+            place_list.extend(random.sample(place_junggu, 5))
 
-    # 검색된 문서를 형식화합니다.(프롬프트 입력으로 넣어주기 위함)
-    retrieved_docs = "\n".join(
+    
+        place_opendata = state["context_opendata"]
+        
+        place_list.extend(random.sample(place_opendata, 5))
+
+        #검색된 문서를 형식화합니다.(프롬프트 입력으로 넣어주기 위함)
+        place_list_text = "\n".join(
         [
-            f"{doc}"
-            for doc in Summary_list
+            f"<content>{doc.page_content}</content>"
+            for doc in place_list
         ]
-    )
+        )
 
-    # 체인을 호출하여 답변을 생성합니다.
-    response = chain.invoke(
-        {
-            "question": latest_question,
-            "context": retrieved_docs,
-            "chat_history": messages_to_history(state["messages"]),
-        }
-    )
+        # 체인을 호출하여 답변을 생성합니다.
+        response = chain.invoke(
+            {
+                "question": latest_question,
+                "context": place_list_text,
+                "chat_history": messages_to_history(state["messages"]),
+                "day" : i
+            }
+        )
+        place_list.clear()
+        print('\n')
+
     # 생성된 답변, (유저의 질문, 답변) 메시지를 상태에 저장합니다.
-    # print(state["messages"])
+    print(state["messages"])
     return {
         "answer": response,
         "messages": [("user", latest_question), ("assistant", response)],
@@ -819,11 +777,11 @@ def llm_place_answer(state: GraphState) -> GraphState:
 
     location = ast.literal_eval(location_str)
 
-    Summary_list = []
-    Summary_yongsan =[]
-    Summary_jongro =[]
-    Summary_gangman =[]
-    Summary_junggu =[]
+    place_list = []
+    place_yongsan =[]
+    place_jongro =[]
+    place_gangman =[]
+    place_junggu =[]
     # 문서에서 검색하여 관련성 있는 문서를 찾습니다.
     yongsan = '용산구'
     jonglo = '종로구'
@@ -831,45 +789,48 @@ def llm_place_answer(state: GraphState) -> GraphState:
     junggu = '중구'
 
     if yongsan in location:
-        Summary_yongsan = state["answer_llm_Summary_yongsan"]
+        place_yongsan = state["context_naver_yongsan"]
+        place_yongsan = place_yongsan[:5]
+        place_list.extend(place_yongsan)
 
     if jonglo in location:
-        Summary_jongro = state["answer_llm_Summary_jongro"]
+        place_jongro = state["context_naver_jongro"]
+        place_jongro = place_jongro[:5]
+        place_list.extend(place_jongro)
 
     if gangman in location:
-        Summary_gangman = state["answer_llm_Summary_gangnam"]
+        place_gangman = state["context_naver_gangnam"]
+        place_gangman = place_gangman[:5]
+        place_list.extend(place_gangman)
 
     if junggu in location:
-        Summary_junggu = state["answer_llm_Summary_junggu"]
+        place_junggu = state["context_naver_Junggu"]
+        place_junggu = place_junggu[:5]
+        place_list.extend(place_junggu)
 
    
-    Summary_opendata = state["answer_llm_Summary_opendata"]
+    place_opendata = state["context_opendata"]
+    place_opendata = place_opendata[:7]
 
- 
-    Summary_list.extend(Summary_yongsan)
-    Summary_list.extend(Summary_jongro)
-    Summary_list.extend(Summary_gangman)
-    Summary_list.extend(Summary_junggu)
-    Summary_list.extend(Summary_opendata)
+    place_list.extend(place_opendata)
 
-    # 검색된 문서를 형식화합니다.(프롬프트 입력으로 넣어주기 위함)
-    retrieved_docs = "\n".join(
-        [
-            f"{doc}"
-            for doc in Summary_list
-        ]
+    place_list_text = "\n".join(
+    [
+        f"<content>{doc.page_content}</content>"
+        for doc in place_list
+    ]
     )
 
     # 체인을 호출하여 답변을 생성합니다.
     response = chain_place_search.invoke(
         {
             "question": latest_question,
-            "context": retrieved_docs,
+            "context": place_list_text,
             "chat_history": messages_to_history(state["messages"]),
         }
     )
     # 생성된 답변, (유저의 질문, 답변) 메시지를 상태에 저장합니다.
-    # print(state["messages"])
+    print(state["messages"])
     return {
         "answer": response,
         "messages": [("user", latest_question), ("assistant", response)],
@@ -898,7 +859,7 @@ def llm_answer_web(state: GraphState) -> GraphState:
         }
     )
     # 생성된 답변, (유저의 질문, 답변) 메시지를 상태에 저장합니다.
-    # print(state["messages"])
+    print(state["messages"])
     return {
         "answer": response,
         "messages": [("user", latest_question), ("assistant", response)],
@@ -921,15 +882,21 @@ def web_search(state: GraphState) -> GraphState:
 
     return {"context_web": search_result}
 
+
+##########----------#############
+
+
+
 # 그래프 생성
 workflow = StateGraph(GraphState)
 
 # 노드 정의
 workflow.add_node("location_check", location_check)
+workflow.add_node("Schedule_day_check", Schedule_day_check)
 workflow.add_node("retrieve_document_naver", retrieve_document_naver)
 workflow.add_node("retrieve_opendata", retrieve_document_opendata)
-workflow.add_node("llm_Summary_opendata", llm_Summary_opendata)
-workflow.add_node("llm_Summary_naver", llm_Summary_naver)
+# workflow.add_node("llm_Summary_opendata", llm_Summary_opendata)
+# workflow.add_node("llm_Summary_naver", llm_Summary_naver)
 workflow.add_node("llm_Schedule_answer", llm_Schedule_answer)
 workflow.add_node("Schedule_or_place_check", Schedule_or_place_check)
 workflow.add_node("llm_place_answer", llm_place_answer)
@@ -949,23 +916,25 @@ workflow.add_conditional_edges(
     "Schedule_or_place_check",  
     is_place,
     {
-        "일정": "llm_Schedule_answer",  #일정
+        "일정": "Schedule_day_check",  #일정
         "장소검색": "llm_place_answer",  # 장소검색
     },
 )
 
 workflow.add_edge("location_check", "retrieve_document_naver")  # 검색 -> 답변
 workflow.add_edge("location_check", "retrieve_opendata")  # 검색 -> 답변
-workflow.add_edge("retrieve_document_naver", "llm_Summary_naver")  # 질문 -> 검색
-workflow.add_edge("retrieve_opendata", "llm_Summary_opendata")  # 질문 -> 검색
-workflow.add_edge("llm_Summary_naver", "Schedule_or_place_check") 
-workflow.add_edge("llm_Summary_opendata", "Schedule_or_place_check") 
+# workflow.add_edge("retrieve_document_naver", "llm_Summary_naver")  # 질문 -> 검색
+# workflow.add_edge("retrieve_opendata", "llm_Summary_opendata")  # 질문 -> 검색
+workflow.add_edge("retrieve_document_naver", "Schedule_or_place_check") 
+workflow.add_edge("retrieve_opendata", "Schedule_or_place_check") 
+workflow.add_edge("Schedule_day_check", "llm_Schedule_answer") 
 
 workflow.add_edge("llm_Schedule_answer", END)  # 답변 -> 종료
 workflow.add_edge("llm_place_answer", END)  # 답변 -> 종료
 
 # 그래프 진입점 설정
 workflow.set_entry_point("location_check")
+# workflow.set_entry_point("Schedule_or_place_check")
 
 # 체크포인터 설정
 memory = MemorySaver()
@@ -973,29 +942,11 @@ memory = MemorySaver()
 # 컴파일
 app = workflow.compile(checkpointer=memory)
 
-def typewriter_effect(text, delay=0.05):
-    """
-    텍스트를 한 글자씩 출력하는 효과를 주는 함수.
-    :param text: 출력할 문자열
-    :param delay: 글자 출력 간의 딜레이 (초 단위)
-    """
-    for char in text:
-        sys.stdout.write(char)  # 글자를 출력
-        sys.stdout.flush()  # 출력 버퍼를 비워 즉시 표시
-        time.sleep(delay)  # 딜레이 추가
-    print()  # 줄 바꿈
 
 # config 설정(재귀 최대 횟수, thread_id)
 config = RunnableConfig(recursion_limit=20, configurable={"thread_id": random_uuid()})
 
+# 질문 입력
+inputs = GraphState(question="중구에서 3박4일 일정 만들어줘")
 
-def run_gpt():
-    user_input = input('일정이나 장소를 물어 보세요 : ')
-    # 질문 입력
-    inputs = GraphState(question=user_input)
-
-    res = app.invoke(input=inputs, config=config)
-
-    typewriter_effect(res.get('answer'), delay=0.01)
-
-run_gpt()
+ans=app.stream(input=inputs, config=config, stream_mode='messages')
