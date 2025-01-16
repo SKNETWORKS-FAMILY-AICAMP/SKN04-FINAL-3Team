@@ -258,13 +258,18 @@ def planner(request):
             chat_id = data.get("chat_id")
             new_message = data.get("content", "")  # 새로 입력된 메시지
             title = data.get("title", "Untitled")  # 기본 제목
-
-            if not chat_id:
-                # 로그인하지 않은 사용자에게 임의 chat_id 생성
-                chat_id = f"guest_{uuid.uuid4().hex[:8]}"  # 비로그인 사용자용 chat_id
+            chat_count = Chatting.objects.filter(profile=user).count()
 
             if not user:  # 비로그인 사용자는 데이터베이스에 저장하지 않음
-                return JsonResponse({"success": True, "chat_id": chat_id, "content": new_message})
+                return JsonResponse({"success": True, "chat_id": "", "content": new_message})
+            
+            if chat_count >= 10:
+                # 데이터가 10개 이상이면 데이터베이스에 저장하지 않음
+                return JsonResponse({
+                    "success": False,
+                    "chat_id": "",
+                    "error": "채팅 내역이 꽉 찼습니다!",
+                })
 
             # 로그인된 사용자만 데이터 저장
             chat, created = Chatting.objects.get_or_create(
@@ -326,11 +331,19 @@ def get_authenticated_user(request):
 def save_chat(request):
     if request.method == "POST":
         try:
-            # 요청에서 데이터 파싱
             data = json.loads(request.body)
             chat_content = data.get("chat", "").strip()
             chatting_id = data.get("chat_id", None)  # 클라이언트에서 전달받은 chatting_id
             user = get_authenticated_user(request)
+            # 요청에서 데이터 파싱
+            chat_count = Chatting.objects.filter(profile=user).count()
+            print("count:", chat_count)
+            if chat_count >= 10:
+                # 데이터가 10개 이상이면 경고 메시지와 함께 chatting 페이지로 리다이렉트
+                return JsonResponse({
+                    "success": False,
+                    "error": "채팅 내역이 꽉 찼습니다!",
+                })
 
             if not user:
                 return JsonResponse({"success": False, "error": "User is not authenticated."})

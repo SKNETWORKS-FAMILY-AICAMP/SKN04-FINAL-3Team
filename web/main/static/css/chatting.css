@@ -30,6 +30,7 @@
     padding-top: 20px;
     padding-bottom: 20px;
     overflow: hidden;
+    min-height: 30px;
 }
 
 [data-theme="dark"] .panel h2 {
@@ -43,6 +44,7 @@
     padding-top: 20px;
     padding-bottom: 20px;
     overflow: hidden;
+    min-height: 30px;
 }
 
 #chattingSection {
@@ -91,6 +93,7 @@
     display: flex;
     align-items: center;
     border-bottom: 1px solid #ddd;
+    height: 40px;
 }
 
 [data-theme="dark"] .chat-item {
@@ -99,6 +102,7 @@
     display: flex;
     align-items: center;
     border-bottom: 1px solid #444;
+    height: 40px;
 }
 
 .chat-item:hover {

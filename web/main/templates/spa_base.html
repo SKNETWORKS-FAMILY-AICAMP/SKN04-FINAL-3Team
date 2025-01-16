@@ -640,7 +640,7 @@
                     console.log("ChatID:", chatId);
 
                     if (!chatId) {
-                        alert("삭제할 chat_id를 찾을 수 없습니다.");
+                        // alert("삭제할 chat_id를 찾을 수 없습니다.");
                         return;
                     }
 
@@ -1564,6 +1564,30 @@
             .then(data => {
                 if (!data.success) {
                     console.error("Failed to save chat to DB:", data.error);
+                    if (data.error === "채팅 내역이 꽉 찼습니다!") {
+                        // chat-container에 에러 메시지 말풍선 추가
+                        const chatContainer = document.querySelector(".chat-container");
+                        if (chatContainer) {
+                            const errorBubble = document.createElement("div");
+                            errorBubble.className = "error-bubble";
+                            errorBubble.innerHTML = "채팅 내역이 꽉 찼습니다! 이 채팅은 저장되지 않습니다.<br>기존 채팅 내역을 사용해주세요.<br>현재 채팅에는 글 초기화 버튼이 작동하지 않습니다.";
+                            errorBubble.style.position = "relative";
+                            errorBubble.style.padding = "10px";
+                            errorBubble.style.margin = "10px 0";
+                            errorBubble.style.backgroundColor = "#ffcccc";
+                            errorBubble.style.color = "#900";
+                            errorBubble.style.border = "1px solid #f00";
+                            errorBubble.style.borderRadius = "5px";
+                            errorBubble.style.fontSize = "14px";
+
+                            // 이미 말풍선이 존재하면 추가하지 않음
+                            if (!chatContainer.querySelector(".error-bubble")) {
+                                chatContainer.insertBefore(errorBubble, chatContainer.firstChild); // 맨 위에 추가
+                            }
+                        } else {
+                            console.error("chat-container element not found.");
+                        }
+                    }
                 } else {
                     console.log("chat id:", data.chatting_id, "Chat saved successfully:", data.message || "Success", chatContent);
                     if (data.chatting_id) {
