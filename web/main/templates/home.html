@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>앱 화면</title>
+
+    <!-- {% load static %} -->
+    <!-- <link rel="stylesheet" href="{% static 'css/style.css' %}"> -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 2px solid #000;
+        }
+        .header .language,
+        .header .login-btn {
+            border: 1px solid #000;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 40px 0;
+        }
+        .interactive-dialog {
+            margin: 20px auto;
+            width: 400px;
+            height: 100px;
+            border: 2px solid #000;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+        }
+        .keyword {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 영역 -->
+    <div class="header">
+        <div class="language">language</div>
+        <div class="login-btn">로그인 버튼</div>
+    </div>
+
+    <!-- 로고 영역 -->
+    <div class="logo">앱 로고</div>
+
+    <!-- 대화창 영역 -->
+    <div class="interactive-dialog">
+        <form action="{% url 'planner' %}" method="get">
+            <button id="dialog-btn" type="submit">상호작용 가능한 대화창</button>
+        </form>
+    </div>
+
+    <!-- 키워드 영역 -->
+    <div class="keyword">키워드</div>
+</body>
+</html>

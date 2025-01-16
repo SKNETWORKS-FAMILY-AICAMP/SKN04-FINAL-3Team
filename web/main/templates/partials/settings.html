@@ -1,0 +1,62 @@
+    <head>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'css/settings.css' %}">
+        <script src="{% static 'js/settings.js' %}" defer></script>
+    </head>
+    <div class="container" id="settingsPanel">
+        <div class="panel">
+            <h2>Settings</h2>
+
+            <!-- 테마 선택 -->
+            <div class="section">
+                <label>Theme</label>
+                <div class="theme-options">
+                    <!-- Light Theme -->
+                    <div class="theme-item">
+                        <label>
+                            <div id="light" class="theme-box {% if settings and settings.is_white_theme %}selected{% endif %}"></div>
+                            <div>
+                                <span>Light</span>
+                                <input type="radio" name="theme" value="light" {% if settings and settings.is_white_theme %}checked{% endif %}>
+                            </div>
+                        </label>
+                    </div>
+                    <!-- Dark Theme -->
+                    <div class="theme-item">
+                        <label>
+                            <div id="dark" class="theme-box {% if settings and not settings.is_white_theme %}selected{% endif %}"></div>
+                            <div>
+                                <span>Dark</span>
+                                <input type="radio" name="theme" value="dark" {% if settings and not settings.is_white_theme %}checked{% endif %}>
+                            </div>
+                            </input>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 언어 선택 -->
+            <div class="section">
+                <label for="language">Language</label>
+                <select id="language">
+                    <option value="US" {% if country_id == 'US' %}selected{% endif %}>English</option> 
+                    <option value="KR" {% if country_id == 'KR' %}selected{% endif %}>한국어</option> 
+                    <option value="JP" {% if country_id == 'JP' %}selected{% endif %}>日本語</option> 
+                    <option value="CN" {% if country_id == 'CN' %}selected{% endif %}>简体字</option> 
+                </select>
+            </div>
+
+            <!-- 연락처 -->
+            <div class="section">
+                <label>Contact Us</label>
+                <p>dinosaur@gmail.com</p>
+            </div>
+
+            <!-- 계정 삭제 -->
+            <div class="section">
+                <span class="delete-btn" onclick="showPopup()">Delete Account</span>
+            </div>
+
+            <div class="toggle-button" id="toggleButton"><</div>
+        </div>
+    </div>
