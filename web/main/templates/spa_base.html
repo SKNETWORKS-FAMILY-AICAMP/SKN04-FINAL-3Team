@@ -1775,6 +1775,8 @@
             return result;
         }
 
+        let globalMarkerData = []; // 전역 변수로 선언
+
         async function generateDynamicPlanContent(jsonData) {
             const mapPanelContent = document.querySelector('.map-panel-content');
             if (!mapPanelContent) {
@@ -1819,7 +1821,7 @@
             let markerData = [];
 
             async function renderDayContent(day) {
-                // meals 데이터에서 주소 정보 추출
+                // JSON 데이터에서 주소 정보 추출
                 const addresses = [];
                 Object.keys(day.meals).forEach(mealType => {
                     const mealData = day.meals[mealType];
@@ -1837,15 +1839,8 @@
                     }
                 });
 
-                console.log("Extracted addresses:", addresses);
-
-                // 주소가 없을 경우 바로 종료
-                if (addresses.length === 0) {
-                    console.warn("No addresses found for day:", day.day);
-                    return;
-                }
-
-                mapPanelContent.innerHTML = ''; // 기존 내용 초기화
+                // 지도 내용 초기화
+                mapPanelContent.innerHTML = '';
                 const planContent = document.createElement('div');
                 planContent.className = 'plan-content';
                 mapPanelContent.appendChild(planContent);
@@ -1865,6 +1860,41 @@
                             if (name && address) {
                                 const listItem = document.createElement('p');
                                 listItem.innerHTML = `<strong>${name}</strong> (${address})`;
+
+                                // 삭제 버튼 추가
+                                const deleteButton = document.createElement('img');
+                                deleteButton.src = document.body.getAttribute('data-theme') === 'light' 
+                                    ? '/static/images/delete_light.png' 
+                                    : '/static/images/delete_dark.png';
+                                deleteButton.style.cursor = 'pointer';
+                                deleteButton.style.marginLeft = '10px';
+                                deleteButton.width = 16;
+                                deleteButton.height = 16;
+
+                                // 삭제 버튼 이벤트 추가
+                                deleteButton.addEventListener('click', () => {
+                                    // UI에서 제거
+                                    mealSection.removeChild(listItem);
+
+                                    // JSON 데이터에서 해당 항목 제거
+                                    if (section === "식사장소") {
+                                        delete mealData[section];
+                                    } else if (section === "명소") {
+                                        delete mealData[section];
+                                    }
+
+                                    // 전역 markerData에서 해당 마커 제거
+                                    globalMarkerData = globalMarkerData.filter(marker => marker.title !== name);
+
+                                    // 지도 업데이트
+                                    addMarkersToMap(globalMarkerData);
+
+                                    // 디버깅용 로그
+                                    console.log("Updated globalMarkerData:", globalMarkerData);
+                                    console.log("Updated JSON data:", day);
+                                });
+
+                                listItem.appendChild(deleteButton);
                                 mealSection.appendChild(listItem);
                             }
                         }
@@ -1873,12 +1903,10 @@
                     planContent.appendChild(mealSection);
                 });
 
+                // 주소로 마커 데이터 생성
                 try {
-                    const markerData = await getCoordinates(addresses); // 비동기 작업 완료 후 결과 저장
-                    console.log("Generated markerData:", markerData);
-
-                    // 마커 데이터를 지도에 추가
-                    addMarkersToMap(markerData);
+                    globalMarkerData = await getCoordinates(addresses); // 전역 변수 업데이트
+                    addMarkersToMap(globalMarkerData); // 지도 업데이트
                 } catch (error) {
                     console.error("Error generating marker data:", error);
                 }
@@ -1999,17 +2027,26 @@
             });
 
             // 새 선 추가
-            for (let i = 0; i < markerData.length - 1; i++) {
-                const polyline = new naver.maps.Polyline({
-                    map: map,
-                    path: [markerData[i].position, markerData[i + 1].position], // 인접한 마커 연결
-                    strokeColor: '#000000', // 선 색상
-                    strokeWeight: 3, // 선 두께
-                    strokeStyle: 'solid', // 선 스타일 (solid, dashed, dotted 등)
-                });
+            if (markerData.length > 1) {
+                for (let i = 0; i < markerData.length - 1; i++) {
+                    const polyline = new naver.maps.Polyline({
+                        map: map,
+                        path: [markerData[i].position, markerData[i + 1].position], // 인접한 마커 연결
+                        strokeColor: '#000000', // 선 색상
+                        strokeWeight: 3, // 선 두께
+                        strokeStyle: 'solid', // 선 스타일 (solid, dashed, dotted 등)
+                    });
 
-                // 현재 선을 전역 배열에 저장
-                window.currentPolylines.push(polyline);
+                    // 현재 선을 전역 배열에 저장
+                    window.currentPolylines.push(polyline);
+                }
+            }
+
+            // 지도 범위를 업데이트
+            if (markerData.length > 0) {
+                const bounds = new naver.maps.LatLngBounds();
+                markerData.forEach(marker => bounds.extend(marker.position));
+                map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
             }
         }
 

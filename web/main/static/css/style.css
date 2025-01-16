@@ -592,6 +592,20 @@ body {
     z-index: 1;
 }
 
+[data-theme="dark"] #map-panel {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 50%; /* 기본 높이 */
+    background-color: #222;
+    color: white;
+    box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    overflow-y: auto;
+    z-index: 1;
+}
+
 #drag-handle {
     width: 100%;
     height: 15px;
@@ -627,8 +641,20 @@ body {
     margin-bottom: 10px;
 }
 
+[data-theme="dark"] .meal-section {
+    border: 2px solid white;
+    border-radius: 25px;
+    color: white;
+    margin-bottom: 10px;
+}
+
 .meal-section h4 span {
     color: black;
+    padding: 5px;
+}
+
+[data-theme="dark"] .meal-section h4 span {
+    color: white;
     padding: 5px;
 }
 
