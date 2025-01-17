@@ -1061,6 +1061,7 @@
 
                             const data = await response.json();
                             console.log("Bookmark Data:", data);
+                            console.log("Bookmark Data type:", data.type);
 
                             // map-panel-content 업데이트
                             const mapPanelContent = document.querySelector('.map-panel-content');
@@ -1075,14 +1076,14 @@
                             const itemSection = document.createElement('div');
                             itemSection.className = 'item-section';
 
-                            if (data.type === 'bookmarkplace') {
+                            if (data.type === 'place') {
                                 itemSection.innerHTML = `
                                     <h3>장소 정보</h3>
                                     <p><strong>이름:</strong> ${data.name}</p>
                                     <p><strong>주소:</strong> ${data.address}</p>
                                 `;
                                 mapPanelContent.appendChild(itemSection);
-                            } else if (data.type === 'bookmarkschedule') {
+                            } else if (data.type === 'schedule') {
                                 let jsonData = typeof data.json_data === "string" ? JSON.parse(data.json_data) : data.json_data;
                                 generateDayButtons(jsonData);
                                 generateDynamicPlanContent(jsonData);
