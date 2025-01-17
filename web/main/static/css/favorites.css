@@ -146,36 +146,6 @@
     overflow-y: auto;
 }
 
-/* 각 폴더 아이템에 아이콘 달기 */
-.folder-item {
-    cursor: pointer;
-    padding: 15px 0px 15px 30px;
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid #ddd;
-}
-
-[data-theme="dark"] .folder-item {
-    cursor: pointer;
-    padding: 15px 0px 15px 30px;
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid #e0e0e031;
-}
-
-[data-theme="dark"] .folder-item:hover{
-    cursor: pointer;
-    padding: 15px 0px 15px 30px;
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid #e0e0e031;
-    background-color: #555555d4;
-}
-
-.folder-item:hover {
-    background-color: #f0f0f0;
-}
-
 /* 폴더 만들기 버튼 */
 .folder-create-btn {
     margin-top: auto; /* 아래쪽 정렬 */
@@ -209,23 +179,123 @@
     overflow-y: auto;    
 }
 
+/* 각 폴더 아이템에 아이콘 달기 */
 .folder-item {
-    position: relative;  /* 자식 요소(삭제 아이콘) 위치 제어 */
-    padding-right: 40px; /* 삭제 아이콘이 오른쪽에 뜰 공간 확보 */
+    cursor: pointer;
+    padding: 15px 0px 15px 30px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+}
+
+[data-theme="dark"] .folder-item {
+    cursor: pointer;
+    padding: 15px 0px 15px 30px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e031;
+}
+
+[data-theme="dark"] .folder-item:hover{
+    cursor: pointer;
+    padding: 15px 0px 15px 30px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e031;
+    background-color: #555555d4;
+}
+
+.folder-item:hover {
+    background-color: #f0f0f0;
 }
 
 /* 삭제 아이콘 공통 스타일 */
 .folder-item .delete-icon {
-    position: absolute;
+    display: flex;
     right: 15px;
     top: 50%;
-    transform: translateY(-50%);
+    /* transform: translateY(-50%); */
     cursor: pointer;
     width: 24px;  /* 아이콘 크기에 맞춤 */
     height: 24px;
     opacity: 0.7;
+    margin-left: auto;
+    margin-right: 10px;
     transition: opacity 0.2s;
 }
 .folder-item .delete-icon:hover {
     opacity: 1.0;
 }
+
+#backBtn {
+    display: none;
+}
+
+.place-item, .schedule-item {
+    cursor: pointer;
+    padding: 15px 0px 15px 30px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+}
+
+[data-theme="dark"] .place-item, .schedule-item {
+    cursor: pointer;
+    padding: 15px 0px 15px 30px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e031;
+}
+
+[data-theme="dark"] .place-item:hover{
+    cursor: pointer;
+    padding: 15px 0px 15px 30px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e031;
+    background-color: #555555d4;
+}
+
+/* 삭제 아이콘 공통 스타일 */
+.place-item .delete-icon {
+    display: flex;
+    right: 15px;
+    top: 50%;
+    cursor: pointer;
+    width: 24px;  /* 아이콘 크기에 맞춤 */
+    height: 24px;
+    opacity: 0.7;
+    margin-left: auto;
+    margin-right: 10px;
+    transition: opacity 0.2s;
+}
+.place-item .delete-icon:hover {
+    opacity: 1.0;
+}
+
+[data-theme="dark"] .schedule-item:hover{
+    cursor: pointer;
+    padding: 15px 0px 15px 30px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e031;
+    background-color: #555555d4;
+}
+
+/* 삭제 아이콘 공통 스타일 */
+.schedule-item .delete-icon {
+    display: flex;
+    right: 15px;
+    top: 50%;
+    cursor: pointer;
+    width: 24px;  /* 아이콘 크기에 맞춤 */
+    height: 24px;
+    opacity: 0.7;
+    margin-left: auto;
+    margin-right: 10px;
+    transition: opacity 0.2s;
+}
+.schedule-item .delete-icon:hover {
+    opacity: 1.0;
+}
+
