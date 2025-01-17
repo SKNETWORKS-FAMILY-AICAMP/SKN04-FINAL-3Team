@@ -29,6 +29,8 @@
     margin-bottom: 0;
     padding-top: 20px;
     padding-bottom: 20px;
+    height: 32px;
+    min-height: 32px;
     overflow: hidden;
 }
 
@@ -41,7 +43,37 @@
     margin-bottom: 0;
     padding-top: 20px;
     padding-bottom: 20px;
+    height: 32px;
+    min-height: 32px;
     overflow: hidden;
+}
+
+#placesSection {
+    overflow-y: auto; /* 세로 스크롤 활성화 */
+    overflow-x: hidden; /* 가로 스크롤 비활성화 */
+    max-height: 100%; /* 화면 높이에 맞게 제한 */
+    box-sizing: border-box; /* 패딩 포함 크기 계산 */
+}
+
+/* 반응형 처리를 위한 미디어 쿼리 */
+@media (max-width: 768px) { /* 예: 768px 이하일 때 */
+    #placesSection {
+        max-height: 50vh; /* 화면 높이의 절반으로 제한 */
+    }
+}
+
+#scheduleSection {
+    overflow-y: auto; /* 세로 스크롤 활성화 */
+    overflow-x: hidden; /* 가로 스크롤 비활성화 */
+    max-height: 100%; /* 화면 높이에 맞게 제한 */
+    box-sizing: border-box; /* 패딩 포함 크기 계산 */
+}
+
+/* 반응형 처리를 위한 미디어 쿼리 */
+@media (max-width: 768px) { /* 예: 768px 이하일 때 */
+    #scheduleSection {
+        max-height: 50vh; /* 화면 높이의 절반으로 제한 */
+    }
 }
 
 .section {
@@ -57,6 +89,8 @@
     background-color: #fff;
     border-bottom: 1px solid #ddd;
     padding: 10px 0;
+    height: 50px;
+    min-height: 50px;
     overflow: hidden;
 }
 
@@ -67,6 +101,8 @@
     background-color: #222;
     border-bottom: 1px solid #444;
     padding: 10px 0;
+    height: 50px;
+    min-height: 50px;
     overflow: hidden;
 }
 
@@ -74,8 +110,9 @@
 .top-menu button {
     width: 120px;
     height: 50px;
-    background-color: #f7f7f7;
-    border: 1px solid #ccc;
+    background-color: white;
+    color: #222;
+    border: 1px solid #222;
     border-radius: 30px;
     cursor: pointer;
     font-size: 16px;
@@ -86,8 +123,9 @@
 [data-theme="dark"] .top-menu button {
     width: 120px;
     height: 50px;
-    background-color: #f7f7f7b3;
-    border: 1px solid #ccc;
+    background-color: #222;
+    color: white;
+    border: 1px solid white;
     border-radius: 30px;
     cursor: pointer;
     font-size: 16px;

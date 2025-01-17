@@ -6,15 +6,11 @@ body {
     background-color: #f4f4f4;
     color: #000;
     margin: 0;
+    overflow: hidden; /* 스크롤 방지 */
 }
 
 .theme-box {
     border: 2px solid #000;
-}
-
-.panel {
-    background-color: #f9f9f9;
-    border: 1px solid #ccc;
 }
 
 /* 어두운 테마 */
@@ -25,11 +21,6 @@ body {
 
 [data-theme="dark"] .theme-box {
     border: 2px solid #fff;
-}
-
-[data-theme="dark"] .panel {
-    background-color: #222;
-    border: 1px solid #444;
 }
 
 /* Sidebar 변경 */
@@ -128,6 +119,7 @@ body {
     border-radius: 5px;
     resize: none; /* 사용자가 직접 크기 조정 불가 */
     height: 120px; /* 고정된 높이 (6줄) */
+    min-height: 112px;
     overflow-y: auto; /* 스크롤바 표시 */
     transition: height 0.2s ease-in-out;
 }
@@ -167,12 +159,14 @@ body {
 
 .container {
     display: flex;
-    height: 100vh;
+    flex-direction: row;
     overflow: visible;
+    height: 99.8vh;
+    width: 100%;
 }
 
 .sidebar {
-    width: 100px; 
+    width: 80px; 
     border-right: 1px solid #ddd;
     background: #f4f4f4;
     display: flex;
@@ -219,7 +213,7 @@ body {
     /* transition: transform 0.3s ease; */
     position: relative;
     width: 400px;
-    height: 99%;
+    height: 99.8%;
     display: flex;
     flex-direction: column;
     border-right: 1px solid #ddd;
@@ -230,7 +224,7 @@ body {
 [data-theme="dark"] .panel {
     position: relative;
     width: 400px;
-    height: 100%;
+    height: 99.8%;
     display: flex;
     flex-direction: column;
     border-right: 1px solid #222;
@@ -284,20 +278,9 @@ body {
 #map {
     display: block;
     position: relative;
+    flex-grow: 1;
     transition: flex-grow 0.3s ease-in-out; /* 지도 크기 변경 애니메이션 */
     z-index: 1;
-<<<<<<< HEAD
-}
-
-#chat-header {
-    position: sticky; /* 스크롤 시 고정 */
-    top: 0; /* 컨테이너의 맨 위에 고정 */
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #333;
-    z-index: 1; /* 다른 요소 위에 표시되도록 설정 */
-=======
->>>>>>> frontend
 }
 
 /* 메시지 목록 컨테이너 (유동적 크기) */
@@ -308,6 +291,7 @@ body {
     flex-direction: column;
     gap: 5px; /* 메시지 간격 */
     width: 100%; 
+    height: calc(100% - 190px); /* 원하는 고정 높이 설정 */
     border: 1px solid #ddd;
     box-sizing: border-box;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -390,18 +374,32 @@ body {
     color: white;
 }
 
-/* 왼쪽 (사용자) */
+/* 왼쪽 (사용자) 말풍선 */
 .left-bubble {
     background-color: #4caf50; /* 초록색 */
     color: #fff;
-    margin-right: auto;   /* 왼쪽 정렬 */
+    margin-left: 10px; /* 왼쪽 간격 */
+    margin-right: 40px; /* 오른쪽 간격 */
+    align-self: flex-start; /* 왼쪽 정렬 */
+    border-radius: 12px;
+    padding: 8px 12px;
+    white-space: pre-wrap; /* 공백과 줄 바꿈을 유지 */
+    word-wrap: break-word; /* 긴 단어는 줄바꿈 */
+    max-width: 80%; /* 최대 너비 제한 */
 }
 
-/* 오른쪽 (봇) */
+/* 오른쪽 (봇) 말풍선 */
 .right-bubble {
-    background-color: #eee;
+    background-color: #eee; /* 연한 회색 */
     color: #333;
-    margin-left: auto;    /* 오른쪽 정렬 */
+    margin-left: 40px; /* 왼쪽 간격 */
+    margin-right: 10px; /* 오른쪽 간격 */
+    align-self: flex-end; /* 오른쪽 정렬 */
+    border-radius: 12px;
+    padding: 8px 12px;
+    white-space: pre-wrap; /* 공백과 줄 바꿈을 유지 */
+    word-wrap: break-word; /* 긴 단어는 줄바꿈 */
+    max-width: 80%; /* 최대 너비 제한 */
 }
 
 /* 아래로 이동 버튼 */
@@ -419,8 +417,28 @@ body {
     align-self: center;
     font-size: 24px;
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    margin-bottom: 40px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    margin-bottom: 50px;
+    border: none;
+}
+
+[data-theme="dark"] .scroll-to-bottom {
+    position: absolute;      /* 위치를 자유롭게 조정할 수 있도록 absolute/fixed */
+    bottom: 100px;          /* 화면 아래에서 100px 떨어짐 (입력창 위로) */
+    width: 40px;
+    height: 40px;
+    background-color: rgb(255, 255, 255); 
+    color: rgb(0, 0, 0);
+    border-radius: 50%;      /* 둥근 원 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    margin-bottom: 50px;
+    border: none;
 }
 
 /* 숨김 토글용 */
@@ -428,10 +446,15 @@ body {
     display: none !important;
 }
 
+.toggle-button-hidden {
+    display: none !important;
+}
+
 .header-buttons {
     display: flex;
     gap: 10px; /* 버튼 사이 간격 */
     justify-content: flex-end; /* 오른쪽 정렬 */
+    margin-right: 10px;
 }
 
 .header-buttons img {
@@ -453,18 +476,220 @@ body {
 .toggle-button {
     position: absolute;
     top: 45%;
-    right: -20px;
+    right: -30px;
     transform: translateY(-50%);
-    background-color: #333;
+    background-color: white;
+    color: #333;
+    width: 30px;
+    height: 50px;
+    border-radius: 0 30px 30px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+[data-theme="dark"] .toggle-button {
+    position: absolute;
+    top: 45%;
+    right: -30px;
+    transform: translateY(-50%);
+    background-color: #222;
     color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    width: 30px;
+    height: 50px;
+    border-radius: 0 30px 30px 0;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     z-index: 1000;
+    font-weight: bold;
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
+
+/* 로딩 애니메이션 스타일 */
+.loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.loader span {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background-color: #ccc;
+    border-radius: 50%;
+    animation: loader-animation 1.2s infinite ease-in-out;
+}
+
+.loader span:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.loader span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.loader span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes loader-animation {
+    0%, 80%, 100% {
+        transform: scale(0.5);
+        opacity: 0.3;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+#map-container {
+    flex-grow: 2;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    height: 100%;
+    z-index: 1; 
+}
+
+#map {
+    flex-grow: 1; /* 지도는 남은 공간을 채운다 */
+    position: relative;
+    background-color: #e0e0e0; /* 지도 대체용 색상 */
+    z-index: 1;
+    height: 100%;
+}
+
+#map-panel {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 50%; /* 기본 높이 */
+    background-color: white;
+    box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    overflow-y: auto;
+    z-index: 1;
+    overflow: hidden; /* 슬라이드 중 내용이 보이지 않게 */
+}
+
+[data-theme="dark"] #map-panel {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 50%; /* 기본 높이 */
+    background-color: #222;
+    color: white;
+    box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    overflow-y: auto;
+    z-index: 1;
+}
+
+#drag-handle {
+    width: 100%;
+    height: 15px;
+    background-color: #ccc;
+    cursor: ns-resize; /* 상하 드래그 커서 */
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.map-panel-content {
+    padding: 10px;
+}
+
+#day-button-container {
+    position: absolute;
+    top: -15px;
+    left: 10px;
+    display: flex;
+    gap: 10px; /* 버튼 간격 */
+    z-index: 100; /* 매우 높은 값으로 설정 */
+    pointer-events: auto; /* 클릭 이벤트 활성화 */
+}
+
+.dynamic-panel {
+    border: 2px solid black;
+    color: black;
+}
+
+.meal-section {
+    border: 2px solid black;
+    border-radius: 25px;
+    color: black;
+    margin-bottom: 10px;
+}
+
+[data-theme="dark"] .meal-section {
+    border: 2px solid white;
+    border-radius: 25px;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.meal-section h4 span {
+    color: black;
+    padding: 5px;
+}
+
+[data-theme="dark"] .meal-section h4 span {
+    color: white;
+    padding: 5px;
+}
+
+.dynamic-section h5 span {
+    padding: 10px;
+}
+
+.dynamic-section ul li {
+    padding: 10px;
+}
+
+#button-panel {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    height: 30px;
+}
+
+#button-panel button{
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
+    background-color: white;
+    color: #222;
+    border: none;
+}
+
+[data-theme="dark"] #button-panel button{
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
+    background-color: #222;
+    color: white;
+    border: none;
+}
+
+.item-section {
+    border: 2px solid black;
+    border-radius: 25px;
+}
+
+[data-theme="dark"] .item-section {
+    border: 2px solid white;
+    border-radius: 25px;
+}
+

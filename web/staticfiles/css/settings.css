@@ -17,6 +17,7 @@
     padding-left: 10px;
     color: #333;
     overflow: hidden;
+    min-height: 29px;
 }
 
 [data-theme="dark"] .panel h2 {
@@ -25,6 +26,7 @@
     padding-left: 10px;
     color: #c1c1c1;
     overflow: hidden;
+    min-height: 29px;
 }
 
 /* 각 섹션 스타일 */
@@ -46,6 +48,7 @@
     color: #555;
     padding: 10px 0px 10px 10px;
     overflow: hidden;
+    min-height: 40px;
 }
 
 [data-theme="dark"] .panel .section label {
@@ -53,6 +56,8 @@
     font-weight: bold;
     color: #a2a2a2;
     padding: 10px 0px 10px 10px;
+    overflow: hidden;
+    min-height: 40px;
 }
 
 /* 테마 옵션 스타일 */

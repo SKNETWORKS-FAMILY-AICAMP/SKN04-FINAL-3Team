@@ -27,6 +27,7 @@
     padding-top: 20px;
     padding-bottom: 20px;
     overflow: hidden;
+    min-height: 29px;
 }
 
 [data-theme="dark"] .panel h2 {
@@ -39,6 +40,7 @@
     padding-top: 20px;
     padding-bottom: 20px;
     overflow: hidden;
+    min-height: 29px;
 }
 
 /* 프로필 이미지 영역 */
@@ -181,6 +183,7 @@
 
 .popup-content {
     display: flex;
+    position: fixed;
     flex-direction: column;
     align-items: center; /* 가운데 정렬 */
     justify-content: center;
@@ -190,6 +193,7 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 350px; /* 박스 너비 */
     margin: 0 auto;
+    z-index: 1001;
 }
 
 /* 이미지 그리드 스타일 */

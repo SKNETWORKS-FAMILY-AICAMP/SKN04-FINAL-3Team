@@ -18,7 +18,7 @@
         <div id="placesSection" style="display: block;">
             <div class="folder-list">
                 {% for place in places %}
-                <div class="folder-item">
+                <div class="folder-item" id="{{ place.bookmark }}">
                     <img src="
                             {% if settings.is_white_theme %}{% static 'images/folder_light.png' %}  
                             {% else %}{% static 'images/folder_dark.png' %}{% endif %}" 
@@ -30,7 +30,6 @@
                             alt="delete" width="50px" height="50px" class="delete-icon" data-id="{{ place.bookmark }}">
                 </div>
                 {% endfor %}
-                <!-- 새로운 폴더 만들기 버튼 -->
                 <div class="folder-item" id="plus-place">
                     <img src="
                             {% if settings.is_white_theme %}{% static 'images/plus_light.png' %}
@@ -45,7 +44,7 @@
         <div id="scheduleSection" style="display: none;">
             <div class="folder-list">
                 {% for schedule in schedules %}
-                <div class="folder-item">
+                <div class="folder-item" id="{{ schedule.bookmark }}">
                     <img src="
                             {% if settings.is_white_theme %}{% static 'images/schedule_light.png' %}
                             {% else %}{% static 'images/schedule_dark.png' %}{% endif %}" 
@@ -57,7 +56,6 @@
                             alt="delete" width="50px" height="50px" class="delete-icon" data-id="{{ schedule.bookmark }}">
                 </div>
                 {% endfor %}
-                <!-- 새로운 일정 만들기 버튼 -->
                 <div class="folder-item" id="plus-schedule">
                     <img src="
                             {% if settings.is_white_theme %}{% static 'images/plus_light.png' %}
@@ -68,6 +66,6 @@
             </div>
         </div>
 
-        <div class="toggle-button" id="toggleButton"><</div>
+        <div class="toggle-button" id="toggleButton"><&nbsp;</div>
     </div>
 </div>

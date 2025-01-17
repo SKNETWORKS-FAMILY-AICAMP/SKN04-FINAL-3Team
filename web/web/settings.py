@@ -23,10 +23,12 @@ dotenv_path = os.path.join(BASE_DIR, '.env')
 load_dotenv(dotenv_path)
 
 # 환경 변수 가져오기
-NCP_CLIENT_ID = os.getenv('ncp_client_id')
+NCP_CLIENT_ID = os.getenv('NCP_CLIENT_ID')
+NCP_CLIENT_SECRET = os.getenv('NCP_CLIENT_SECRET')
 
 # 디버깅 출력
 print("Loaded NCP_CLIENT_ID:", NCP_CLIENT_ID)
+print("Loaded NCP_CLIENT_SECRET:", NCP_CLIENT_SECRET)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
@@ -43,6 +45,37 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # 개발용 로컬 호스트
+    "http://127.0.0.1:3000", # 개발용 로컬 호스트
+]
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    "X-NCP-APIGW-API-KEY-ID",
+    "X-NCP-APIGW-API-KEY",
+]
+
+# 자격 증명(쿠키, 인증 정보) 허용
+CORS_ALLOW_CREDENTIALS = True
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -52,6 +85,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'corsheaders',
+    'rest_framework',
     "main",
     'langgraph',
 ]
@@ -61,6 +96,7 @@ AUTH_USER_MODEL = 'main.CustomUser'
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",

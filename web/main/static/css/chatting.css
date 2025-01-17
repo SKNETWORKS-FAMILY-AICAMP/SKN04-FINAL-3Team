@@ -30,6 +30,7 @@
     padding-top: 20px;
     padding-bottom: 20px;
     overflow: hidden;
+    min-height: 30px;
 }
 
 [data-theme="dark"] .panel h2 {
@@ -43,6 +44,12 @@
     padding-top: 20px;
     padding-bottom: 20px;
     overflow: hidden;
+    min-height: 30px;
+}
+
+#chattingSection {
+    display: block;
+    max-height: 754px;
 }
 
 .top-menu {
@@ -70,7 +77,13 @@
     flex: 1; 
     display: flex;
     flex-direction: column;
+    max-height: inherit; /* 최대 높이 설정 */
     overflow-y: auto;
+}
+
+.chat-list.fewer-than-ten {
+    max-height: none; /* 스크롤 제거 */
+    overflow-y: hidden;
 }
 
 .chat-item {
@@ -80,6 +93,7 @@
     display: flex;
     align-items: center;
     border-bottom: 1px solid #ddd;
+    height: 40px;
 }
 
 [data-theme="dark"] .chat-item {
@@ -88,6 +102,7 @@
     display: flex;
     align-items: center;
     border-bottom: 1px solid #444;
+    height: 40px;
 }
 
 .chat-item:hover {
