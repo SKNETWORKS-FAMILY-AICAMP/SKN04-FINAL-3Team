@@ -6,7 +6,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'web.settings')
 django.setup()
 
 # Django ORM 코드 실행
-from main.models import Schedule
+from main.models import BookmarkSchedule
 
 # 새로운 Schedule 레코드 추가
 schedules = [
@@ -155,12 +155,12 @@ schedules = [
 # 중복 방지 로직
 new_schedules = []
 for data in schedules:
-    if not Schedule.objects.filter(schedule_id=data["schedule_id"]).exists():
-        new_schedules.append(Schedule(**data))
+    if not BookmarkSchedule.objects.filter(schedule_id=data["schedule_id"]).exists():
+        new_schedules.append(BookmarkSchedule(**data))
 
 # 새로운 데이터만 bulk_create
 if new_schedules:
-    Schedule.objects.bulk_create(new_schedules)
+    BookmarkSchedule.objects.bulk_create(new_schedules)
     print(f"{len(new_schedules)}개의 Schedule 데이터가 추가되었습니다!")
 else:
     print("중복 데이터가 존재하여 추가된 데이터가 없습니다.")

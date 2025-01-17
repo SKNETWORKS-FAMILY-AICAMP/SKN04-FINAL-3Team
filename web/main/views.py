@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db import models
-from main.models import Chatting, Bookmark, BookmarkList, Settings, Country, CustomUser, Place, Schedule
+from main.models import Chatting, Bookmark, BookmarkList, Settings, Country, CustomUser, BookmarkPlace, BookmarkSchedule
 from urllib.parse import quote
 from dotenv import load_dotenv
 import requests
@@ -811,9 +811,9 @@ def bookmark_detail(request, bookmark_id):
         if not bookmark_list_entry:
             return JsonResponse({"error": "No related data found in BookmarkList."}, status=404)
 
-        if bookmark_list_entry.place:
+        if bookmark_list_entry.bookmarkplace:
             # Place 데이터 반환
-            place = bookmark_list_entry.place
+            place = bookmark_list_entry.bookmarkplace
             print("Place name:", place.name)
             print("Place address:", place.address)
             return JsonResponse({
@@ -821,9 +821,9 @@ def bookmark_detail(request, bookmark_id):
                 "name": place.name,
                 "address": place.address,
             })
-        elif bookmark_list_entry.schedule:
+        elif bookmark_list_entry.bookmarkschedule:
             # Schedule 데이터 반환
-            schedule = bookmark_list_entry.schedule
+            schedule = bookmark_list_entry.bookmarkschedule
             print("Schedule name:", schedule.name)
             print("Schedule json_data:", schedule.json_data)
             return JsonResponse({
@@ -836,3 +836,37 @@ def bookmark_detail(request, bookmark_id):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
+def get_user_bookmarks(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"success": False, "error": "User not authenticated"}, status=403)
+    
+    user = request.user
+    bookmarks = Bookmark.objects.filter(profile=user, is_place=False)  # 일정만 가져옴
+
+    bookmark_list = []
+    for bookmark in bookmarks:
+        places = BookmarkList.objects.filter(bookmark=bookmark).select_related('place')
+        schedules = BookmarkList.objects.filter(bookmark=bookmark).select_related('schedule')
+        if schedules:
+            for item in schedules:
+                if item.bookmarkschedule:
+                    bookmark_list.append({
+                        "title": bookmark.title,
+                        "schedule_name": item.bookmarkschedule.name,
+                        "json_data": item.bookmarkschedule.json_data,
+                    })
+        elif places:
+            for item in places:
+                if item.bookmarkplace:
+                    bookmark_list.append({
+                        "title": bookmark.title,
+                        "schedule_name": item.bookmarkplace.name,
+                        "latitude": item.bookmarkplace.latitude,
+                        "longitude": item.bookmarkplace.longitude,
+                        "category": item.bookmarkplace.category,
+                        "overview": item.bookmarkplace.overview,
+                    })
+        
+    return JsonResponse({"success": True, "bookmarks": bookmark_list})

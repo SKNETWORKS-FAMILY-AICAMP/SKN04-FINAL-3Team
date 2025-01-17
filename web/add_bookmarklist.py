@@ -5,50 +5,53 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'web.settings')
 django.setup()
 
-from main.models import BookmarkList, Bookmark, Place, Schedule
+from main.models import BookmarkList, Bookmark, BookmarkPlace, BookmarkSchedule
 
 # BookmarkList 레코드 추가
 bookmarklists = [
-    {"schedule_id": "", "place_id": "pc_00001", "bookmark_id": "bm_00001"},
-    {"schedule_id": "", "place_id": "pc_00002", "bookmark_id": "bm_00002"},
-    {"schedule_id": "", "place_id": "pc_00003", "bookmark_id": "bm_00003"},
-    {"schedule_id": "", "place_id": "pc_00004", "bookmark_id": "bm_00004"},
-    {"schedule_id": "", "place_id": "pc_00005", "bookmark_id": "bm_00005"},
-    {"schedule_id": "", "place_id": "pc_00006", "bookmark_id": "bm_00005"},
-    {"schedule_id": "", "place_id": "pc_00007", "bookmark_id": "bm_00005"},
-    {"schedule_id": "", "place_id": "pc_00008", "bookmark_id": "bm_00005"},
-    {"schedule_id": "", "place_id": "pc_00009", "bookmark_id": "bm_00005"},
-    {"schedule_id": "sc_00001", "place_id": "", "bookmark_id": "bm_00006"},
-    {"schedule_id": "sc_00002", "place_id": "", "bookmark_id": "bm_00007"},
-    {"schedule_id": "sc_00003", "place_id": "", "bookmark_id": "bm_00008"},
-    {"schedule_id": "sc_00004", "place_id": "", "bookmark_id": "bm_00009"},
-    {"schedule_id": "sc_00005", "place_id": "", "bookmark_id": "bm_00010"},
-    {"schedule_id": "sc_00006", "place_id": "", "bookmark_id": "bm_00011"},
+    {"bookmarkschedule_id": "", "bookmarkplace_id": "pc_00001", "bookmark_id": "bm_00001"},
+    {"bookmarkschedule_id": "", "bookmarkplace_id": "pc_00002", "bookmark_id": "bm_00002"},
+    {"bookmarkschedule_id": "", "bookmarkplace_id": "pc_00003", "bookmark_id": "bm_00003"},
+    {"bookmarkschedule_id": "", "bookmarkplace_id": "pc_00004", "bookmark_id": "bm_00004"},
+    {"bookmarkschedule_id": "", "bookmarkplace_id": "pc_00005", "bookmark_id": "bm_00005"},
+    {"bookmarkschedule_id": "", "bookmarkplace_id": "pc_00006", "bookmark_id": "bm_00005"},
+    {"bookmarkschedule_id": "", "bookmarkplace_id": "pc_00007", "bookmark_id": "bm_00005"},
+    {"bookmarkschedule_id": "", "bookmarkplace_id": "pc_00008", "bookmark_id": "bm_00005"},
+    {"bookmarkschedule_id": "", "bookmarkplace_id": "pc_00009", "bookmark_id": "bm_00005"},
+    {"bookmarkschedule_id": "sc_00001", "bookmarkplace_id": "", "bookmark_id": "bm_00006"},
+    {"bookmarkschedule_id": "sc_00002", "bookmarkplace_id": "", "bookmark_id": "bm_00007"},
+    {"bookmarkschedule_id": "sc_00003", "bookmarkplace_id": "", "bookmark_id": "bm_00008"},
+    {"bookmarkschedule_id": "sc_00004", "bookmarkplace_id": "", "bookmark_id": "bm_00009"},
+    {"bookmarkschedule_id": "sc_00005", "bookmarkplace_id": "", "bookmark_id": "bm_00010"},
+    {"bookmarkschedule_id": "sc_00006", "bookmarkplace_id": "", "bookmark_id": "bm_00011"},
 ]
 
     # 중복되지 않은 데이터만 삽입
 new_bookmarklists = []
 for data in bookmarklists:
     try:
-        place = Place.objects.get(place_id=data["place_id"]) if data["place_id"] else None
-        schedule = Schedule.objects.get(schedule_id=data["schedule_id"]) if data["schedule_id"] else None
+        bookmarkplace = BookmarkPlace.objects.get(bookmarkplace_id=data["bookmarkplace_id"]) if data["bookmarkplace_id"] else None
+        bookmarkschedule = BookmarkSchedule.objects.get(bookmarkschedule_id=data["bookmarkschedule_id"]) if data["bookmarkschedule_id"] else None
         bookmark = Bookmark.objects.get(bookmark=data["bookmark_id"])
         
         # 중복 여부 확인
-        if not BookmarkList.objects.filter(place=place, schedule=schedule, bookmark=bookmark).exists():
+        if not BookmarkList.objects.filter(bookmarkplace=bookmarkplace, bookmarkschedule=bookmarkschedule, bookmark=bookmark).exists():
             new_bookmarklists.append(
                 BookmarkList(
-                    place=place,
-                    schedule=schedule,
+                    bookmarkplace=bookmarkplace,
+                    bookmarkschedule=bookmarkschedule,
                     bookmark=bookmark,
                 )
             )
-    except Place.DoesNotExist:
-        print(f"Place with ID '{data['place_id']}' does not exist.")
-    except Schedule.DoesNotExist:
-        print(f"Schedule with ID '{data['schedule_id']}' does not exist.")
+    except BookmarkPlace.DoesNotExist:
+        print(f"Place with ID '{data['bookmarkplace_id']}' does not exist.")
+        continue
+    except BookmarkSchedule.DoesNotExist:
+        print(f"Schedule with ID '{data['bookmarkschedule_id']}' does not exist.")
+        continue
     except Bookmark.DoesNotExist:
-        print(f"Bookmark with ID '{data['bookmark_id']}' does not exist.")
+        print(f"Bookmark with ID '{data['bookmarkbookmark_id']}' does not exist.")
+        continue
 
 # 새로운 데이터만 bulk_create
 if new_bookmarklists:

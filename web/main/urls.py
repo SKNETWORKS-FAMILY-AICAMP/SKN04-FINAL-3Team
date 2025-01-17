@@ -26,6 +26,7 @@ urlpatterns = [
     path('app/partials/chatting/count/', views.get_chat_count, name='get_chat_count'),
     path('app/partials/chatting/delete/', views.delete_chat, name='delete_chat'),
     path('app/partials/favorites/', views.favorites_places, name='favorites_places'),
+    path('app/partials/favorites/bookmarks/', views.get_user_bookmarks, name='get_user_bookmarks'),
     path('app/partials/favorites/bookmark-detail/<str:bookmark_id>/', views.bookmark_detail, name='bookmark_detail'),
     path('app/partials/favorites/add/', views.add_folder, name='add_folder'),
     path('app/partials/favorites/delete/', views.delete_favorite, name='delete_favorite'),

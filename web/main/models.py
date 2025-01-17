@@ -58,8 +58,8 @@ class Settings(models.Model):
         managed = True
 
 
-class Place(models.Model):
-    place_id = models.CharField(max_length=10, primary_key=True)
+class BookmarkPlace(models.Model):
+    bookmarkplace_id = models.CharField(max_length=10, primary_key=True)
     name = models.CharField(max_length=30)
     address = models.CharField(max_length=40)
     category = models.CharField(max_length=30)
@@ -69,18 +69,18 @@ class Place(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'place'
+        db_table = 'bookmarkplace'
         managed = True
 
 
-class Schedule(models.Model):
-    schedule_id = models.CharField(max_length=10, primary_key=True)
+class BookmarkSchedule(models.Model):
+    bookmarkschedule_id = models.CharField(max_length=10, primary_key=True)
     name = models.CharField(max_length=30)
     json_data = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'schedule'
+        db_table = 'bookmarkschedule'
         managed = True
         
 
@@ -97,8 +97,8 @@ class Bookmark(models.Model):
 
 
 class BookmarkList(models.Model):
-    place = models.ForeignKey(Place, on_delete=models.CASCADE, null=True, blank=True)
-    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, null=True, blank=True)
+    bookmarkplace = models.ForeignKey(BookmarkPlace, on_delete=models.CASCADE, null=True, blank=True)
+    bookmarkschedule = models.ForeignKey(BookmarkSchedule, on_delete=models.CASCADE, null=True, blank=True)
     bookmark = models.ForeignKey(Bookmark, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
