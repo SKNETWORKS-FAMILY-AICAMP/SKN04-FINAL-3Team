@@ -1,0 +1,32 @@
+<!-- planner.html -->
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<div class="container" id="plannerPanel">
+    <div class="panel">
+        <div id="chat-header">
+            <div class="title-container">
+                <span id="planner-title" style="display: block;"></span>
+                <input id="change-title" type="text" style="display: none;" maxlength="10">
+            </div>
+            <div class="header-buttons">                
+                <img src="{% if settings.is_white_theme %}{% static 'images/init_light.png' %}{% else %}{% static 'images/init_dark.png' %}{% endif %}" alt="reset" id="resetButton" title="초기화">
+                <!-- <img src="{% if settings.is_white_theme %}{% static 'images/new_chat_light.png' %}{% else %}{% static 'images/new_chat_dark.png' %}{% endif %}" alt="new" id="newPostButton" title="새 대화"> -->
+            </div>
+        </div>
+
+        <div id="chat-messages" class="chat-container"></div>
+
+        <button id="scrollToBottomBtn" class="scroll-to-bottom hidden">▼</button>
+        
+        <div class="input-container">
+            <textarea id="input_bar" class="input-bar" rows="6"></textarea>
+        </div>
+
+        <div class="toggle-button" id="toggleButton"><&nbsp;</div>
+    </div>
+</div>
+
+
