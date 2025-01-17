@@ -65,7 +65,7 @@
             <div id="map-panel">
                 <div id="drag-handle"></div> <!-- 드래그 핸들 추가 -->
                 <div id="button-panel">
-                    <button id="addToBookmarkBtn" onclick="addToBookmark()">☆</button>
+                    <button id="getBookmarkListBtn" onclick="getBookmarkList(false)">☆</button>
                     <button id="toggleUIBtn" onclick="toggleMapPanel()">⮟</button>
                 </div> 
                 <div class="map-panel-content">
@@ -1075,14 +1075,14 @@
                             const itemSection = document.createElement('div');
                             itemSection.className = 'item-section';
 
-                            if (data.type === 'place') {
+                            if (data.type === 'bookmarkplace') {
                                 itemSection.innerHTML = `
                                     <h3>장소 정보</h3>
                                     <p><strong>이름:</strong> ${data.name}</p>
                                     <p><strong>주소:</strong> ${data.address}</p>
                                 `;
                                 mapPanelContent.appendChild(itemSection);
-                            } else if (data.type === 'schedule') {
+                            } else if (data.type === 'bookmarkschedule') {
                                 let jsonData = typeof data.json_data === "string" ? JSON.parse(data.json_data) : data.json_data;
                                 generateDayButtons(jsonData);
                                 generateDynamicPlanContent(jsonData);
@@ -2204,8 +2204,60 @@
             return null;
         }
         
-        function addToBookmark() {
+        async function getBookmarkList(isPlace) {
+            if (isPlace) {      //일정 즐겨찾기 추가하기 위해 목록 불러오기
+                try {
+                    const response = await fetch("/app/partials/favorites/bookmarks/", {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    });
 
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        console.log("User's Bookmarked Schedules:", data.bookmarks);
+                        alert("콘솔창에서 즐겨찾기 일정을 확인하세요.");
+                    } else {
+                        console.error("Failed to fetch bookmarks:", data.error);
+                        alert("즐겨찾기 데이터를 가져오지 못했습니다.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching bookmarks:", error);
+                    alert("서버 요청 중 오류가 발생했습니다.");
+                }
+            } else {            //일정 즐겨찾기 추가하기 위해 목록 불러오기
+                try {
+                    const response = await fetch("/app/partials/favorites/bookmarks/", {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        console.log("User's Bookmarked Schedules:", data.bookmarks);
+                        alert("콘솔창에서 즐겨찾기 일정을 확인하세요.");
+                    } else {
+                        console.error("Failed to fetch bookmarks:", data.error);
+                        alert("즐겨찾기 데이터를 가져오지 못했습니다.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching bookmarks:", error);
+                    alert("서버 요청 중 오류가 발생했습니다.");
+                }
+            }
         }
 
         function toggleMapPanel() {
