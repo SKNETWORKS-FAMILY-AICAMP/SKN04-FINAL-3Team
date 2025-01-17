@@ -65,12 +65,20 @@
             <div id="map-panel">
                 <div id="drag-handle"></div> <!-- 드래그 핸들 추가 -->
                 <div id="button-panel">
+                    <button id="toggleAnimationBtn" onclick="toggleAnimation()">A</button>
                     <button id="getBookmarkListBtn" onclick="getBookmarkList(false)">☆</button>
                     <button id="toggleUIBtn" onclick="toggleMapPanel()">⮟</button>
                 </div> 
                 <div class="map-panel-content">
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- 새로운 애니메이션용 DIV -->
+    <div id="bookmarklist-div">
+        <div style="display: flex; justify-content: flex-end; align-items: flex-end;">
+            <button id="closeBookmarkListBtn" onclick="document.querySelector('#bookmarklist-div').classList.remove('active');">∨</button>
         </div>
     </div>
 
@@ -132,9 +140,18 @@
                             },
                         });
 
+                        // 정보창 생성
+                        var infoWindow = new naver.maps.InfoWindow({
+                            content: `<div style="width:200px;text-align:center;padding:10px;">
+                                        <h4>가맹점 정보</h4>
+                                        <p>여기에 가맹점 정보를 표시합니다.</p>
+                                    </div>`
+                        });
+
                         // 마커 클릭 이벤트 (선택 사항)
                         naver.maps.Event.addListener(marker, 'click', function () {
                             alert(`${data.title}입니다!`);
+                            infoWindow.open(map, marker); // 마커 클릭 시 정보창 열기
                         });
                     });
 
@@ -144,7 +161,7 @@
                             map: map,
                             path: [markerData[i].position, markerData[i + 1].position], // 인접한 마커 연결
                             strokeColor: '#000000', // 선 색상
-                            strokeWeight: 3, // 선 두께
+                            strokeWeight: 0, // 선 두께
                             strokeStyle: 'solid', // 선 스타일 (solid, dashed, dotted 등)
                         });
                     }
@@ -212,8 +229,8 @@
 
         function updateIconsBasedOnTheme() {
             const isLightTheme = document.body.getAttribute("data-theme") === "light";
+            
             const navIcons = document.querySelectorAll(".nav-icon");
-
             navIcons.forEach(icon => {
                 const newSrc = isLightTheme ? icon.getAttribute("data-light") : icon.getAttribute("data-dark");
                 icon.setAttribute("src", newSrc);
@@ -224,6 +241,11 @@
                 const newEditSrc = isLightTheme ? editIcon.getAttribute("data-light") : editIcon.getAttribute("data-dark");
                 editIcon.setAttribute("src", newEditSrc);
             }
+
+            const deletePlaceBtns = document.querySelectorAll("#deletePlaceBtn");
+            deletePlaceBtns.forEach(button => {
+                button.src = isLightTheme ? "/static/images/delete_light.png" : "/static/images/delete_dark.png";
+            });
         }
 
         document.addEventListener("DOMContentLoaded", function () {            
@@ -396,7 +418,7 @@
 
                         setTimeout(() => {
                             isScrollPaused = false; // 일정 시간 후 스크롤 이벤트 재개
-                            chatMessages.dispatchEvent(new Event("scroll")); // 스크롤 강제 트리거
+                            // chatMessages.dispatchEvent(new Event("scroll")); // 스크롤 강제 트리거
                         }, 100); // 100ms 대기 후 재개
                     } else {
                         // 채팅 패널 숨김
@@ -558,10 +580,7 @@
                                         .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
                                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
-                                    // Example Usage
-                                    console.log("formattedMessage:", formattedMessage);
                                     const jsonData = parseItineraryToJson(formattedMessage);
-                                    console.log("Clicked Message:", jsonData);
                                     generateDayButtons(jsonData);
                                     generateDynamicPlanContent(jsonData);
                                 }
@@ -770,11 +789,33 @@
                 // --------------------------------
                 // (A) 탭 전환 로직
                 // --------------------------------
+                const backBtn = document.getElementById('backBtn');
                 const placeBtn = document.getElementById('placeBtn');
                 const scheduleBtn = document.getElementById('scheduleBtn');
+                const topmenu = document.querySelector('.top-menu');
                 const placesSection = document.getElementById('placesSection');
                 const scheduleSection = document.getElementById('scheduleSection');
                 const bodyElement = document.body; // 테마를 확인하기 위한 body 요소
+
+                backBtn.addEventListener('click', () => {
+                    backBtn.style.display = "none";
+                    placeBtn.style.display = "block";
+                    scheduleBtn.style.display = "block";
+                    topmenu.style.justifyContent = "space-evenly";
+                    document.querySelector('.folder-list').style.display = "block";
+                    document.querySelector('.bookmark-place-item').style.display = "none";
+                    document.querySelector('.bookmark-schedule-item').style.display = "none";
+
+                    const AllFolderLists = favoritesPanel.querySelectorAll('.folder-list');
+                    const bookmarkPlaceItemDiv = document.querySelector(".bookmark-place-item");
+                    const bookmarkScheduleItemDiv = document.querySelector(".bookmark-schedule-item");
+                    
+                    if (AllFolderLists) {
+                        AllFolderLists.forEach(folderList => {
+                            folderList.style.display = "block";
+                        });
+                    }
+                });
 
                 if (placeBtn && scheduleBtn && placesSection && scheduleSection) {
                     placeBtn.addEventListener('click', function() {
@@ -783,6 +824,11 @@
 
                         placeBtn.style.backgroundColor = '#999';
                         scheduleBtn.style.backgroundColor = '';
+
+                        topmenu.style.justifyContent = "space-evenly";
+                        backBtn.style.display = "none";
+                        placeBtn.style.display = "block";
+                        scheduleBtn.style.display = "block";
                     });
 
                     scheduleBtn.addEventListener('click', function() {
@@ -791,6 +837,11 @@
 
                         scheduleBtn.style.backgroundColor = '#999';
                         placeBtn.style.backgroundColor = '';
+
+                        topmenu.style.justifyContent = "space-evenly";
+                        backBtn.style.display = "none";
+                        placeBtn.style.display = "block";
+                        scheduleBtn.style.display = "block";
                     });
 
                     placeBtn.click();
@@ -1030,29 +1081,50 @@
                 });
 
                 const folderItems = document.querySelectorAll(".folder-item");
-
                 // 각 folder-item에 클릭 이벤트 추가
                 folderItems.forEach(item => {
                     item.addEventListener("click", async function () {
-                        document.querySelectorAll(".folder-item").forEach(folder => {
-                            folder.style.backgroundColor = ""; // 원래 색으로 복원 (CSS 초기값)
-                        });
+                        const backBtn = document.getElementById('backBtn');
+                        const placeBtn = document.getElementById('placeBtn');
+                        const scheduleBtn = document.getElementById('scheduleBtn');
+                        const topmenu = document.querySelector('.top-menu');
+                        const AllFolderLists = favoritesPanel.querySelectorAll('.folder-list');
+                        const bookmarkPlaceItemDiv = document.querySelector(".bookmark-place-item");
+                        const bookmarkScheduleItemDiv = document.querySelector(".bookmark-schedule-item");
+                    
+                        if (AllFolderLists) {
+                            AllFolderLists.forEach(folderList => {
+                                folderList.style.display = "none";
+                            });
+                        }
 
-                        this.style.backgroundColor = "#999";
+                        topmenu.style.justifyContent = "start";
+                        backBtn.style.display = "block";
+                        placeBtn.style.display = "none";
+                        scheduleBtn.style.display = "none";
 
-                        const bookmarkId = this.id; // folder-item의 ID 값
-                        console.log("id:::", bookmarkId);
+                        // bookmark-place-item과 bookmark-schedule-item 초기화
+                        if (bookmarkPlaceItemDiv) {                            
+                            bookmarkPlaceItemDiv.style.display = "none";
+                            bookmarkPlaceItemDiv.innerHTML = ""; // 기존 자식 요소 제거
+                        }
+                        if (bookmarkScheduleItemDiv) {
+                            bookmarkScheduleItemDiv.style.display = "none";
+                            bookmarkScheduleItemDiv.innerHTML = ""; // 기존 자식 요소 제거
+                        }
+                        
+                        const bookmarkId = this.id; // 클릭된 div의 ID 가져오기
                         if (!bookmarkId || bookmarkId === "plus-place" || bookmarkId === "plus-schedule") {
-                            return; // "새 폴더" 버튼은 클릭 이벤트 무시
+                            return; // "새 폴더" 버튼 클릭 시 무시
                         }
 
                         try {
                             // 서버에 bookmark_id로 데이터 요청
-                            const response = await fetch(`/app/partials/favorites/bookmark-detail/${bookmarkId}/`, {
+                            const response = await fetch(`/app/partials/favorites/get_bookmark_items/${bookmarkId}/`, {
                                 method: "GET",
                                 headers: {
                                     "Content-Type": "application/json",
-                                }
+                                },
                             });
 
                             if (!response.ok) {
@@ -1060,36 +1132,208 @@
                             }
 
                             const data = await response.json();
-                            console.log("Bookmark Data:", data);
-                            console.log("Bookmark Data type:", data.type);
+                            if (data.type === "place") {
+                                // 장소 즐겨찾기
+                                if (bookmarkPlaceItemDiv) {
+                                    bookmarkPlaceItemDiv.style.display = "block";
 
-                            // map-panel-content 업데이트
-                            const mapPanelContent = document.querySelector('.map-panel-content');
-                            if (!mapPanelContent) {
-                                console.error('map-panel-content element not found');
-                                return;
-                            }
+                                    data.rows.forEach(row => {
+                                        const itemDiv = document.createElement("div");
+                                        itemDiv.className = "place-item";
+                                        itemDiv.id = row.id;
+                                        itemDiv.innerHTML = `
+                                            <p style="display: flex; align-items: center;"><strong>이름:</strong> ${row.name}</p>
+                                        `;
+                                        itemDiv.addEventListener("click", async () => {
+                                            //DB에서 해당 데이터 불러오기
+                                            document.querySelectorAll(".place-item").forEach(folder => {                                                
+                                                folder.style.backgroundColor = ""; // 원래 색으로 복원 (CSS 초기값)
+                                            });
+                                            document.getElementById("getBookmarkListBtn").textContent = "★";
+                                            itemDiv.style.backgroundColor = "#999";
 
-                            // 기존 내용 제거
-                            mapPanelContent.innerHTML = '';
+                                            const bookmarkId = this.id; // folder-item의 ID 값
+                                            if (!bookmarkId || bookmarkId === "plus-place" || bookmarkId === "plus-schedule") {
+                                                return; // "새 폴더" 버튼은 클릭 이벤트 무시
+                                            }
 
-                            const itemSection = document.createElement('div');
-                            itemSection.className = 'item-section';
+                                            try {
+                                                // 서버에 bookmark_id로 데이터 요청
+                                                const response = await fetch(`/app/partials/favorites/bookmark-place-detail/${row.id}/`, {
+                                                    method: "GET",
+                                                    headers: {
+                                                        "Content-Type": "application/json",
+                                                    },
+                                                });
 
-                            if (data.type === 'place') {
-                                itemSection.innerHTML = `
-                                    <h3>장소 정보</h3>
-                                    <p><strong>이름:</strong> ${data.name}</p>
-                                    <p><strong>주소:</strong> ${data.address}</p>
-                                `;
-                                mapPanelContent.appendChild(itemSection);
-                            } else if (data.type === 'schedule') {
-                                let jsonData = typeof data.json_data === "string" ? JSON.parse(data.json_data) : data.json_data;
-                                generateDayButtons(jsonData);
-                                generateDynamicPlanContent(jsonData);
-                            } else {
-                                itemSection.innerHTML = '<p>관련 데이터가 없습니다.</p>';
-                                mapPanelContent.appendChild(itemSection);
+                                                if (!response.ok) {
+                                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                                }
+                                                
+                                                // UI 업데이트: map-panel-content 또는 다른 요소에 데이터 표시
+                                                const data = await response.json(); // JSON 응답 파싱
+                                                const mapPanelContent = document.querySelector(".map-panel-content");
+                                                if (!mapPanelContent) {
+                                                    console.error("map-panel-content element not found");
+                                                    return;
+                                                }
+
+                                                // 기존 내용 제거
+                                                mapPanelContent.innerHTML = "";
+
+                                                // 장소 정보 표시
+                                                if (data) {
+                                                    const placeSection = document.createElement("div");
+                                                    placeSection.className = "place-section";
+                                                    placeSection.innerHTML = `
+                                                        <h3>장소 정보</h3>
+                                                        <p><strong>이름:</strong> ${data.name}</p>
+                                                        <p><strong>주소:</strong> ${data.address}</p>
+                                                        <p><strong>설명:</strong> ${data.description || "설명이 없습니다."}</p>
+                                                    `;
+                                                    mapPanelContent.appendChild(placeSection);
+                                                } else {
+                                                    const noDataMessage = document.createElement("p");
+                                                    noDataMessage.textContent = "해당 데이터가 없습니다.";
+                                                    mapPanelContent.appendChild(noDataMessage);
+                                                }
+                                            } catch (error) {
+                                                console.error("Error fetching bookmark place data:", error);
+                                            }
+                                        });
+
+                                        // 삭제 버튼 추가
+                                        const deleteButton = document.createElement('img');
+                                        deleteButton.src = document.body.getAttribute('data-theme') === 'light' 
+                                            ? '/static/images/delete_light.png' 
+                                            : '/static/images/delete_dark.png';
+                                        deleteButton.style.cursor = 'pointer';
+                                        deleteButton.style.marginLeft = 'auto';
+                                        deleteButton.style.marginRight = '10px';
+                                        deleteButton.style.opacity = '0.7';
+                                        deleteButton.width = 25;
+                                        deleteButton.height = 25;
+
+                                        // 삭제 버튼 이벤트 추가
+                                        deleteButton.addEventListener('click', () => {
+                                            // UI에서 제거
+                                            bookmarkPlaceItemDiv.removeChild(itemDiv);
+
+                                            //DB에서도 해당 데이터 제거
+
+                                        });
+
+                                        deleteButton.addEventListener('mouseover', () => {
+                                            deleteButton.style.opacity = '1.0';
+                                        });
+
+                                        deleteButton.addEventListener('mouseleave', () => {
+                                            deleteButton.style.opacity = '0.7';
+                                        });
+
+                                        itemDiv.appendChild(deleteButton);
+                                        bookmarkPlaceItemDiv.appendChild(itemDiv);
+                                    });
+                                }
+                            } 
+                            else if (data.type === "schedule") {
+                                // 일정 즐겨찾기
+                                if (bookmarkScheduleItemDiv) {
+                                    bookmarkScheduleItemDiv.style.display = "block";
+
+                                    data.rows.forEach(row => {
+                                        const itemDiv = document.createElement("div");
+                                        itemDiv.className = "schedule-item";
+                                        itemDiv.id = row.id;
+                                        itemDiv.innerHTML = `
+                                            <p style="display: flex; align-items: center;"><strong>이름:</strong> ${row.name}</p>
+                                        `;
+                                        itemDiv.addEventListener("click", async () => {
+                                            document.querySelectorAll(".schedule-item").forEach(folder => {                                                
+                                                folder.style.backgroundColor = ""; // 원래 색으로 복원 (CSS 초기값)
+                                            });
+
+                                            document.getElementById("getBookmarkListBtn").textContent = "★";
+                                            itemDiv.style.backgroundColor = "#999";
+
+                                            const bookmarkId = this.id; // folder-item의 ID 값
+                                            if (!bookmarkId || bookmarkId === "plus-place" || bookmarkId === "plus-schedule") {
+                                                return; // "새 폴더" 버튼은 클릭 이벤트 무시
+                                            }
+
+                                            try {
+                                                // 서버에 bookmark_id로 데이터 요청
+                                                const response = await fetch(`/app/partials/favorites/bookmark-schedule-detail/${row.id}/`, {
+                                                    method: "GET",
+                                                    headers: {
+                                                        "Content-Type": "application/json",
+                                                    },
+                                                });
+
+                                                if (!response.ok) {
+                                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                                }
+
+                                                // UI 업데이트: map-panel-content 또는 다른 요소에 데이터 표시
+                                                const data = await response.json(); // JSON 응답 파싱
+                                                const mapPanelContent = document.querySelector(".map-panel-content");
+                                                if (!mapPanelContent) {
+                                                    console.error("map-panel-content element not found");
+                                                    return;
+                                                }
+
+                                                // 기존 내용 제거
+                                                mapPanelContent.innerHTML = "";
+
+                                                // 장소 정보 표시
+                                                if (data) {;
+                                                    const jsonData = JSON.parse(data.json_data);
+                                                    generateDayButtons(jsonData);
+                                                    generateDynamicPlanContent(jsonData);
+                                                } else {
+                                                    const noDataMessage = document.createElement("p");
+                                                    noDataMessage.textContent = "해당 데이터가 없습니다.";
+                                                    mapPanelContent.appendChild(noDataMessage);
+                                                }
+                                            } catch (error) {
+                                                console.error("Error fetching bookmark place data:", error);
+                                            }
+                                        });
+
+                                        // 삭제 버튼 추가
+                                        const deleteButton = document.createElement('img');
+                                        deleteButton.src = document.body.getAttribute('data-theme') === 'light' 
+                                            ? '/static/images/delete_light.png' 
+                                            : '/static/images/delete_dark.png';
+                                        deleteButton.style.cursor = 'pointer';
+                                        deleteButton.style.marginLeft = 'auto';
+                                        deleteButton.style.marginRight = '10px';
+                                        deleteButton.style.opacity = '0.7';
+                                        deleteButton.width = 25;
+                                        deleteButton.height = 25;
+
+                                        // 삭제 버튼 이벤트 추가
+                                        deleteButton.addEventListener('click', (event) => {
+                                            event.stopPropagation();
+                                            // UI에서 제거  
+                                            itemDiv.remove();
+
+                                            //DB에서도 해당 데이터 제거
+
+                                        });
+
+                                        deleteButton.addEventListener('mouseover', () => {
+                                            deleteButton.style.opacity = '1.0';
+                                        });
+
+                                        deleteButton.addEventListener('mouseleave', () => {
+                                            deleteButton.style.opacity = '0.7';
+                                        });
+
+                                        itemDiv.appendChild(deleteButton);
+                                        bookmarkScheduleItemDiv.appendChild(itemDiv);
+                                    });
+                                }
                             }
                         } catch (error) {
                             console.error("Error fetching bookmark data:", error);
@@ -1906,7 +2150,6 @@
 
             // 네이버 Geocoding API를 통해 경도와 위도를 가져오는 함수
             async function getCoordinates(addresses) {
-                console.log("Addresses passed to getCoordinates:", addresses);
 
                 if (!Array.isArray(addresses)) {
                     console.error("Addresses must be an array.");
@@ -1915,12 +2158,9 @@
 
                 const markerData = [];
                 const promises = addresses.map(async ({ address, title }) => {
-                    console.log("Fetching coordinates for:", address);
                     if (!address) return; // address가 없는 경우 건너뜀
 
                     const coordinates = await fetchCoordinates(address);
-                    console.log("Coordinates fetched:", coordinates);
-
                     if (coordinates) {
                         const [lat, lng] = coordinates;
                         markerData.push({
@@ -1932,7 +2172,6 @@
                 });
 
                 await Promise.all(promises); // 모든 비동기 작업이 완료될 때까지 대기
-                console.log("Final markerData:", markerData);
                 return markerData;
             }
 
@@ -1981,8 +2220,26 @@
                                 const listItem = document.createElement('p');
                                 listItem.innerHTML = `<strong>${name}</strong> (${address})`;
 
+                                const buttonContainer = document.createElement('div');
+                                buttonContainer.className = "button-container";
+                                buttonContainer.style.display = 'inline-flex';
+                                buttonContainer.style.alignItems = 'center';
+                                buttonContainer.style.flexWrap = "nowrap";
+
+                                // 즐겨찾기 등록 버튼 추가
+                                const bookmarkButton = document.createElement('button');
+                                bookmarkButton.style.cursor = 'pointer';
+                                bookmarkButton.style.marginLeft = '10px';
+                                bookmarkButton.style.border = "none";
+                                bookmarkButton.textContent = "☆";
+                                bookmarkButton.style.justifyContent = "center";
+                                bookmarkButton.addEventListener('click', () => {
+                                    getBookmarkList(true);
+                                });
+
                                 // 삭제 버튼 추가
                                 const deleteButton = document.createElement('img');
+                                deleteButton.id = "deletePlaceBtn";
                                 deleteButton.src = document.body.getAttribute('data-theme') === 'light' 
                                     ? '/static/images/delete_light.png' 
                                     : '/static/images/delete_dark.png';
@@ -1990,6 +2247,9 @@
                                 deleteButton.style.marginLeft = '10px';
                                 deleteButton.width = 16;
                                 deleteButton.height = 16;
+                                deleteButton.style.display = "inline-flex"; // Flexbox에 적합
+                                deleteButton.style.alignItems = "center";
+                                deleteButton.style.justifyContent = "center";
 
                                 // 삭제 버튼 이벤트 추가
                                 deleteButton.addEventListener('click', () => {
@@ -2014,7 +2274,9 @@
                                     console.log("Updated JSON data:", day);
                                 });
 
-                                listItem.appendChild(deleteButton);
+                                buttonContainer.appendChild(bookmarkButton);
+                                buttonContainer.appendChild(deleteButton);
+                                listItem.appendChild(buttonContainer);
                                 mealSection.appendChild(listItem);
                             }
                         }
@@ -2136,9 +2398,18 @@
                     },
                 });
 
+                // 정보창 생성
+                var infoWindow = new naver.maps.InfoWindow({
+                    content: `<div style="width:100px;text-align:center;padding:10px;">
+                                <h4>가맹점 정보</h4>
+                                <p>여기에 가맹점 정보를 표시합니다.</p>
+                            </div>`
+                });
+
                 // 마커 클릭 이벤트 (선택 사항)
                 naver.maps.Event.addListener(marker, 'click', function () {
                     alert(`${data.title}입니다!`);
+                    infoWindow.open(map, marker); // 마커 클릭 시 정보창 열기
                 });
 
                 // 현재 마커를 전역 배열에 저장
@@ -2152,7 +2423,7 @@
                         map: map,
                         path: [markerData[i].position, markerData[i + 1].position], // 인접한 마커 연결
                         strokeColor: '#000000', // 선 색상
-                        strokeWeight: 3, // 선 두께
+                        strokeWeight: 0, // 선 두께
                         strokeStyle: 'solid', // 선 스타일 (solid, dashed, dotted 등)
                     });
 
@@ -2183,7 +2454,6 @@
                 // 좌표 데이터를 반환
                 if (data.addresses && data.addresses.length > 0) {
                     const { x: lng, y: lat } = data.addresses[0]; // x: 경도, y: 위도
-                    console.log(`Fetched coordinates for ${address}: [${lat}, ${lng}]`);
                     return [parseFloat(lat), parseFloat(lng)];
                 } else {
                     console.error(`No valid coordinates found for address: ${address}`, data);
@@ -2205,61 +2475,61 @@
             return null;
         }
         
-        async function getBookmarkList(isPlace) {
-            if (isPlace) {      //일정 즐겨찾기 추가하기 위해 목록 불러오기
-                try {
-                    const response = await fetch("/app/partials/favorites/bookmarks/", {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                    });
+            async function getBookmarkList(isPlace) {
+                if (isPlace) {      //장소 즐겨찾기 추가하기 위해 목록 불러오기
+                    try {
+                        const response = await fetch("/app/partials/favorites/get_bookmark_place/", {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        });
 
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            console.log("User's Bookmarked Places:", data.bookmarks);
+                            alert("콘솔창에서 즐겨찾기 장소를 확인하세요.");
+                        } else {
+                            console.error("Failed to fetch bookmarks:", data.error);
+                            alert("즐겨찾기 데이터를 가져오지 못했습니다.");
+                        }
+                    } catch (error) {
+                        console.error("Error fetching bookmarks:", error);
+                        alert("서버 요청 중 오류가 발생했습니다.");
+                    }                
+                } else {            //일정 즐겨찾기 추가하기 위해 목록 불러오기
+                    try {
+                        const response = await fetch("/app/partials/favorites/get_bookmark_schedule/", {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            console.log("User's Bookmarked Schedules:", data.bookmarks);
+                            alert("콘솔창에서 즐겨찾기 일정을 확인하세요.");
+                        } else {
+                            console.error("Failed to fetch bookmarks:", data.error);
+                            alert("즐겨찾기 데이터를 가져오지 못했습니다.");
+                        }
+                    } catch (error) {
+                        console.error("Error fetching bookmarks:", error);
+                        alert("서버 요청 중 오류가 발생했습니다.");
                     }
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        console.log("User's Bookmarked Schedules:", data.bookmarks);
-                        alert("콘솔창에서 즐겨찾기 일정을 확인하세요.");
-                    } else {
-                        console.error("Failed to fetch bookmarks:", data.error);
-                        alert("즐겨찾기 데이터를 가져오지 못했습니다.");
-                    }
-                } catch (error) {
-                    console.error("Error fetching bookmarks:", error);
-                    alert("서버 요청 중 오류가 발생했습니다.");
-                }
-            } else {            //일정 즐겨찾기 추가하기 위해 목록 불러오기
-                try {
-                    const response = await fetch("/app/partials/favorites/bookmarks/", {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        console.log("User's Bookmarked Schedules:", data.bookmarks);
-                        alert("콘솔창에서 즐겨찾기 일정을 확인하세요.");
-                    } else {
-                        console.error("Failed to fetch bookmarks:", data.error);
-                        alert("즐겨찾기 데이터를 가져오지 못했습니다.");
-                    }
-                } catch (error) {
-                    console.error("Error fetching bookmarks:", error);
-                    alert("서버 요청 중 오류가 발생했습니다.");
                 }
             }
-        }
 
         function toggleMapPanel() {
             const minHeight = "45px";
@@ -2287,6 +2557,16 @@
             }, 500); // transition 시간과 동일하게 설정
         }
 
+        function toggleAnimation() {
+            const animatedDiv = document.getElementById('bookmarklist-div');
+            if (animatedDiv.classList.contains('active')) {
+                // 활성화 상태이면 숨김
+                animatedDiv.classList.remove('active');
+            } else {
+                // 비활성화 상태이면 나타냄
+                animatedDiv.classList.add('active');
+            }
+        }
     </script>
 </body>
 </html>

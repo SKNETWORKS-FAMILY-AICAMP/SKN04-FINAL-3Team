@@ -798,47 +798,93 @@ def run_gpt_view(request):
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
-@login_required
-def bookmark_detail(request, bookmark_id):
+def get_bookmark_items(request, bookmark_id):
     try:
-        # Bookmark 조회
-        bookmark = get_object_or_404(Bookmark, bookmark=bookmark_id)
-        print("bookmark_id:", bookmark.bookmark)
+        # BookmarkList에서 데이터 조회
+        bookmark_items = BookmarkList.objects.filter(bookmark_id=bookmark_id)
 
-        # BookmarkList에서 관련 Place 또는 Schedule 조회
-        bookmark_list_entry = BookmarkList.objects.filter(bookmark=bookmark).first()
+        if not bookmark_items.exists():
+            return JsonResponse({"success": False, "error": "No data found"}, status=404)
 
-        if not bookmark_list_entry:
-            return JsonResponse({"error": "No related data found in BookmarkList."}, status=404)
+        rows = []
+        bookmark_type = None
 
-        if bookmark_list_entry.bookmarkplace:
-            # Place 데이터 반환
-            place = bookmark_list_entry.bookmarkplace
-            print("Place name:", place.name)
-            print("Place address:", place.address)
-            return JsonResponse({
-                "type": "place",
-                "name": place.name,
-                "address": place.address,
-            })
-        elif bookmark_list_entry.bookmarkschedule:
-            # Schedule 데이터 반환
-            schedule = bookmark_list_entry.bookmarkschedule
-            print("Schedule name:", schedule.name)
-            print("Schedule json_data:", schedule.json_data)
-            return JsonResponse({
-                "type": "schedule",
-                "name": schedule.name,
-                "json_data": schedule.json_data,
-            })
-        else:
-            return JsonResponse({"error": "No related Place or Schedule found."}, status=404)
+        for item in bookmark_items:
+            if item.bookmarkplace:
+                bookmark_type = "place"
+                rows.append({
+                    "id": item.bookmarkplace.bookmarkplace_id,
+                    "name": item.bookmarkplace.name,
+                    "address": item.bookmarkplace.address,
+                    "category": item.bookmarkplace.category,
+                    "latitude": item.bookmarkplace.latitude,
+                    "longitude": item.bookmarkplace.longitude,
+                    "overview": item.bookmarkplace.overview,
+                })
+            elif item.bookmarkschedule:
+                bookmark_type = "schedule"
+                rows.append({
+                    "id": item.bookmarkschedule.bookmarkschedule_id,
+                    "name": item.bookmarkschedule.name,
+                    "json_data": item.bookmarkschedule.json_data,
+                })
 
+        return JsonResponse({"success": True, "type": bookmark_type, "rows": rows})
     except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+def bookmark_place_detail(request, bookmark_id):
+    try:
+        place = BookmarkPlace.objects.get(bookmarkplace_id=bookmark_id)
+        data = {
+            "id": place.bookmarkplace_id,
+            "name": place.name,
+            "address": place.address,
+            "latitude": place.latitude,
+            "longitude": place.longitude,
+            "category": place.category,
+            "overview": place.overview,
+        }
+        return JsonResponse(data, safe=False)
+    except BookmarkPlace.DoesNotExist:
+        # 해당 데이터가 없는 경우 404 반환
+        return JsonResponse({"error": "해당 장소를 찾을 수 없습니다."}, status=404)
+    except Exception as e:
+        # 기타 예상치 못한 오류 처리
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def get_user_bookmarks(request):
+def bookmark_schedule_detail(request, bookmark_id):
+    try:
+        schedule = BookmarkSchedule.objects.get(bookmarkschedule_id=bookmark_id)
+        data = {
+            "id": schedule.bookmarkschedule_id,
+            "name": schedule.name,
+            "json_data": schedule.json_data,
+        }
+        return JsonResponse(data, safe=False)
+    except BookmarkPlace.DoesNotExist:
+        # 해당 데이터가 없는 경우 404 반환
+        return JsonResponse({"error": "해당 장소를 찾을 수 없습니다."}, status=404)
+    except Exception as e:
+        # 기타 예상치 못한 오류 처리
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+def get_bookmark_place(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"success": False, "error": "User not authenticated"}, status=403)
+    
+    user = request.user
+    bookmarks = Bookmark.objects.filter(profile=user, is_place=False).values(
+        'bookmark', 'title',
+    )
+    
+    return JsonResponse({"success": True, "bookmarks": list(bookmarks)})
+
+
+def get_bookmark_schedule(request):
     if not request.user.is_authenticated:
         return JsonResponse({"success": False, "error": "User not authenticated"}, status=403)
     
@@ -847,26 +893,15 @@ def get_user_bookmarks(request):
 
     bookmark_list = []
     for bookmark in bookmarks:
-        places = BookmarkList.objects.filter(bookmark=bookmark).select_related('place')
-        schedules = BookmarkList.objects.filter(bookmark=bookmark).select_related('schedule')
+        places = BookmarkList.objects.filter(bookmark=bookmark).select_related('bookmarkplace')
+        schedules = BookmarkList.objects.filter(bookmark=bookmark).select_related('bookmarkschedule')
         if schedules:
-            for item in schedules:
+            for item in schedules:                
                 if item.bookmarkschedule:
                     bookmark_list.append({
                         "title": bookmark.title,
-                        "schedule_name": item.bookmarkschedule.name,
+                        "name": item.bookmarkschedule.name,
                         "json_data": item.bookmarkschedule.json_data,
-                    })
-        elif places:
-            for item in places:
-                if item.bookmarkplace:
-                    bookmark_list.append({
-                        "title": bookmark.title,
-                        "schedule_name": item.bookmarkplace.name,
-                        "latitude": item.bookmarkplace.latitude,
-                        "longitude": item.bookmarkplace.longitude,
-                        "category": item.bookmarkplace.category,
-                        "overview": item.bookmarkplace.overview,
                     })
         
     return JsonResponse({"success": True, "bookmarks": bookmark_list})

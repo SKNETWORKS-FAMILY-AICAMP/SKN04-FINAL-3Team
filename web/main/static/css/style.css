@@ -664,7 +664,7 @@ body {
 
 #button-panel {
     display: flex;
-    justify-content: flex-start;
+    justify-content: flex-end;
     align-items: flex-end;
     height: 30px;
 }
@@ -711,4 +711,27 @@ body {
     flex-wrap: nowrap;
     color: white;
     background-color: #222;
+}
+
+#bookmarklist-div {
+    position: absolute;
+    bottom: -700px; /* 시작 위치: 아래에 숨김 */
+    left: 80px;
+    width: 400px;
+    height: 700px; /* 파란 부분의 높이와 동일하게 설정 */
+    background-color: rgba(0, 0, 0, 0.95); /* 반투명 배경 */
+    transition: bottom 0.5s ease-in-out; /* 부드러운 애니메이션 */
+    z-index: 100; /* 다른 요소 위로 */
+}
+
+#bookmarklist-div.active {
+    bottom: 0; /* 최종 위치: 위로 올라옴 */
+}
+
+#closeBookmarkListBtn {
+    background-color: transparent;
+    border: none; 
+    color: white; 
+    font-weight: bold; 
+    font-size: 20px;
 }
