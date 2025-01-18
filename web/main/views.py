@@ -1,5 +1,6 @@
 from langraph.langraph import run_gpt_api
 from django.http import HttpResponseForbidden
+from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -872,36 +873,36 @@ def bookmark_schedule_detail(request, bookmark_id):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def get_bookmark_place(request):
+@require_GET
+def get_bookmark(request):
     if not request.user.is_authenticated:
         return JsonResponse({"success": False, "error": "User not authenticated"}, status=403)
-    
-    user = request.user
-    bookmarks = Bookmark.objects.filter(profile=user, is_place=False).values(
-        'bookmark', 'title',
-    )
-    
-    return JsonResponse({"success": True, "bookmarks": list(bookmarks)})
 
-
-def get_bookmark_schedule(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({"success": False, "error": "User not authenticated"}, status=403)
-    
     user = request.user
-    bookmarks = Bookmark.objects.filter(profile=user, is_place=False)  # 일정만 가져옴
+    is_place = request.GET.get('is_place', 'true') == 'true'  # 기본값은 장소
+    bookmarks = Bookmark.objects.filter(profile=user, is_place=is_place)
 
     bookmark_list = []
     for bookmark in bookmarks:
-        places = BookmarkList.objects.filter(bookmark=bookmark).select_related('bookmarkplace')
-        schedules = BookmarkList.objects.filter(bookmark=bookmark).select_related('bookmarkschedule')
-        if schedules:
-            for item in schedules:                
+        if is_place:
+            # 장소일 경우
+            places = BookmarkList.objects.filter(bookmark=bookmark).select_related('bookmarkplace')
+            for item in places:
+                if item.bookmarkplace:
+                    bookmark_list.append({
+                        "id": item.bookmarkplace.bookmarkplace_id,  # bookmark 객체 대신 ID를 사용
+                        "title": bookmark.title,
+                        "created_at": bookmark.created_at,
+                    })
+        else:
+            # 일정일 경우
+            schedules = BookmarkList.objects.filter(bookmark=bookmark).select_related('bookmarkschedule')
+            for item in schedules:
                 if item.bookmarkschedule:
                     bookmark_list.append({
+                        "id": item.bookmarkschedule.bookmarkschedule_id,  # bookmark 객체 대신 ID를 사용
                         "title": bookmark.title,
-                        "name": item.bookmarkschedule.name,
-                        "json_data": item.bookmarkschedule.json_data,
+                        "created_at": bookmark.created_at,
                     })
-        
+
     return JsonResponse({"success": True, "bookmarks": bookmark_list})
