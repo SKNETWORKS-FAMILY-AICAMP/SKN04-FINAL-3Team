@@ -768,7 +768,7 @@ body {
 }
 
 .button_active div{
-    background-color: #666; 
+    background-color: white; 
     cursor: pointer;
 }
 
@@ -784,7 +784,7 @@ body {
 }
 
 .button_inactive div{
-    background-color: white; 
+    background-color: #666; 
     cursor: pointer;
 }
 

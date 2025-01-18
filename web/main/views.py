@@ -802,7 +802,7 @@ def run_gpt_view(request):
 def get_bookmark_items(request, bookmark_id):
     try:
         # BookmarkList에서 데이터 조회
-        bookmark_items = BookmarkList.objects.filter(bookmark_id=bookmark_id)
+        bookmark_items = BookmarkList.objects.filter(bookmark=bookmark_id)
 
         if not bookmark_items.exists():
             return JsonResponse({"success": False, "error": "No data found"}, status=404)
@@ -814,6 +814,7 @@ def get_bookmark_items(request, bookmark_id):
             if item.bookmarkplace:
                 bookmark_type = "place"
                 rows.append({
+                    "bookmark": item.bookmark.bookmark,
                     "id": item.bookmarkplace.bookmarkplace_id,
                     "name": item.bookmarkplace.name,
                     "address": item.bookmarkplace.address,
@@ -825,6 +826,7 @@ def get_bookmark_items(request, bookmark_id):
             elif item.bookmarkschedule:
                 bookmark_type = "schedule"
                 rows.append({
+                    "bookmark": item.bookmark.bookmark,
                     "id": item.bookmarkschedule.bookmarkschedule_id,
                     "name": item.bookmarkschedule.name,
                     "json_data": item.bookmarkschedule.json_data,
@@ -884,25 +886,10 @@ def get_bookmark(request):
 
     bookmark_list = []
     for bookmark in bookmarks:
-        if is_place:
-            # 장소일 경우
-            places = BookmarkList.objects.filter(bookmark=bookmark).select_related('bookmarkplace')
-            for item in places:
-                if item.bookmarkplace:
-                    bookmark_list.append({
-                        "id": item.bookmarkplace.bookmarkplace_id,  # bookmark 객체 대신 ID를 사용
-                        "title": bookmark.title,
-                        "created_at": bookmark.created_at,
-                    })
-        else:
-            # 일정일 경우
-            schedules = BookmarkList.objects.filter(bookmark=bookmark).select_related('bookmarkschedule')
-            for item in schedules:
-                if item.bookmarkschedule:
-                    bookmark_list.append({
-                        "id": item.bookmarkschedule.bookmarkschedule_id,  # bookmark 객체 대신 ID를 사용
-                        "title": bookmark.title,
-                        "created_at": bookmark.created_at,
-                    })
+        bookmark_list.append({
+            "id": bookmark.bookmark,
+            "title": bookmark.title,
+            "created_at": bookmark.created_at,
+        })
 
     return JsonResponse({"success": True, "bookmarks": bookmark_list})
