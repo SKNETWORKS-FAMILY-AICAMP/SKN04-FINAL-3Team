@@ -735,3 +735,66 @@ body {
     font-weight: bold; 
     font-size: 20px;
 }
+
+.bookmark_item {
+    display: flex; 
+    align-items: center; 
+    margin-bottom: 20px;
+}
+
+.bookmark_item p{
+    margin: 0; 
+    font-size: 16px; 
+    font-weight: bold;
+}
+
+.bookmark_item div, button{
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 10px; 
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.bookmark_item button{
+    margin-left: auto;
+    background: none; 
+    border: none; 
+    cursor: pointer;
+    margin-right: 25px;
+}
+
+.button_active div{
+    background-color: white; 
+    cursor: pointer;
+}
+
+.button_active span{
+    font-size: 27px; 
+    color: #222; 
+    cursor: pointer;
+}
+
+.button_active p{
+    cursor: pointer;
+    color: white;
+}
+
+.button_inactive div{
+    background-color: #666; 
+    cursor: pointer;
+}
+
+.button_inactive span{
+    font-size: 27px; 
+    color: #222; 
+    cursor: pointer;
+}
+
+.button_inactive p{
+    cursor: pointer;
+    color: #666;
+}

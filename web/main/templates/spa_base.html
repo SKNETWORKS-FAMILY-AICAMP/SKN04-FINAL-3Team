@@ -65,8 +65,9 @@
             <div id="map-panel">
                 <div id="drag-handle"></div> <!-- 드래그 핸들 추가 -->
                 <div id="button-panel">
+                    <button id="removeContentBtn" onclick="removeContent()">D</button>
                     <button id="toggleAnimationBtn" onclick="toggleAnimation()">A</button>
-                    <button id="getBookmarkListBtn" onclick="getBookmarkList(false)">☆</button>
+                    <button id="getBookmarkListBtn" onclick="getBookmarkList()">☆</button>
                     <button id="toggleUIBtn" onclick="toggleMapPanel()">⮟</button>
                 </div> 
                 <div class="map-panel-content">
@@ -79,6 +80,11 @@
     <div id="bookmarklist-div">
         <div style="display: flex; justify-content: flex-end; align-items: flex-end;">
             <button id="closeBookmarkListBtn" onclick="document.querySelector('#bookmarklist-div').classList.remove('active');">∨</button>
+        </div>
+        <div class="bookmarklist-panel">
+            <ul>
+
+            </ul>
         </div>
     </div>
 
@@ -1183,6 +1189,10 @@
 
                                                 // 장소 정보 표시
                                                 if (data) {
+                                                    const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+                                                    getBookmarkListBtn.classList.remove("schedule");
+                                                    getBookmarkListBtn.classList.add("place");
+                                                    getBookmarkListBtn.setAttribute("bookmark_id", row.id);
                                                     const placeSection = document.createElement("div");
                                                     placeSection.className = "place-section";
                                                     placeSection.innerHTML = `
@@ -1285,8 +1295,12 @@
                                                 // 기존 내용 제거
                                                 mapPanelContent.innerHTML = "";
 
-                                                // 장소 정보 표시
+                                                // 일정 정보 표시
                                                 if (data) {;
+                                                    const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+                                                    getBookmarkListBtn.classList.remove("place");
+                                                    getBookmarkListBtn.classList.add("schedule");
+                                                    getBookmarkListBtn.setAttribute("bookmark_id", row.id);
                                                     const jsonData = JSON.parse(data.json_data);
                                                     generateDayButtons(jsonData);
                                                     generateDynamicPlanContent(jsonData);
@@ -2143,6 +2157,10 @@
 
         async function generateDynamicPlanContent(jsonData) {
             const mapPanelContent = document.querySelector('.map-panel-content');
+            //터미널에 추가된 내용이 스케줄이라는 것을 체크하기 위함
+            const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+            getBookmarkListBtn.classList.remove("place");
+            getBookmarkListBtn.classList.add("schedule");
             if (!mapPanelContent) {
                 console.error('map-panel-content 요소를 찾을 수 없습니다.');
                 return;
@@ -2234,7 +2252,7 @@
                                 bookmarkButton.textContent = "☆";
                                 bookmarkButton.style.justifyContent = "center";
                                 bookmarkButton.addEventListener('click', () => {
-                                    getBookmarkList(true);
+                                    getBookmarkList();
                                 });
 
                                 // 삭제 버튼 추가
@@ -2244,7 +2262,6 @@
                                     ? '/static/images/delete_light.png' 
                                     : '/static/images/delete_dark.png';
                                 deleteButton.style.cursor = 'pointer';
-                                deleteButton.style.marginLeft = '10px';
                                 deleteButton.width = 16;
                                 deleteButton.height = 16;
                                 deleteButton.style.display = "inline-flex"; // Flexbox에 적합
@@ -2475,61 +2492,109 @@
             return null;
         }
         
-            async function getBookmarkList(isPlace) {
-                if (isPlace) {      //장소 즐겨찾기 추가하기 위해 목록 불러오기
-                    try {
-                        const response = await fetch("/app/partials/favorites/get_bookmark_place/", {
-                            method: "GET",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        });
+        async function getBookmarkList() {
+            const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+            const isPlace = getBookmarkListBtn.classList.contains("place"); // 장소인지 확인
+            const isSchedule = getBookmarkListBtn.classList.contains("schedule"); // 장소인지 확인
+            const bookmarkID = getBookmarkListBtn.getAttribute("bookmark_id");
 
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
+            if (isPlace || isSchedule) {               
+                try {
+                    const response = await fetch(`/app/partials/favorites/get_bookmark/?is_place=${isPlace}`, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    });
 
-                        const data = await response.json();
-
-                        if (data.success) {
-                            console.log("User's Bookmarked Places:", data.bookmarks);
-                            alert("콘솔창에서 즐겨찾기 장소를 확인하세요.");
-                        } else {
-                            console.error("Failed to fetch bookmarks:", data.error);
-                            alert("즐겨찾기 데이터를 가져오지 못했습니다.");
-                        }
-                    } catch (error) {
-                        console.error("Error fetching bookmarks:", error);
-                        alert("서버 요청 중 오류가 발생했습니다.");
-                    }                
-                } else {            //일정 즐겨찾기 추가하기 위해 목록 불러오기
-                    try {
-                        const response = await fetch("/app/partials/favorites/get_bookmark_schedule/", {
-                            method: "GET",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        });
-
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-
-                        const data = await response.json();
-
-                        if (data.success) {
-                            console.log("User's Bookmarked Schedules:", data.bookmarks);
-                            alert("콘솔창에서 즐겨찾기 일정을 확인하세요.");
-                        } else {
-                            console.error("Failed to fetch bookmarks:", data.error);
-                            alert("즐겨찾기 데이터를 가져오지 못했습니다.");
-                        }
-                    } catch (error) {
-                        console.error("Error fetching bookmarks:", error);
-                        alert("서버 요청 중 오류가 발생했습니다.");
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
+
+                    const data = await response.json();
+                    if (data.success) {                        
+                        let innerHtml = "";                        
+                        const bookmarklistPanel = document.querySelector('.bookmarklist-panel ul');
+                        bookmarklistPanel.innerHTML = "";
+
+                        if (isPlace) {                            
+                            
+                        }
+                        else if (isSchedule) {
+                            
+                        } 
+
+                        //기존 즐겨찾기 항목 버튼들 추가
+                        data.bookmarks.forEach(bookmark => {
+                            const createLi = document.createElement('li');                            
+                            const milliseconds = new Date(bookmark['created_at']).getTime();
+                            const colorValue = milliseconds % 0xFFFFFF; 
+                            const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
+                            createLi.className = "bookmark_item";
+                            createLi.id = bookmark['id'];
+                            console.log("1:", (bookmarkID === bookmark['id']));
+                            console.log("2:", bookmarkID);
+                            console.log("3:", bookmark['id']);
+                            innerHtml = `
+                                <div style="background-color: ${hexColor}">
+                                    <span style="font-size: 17px; color: white;">★</span>
+                                </div>
+                                <p>${bookmark['title']}</p>
+                                <button>
+                                    ${bookmarkID === bookmark['id'] 
+                                        ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
+                                        : '<span style="font-size: 27px; color: white;">+</span>'
+                                    }
+                                </button>
+                            `;                            
+                            createLi.innerHTML = innerHtml;
+                            bookmarklistPanel.appendChild(createLi);
+                        });
+
+                        
+                        //새 즐겨찾기 항목 만드는 버튼 추가
+                        const createLi = document.createElement('li');
+                        createLi.className = "bookmark_item";
+                        createLi.id = "add_bookmark_list_btn";
+                        createLi.style.cursor = "pointer";         
+                        innerHtml = `
+                            <div>
+                                <span>+</span>
+                            </div>
+                            <p>새 즐겨찾기 항목</p>
+                        `;               
+                        
+                        //10개 미만이면 활성화, 그 이상이면 비활성화
+                        if (bookmarklistPanel.childNodes.length < 10) {
+                            createLi.classList.add("button_active");
+                        }
+                        else {
+                            createLi.classList.add("button_inactive");
+                        }
+
+                        createLi.innerHTML = innerHtml;
+                        bookmarklistPanel.appendChild(createLi);
+                        
+                        toggleAnimation();                       
+                    } 
+                } catch (error) {
+                    console.error("Error fetching bookmarks:", error);
                 }
             }
+            else {
+                alert("즐겨찾기에 저장할 데이터가 없습니다.");
+            }
+        }
+
+        function removeContent() {
+            const map_panel_content = document.querySelector(".map-panel-content");
+            const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+            getBookmarkListBtn.classList.remove('place');
+            getBookmarkListBtn.classList.remove('schedule');
+            getBookmarkListBtn.textContent = "☆";
+
+            map_panel_content.innerHTML = '';
+        }
 
         function toggleMapPanel() {
             const minHeight = "45px";
