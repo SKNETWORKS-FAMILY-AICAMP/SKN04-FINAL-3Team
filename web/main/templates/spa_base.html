@@ -66,7 +66,6 @@
                 <div id="drag-handle"></div> <!-- 드래그 핸들 추가 -->
                 <div id="button-panel">
                     <button id="removeContentBtn" onclick="removeContent()">D</button>
-                    <button id="toggleAnimationBtn" onclick="toggleAnimation()">A</button>
                     <button id="getBookmarkListBtn" onclick="getBookmarkList()">☆</button>
                     <button id="toggleUIBtn" onclick="toggleMapPanel()">⮟</button>
                 </div> 
@@ -314,16 +313,16 @@
             
             const mapPanel = document.getElementById("map-panel");
             const dragHandle = document.getElementById("drag-handle");
-            
-            let isDragging = false;
-            let startY = 0;
-            let startHeight = 0;
+
+            let isDragging = false; // 드래그 상태
+            let startY = 0; // 마우스 시작 Y 좌표
+            let startHeight = 0; // mapPanel 시작 높이
 
             // 드래그 시작
             dragHandle.addEventListener("mousedown", function (e) {
                 isDragging = true;
-                startY = e.clientY; // 마우스 시작 위치
-                startHeight = mapPanel.offsetHeight; // 패널의 시작 높이
+                startY = e.clientY; // 마우스 시작 위치 저장
+                startHeight = mapPanel.offsetHeight; // mapPanel의 시작 높이 저장
 
                 document.body.style.userSelect = "none"; // 드래그 중 텍스트 선택 방지
             });
@@ -331,27 +330,32 @@
             // 드래그 진행
             document.addEventListener("mousemove", function (e) {
                 if (!isDragging) return;
-
-                const deltaY = e.clientY - startY; // 드래그된 거리
-                const newHeight = startHeight - deltaY; // 패널 높이 조정 (위로 드래그 시 높이 증가)
-
-                // 높이를 제한 (최소 15px, 최대 화면 높이)
-                const maxHeight = window.innerHeight;
-                const minHeight = 15; // 최소 높이
+                
+                const deltaY = e.clientY - startY; // 마우스 이동 거리
+                const newHeight = startHeight - deltaY; // 새로운 패널 높이 계산
+                
+                const maxHeight = window.innerHeight; // 화면 전체 높이
+                const minHeight = 45; // 최소 높이 제한
+                
                 if (newHeight >= minHeight && newHeight <= maxHeight) {
-                    mapPanel.style.height = `${newHeight}px`;
+                    mapPanel.style.height = `${newHeight}px`; // mapPanel 높이 업데이트
+
                     // 버튼 텍스트 업데이트
                     const toggleUIBtn = document.getElementById("toggleUIBtn");
-                    if (newHeight > 45) {
-                        toggleUIBtn.textContent = "⮟";
-                    } else {
-                        toggleUIBtn.textContent = "⮝";
-                    }
+                    toggleUIBtn.textContent = newHeight > minHeight ? "⮟" : "⮝";
+
+                    // 버튼 컨테이너 위치 조정
                     const buttonContainer = document.getElementById("day-button-container");
                     if (buttonContainer) {
                         const mapPanelTop = mapPanel.getBoundingClientRect().top;
-                        buttonContainer.style.top = `${mapPanelTop - buttonContainer.offsetHeight - 15}px`; // 드래그 핸들 기준으로 조정
+                        buttonContainer.style.top = `${mapPanelTop - buttonContainer.offsetHeight - 15}px`;
                     }
+                }
+                else if (newHeight < minHeight) {
+                    mapPanel.style.height = `45px`;
+
+                    const toggleUIBtn = document.getElementById("toggleUIBtn");
+                    toggleUIBtn.textContent = "⮝";
                 }
             });
 
@@ -361,7 +365,7 @@
                     isDragging = false;
                     document.body.style.userSelect = ""; // 텍스트 선택 복구
                 }
-            });            
+            });        
         });
         
         function getCSRFToken() {
@@ -1429,8 +1433,58 @@
             // 6) 채팅 입력창 로직
             const inputBar = document.getElementById("input_bar");  
             const deleteBtn = document.querySelector('.delete-btn');
+            const sendBtn = document.querySelector('.send-button');
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', showPopup);
+            }
+
+            if (inputBar) {
+                inputBar.addEventListener("keydown", function (e) {
+                    inputBarKeyDown(e, isLoading, inputBar);
+                });
+                inputBar.addEventListener("input", resizeInput);
+                // resizeInput();
+            }          
+            
+            if (sendBtn) {
+                sendBtn.addEventListener("click", function (e) {
+                    console.log("isL:", isLoading);
+                    if (isLoading) {
+                        e.preventDefault(); // 로딩 중일 때 입력 방지
+                        alert("현재 봇 응답이 생성 중입니다. 잠시만 기다려주세요!");
+                        return;
+                    }
+
+                    e.preventDefault();    
+                    const chatMessages = document.getElementById("chat-messages");
+                    chatMessages.scrollTop = chatMessages.scrollHeight;           
+                    sendMessage();
+                });
+            }
+            
+            function inputBarKeyDown(e, isLoading, inputBar) {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    if (isLoading) {
+                        e.preventDefault(); // 로딩 중일 때 입력 방지
+                        alert("현재 봇 응답이 생성 중입니다. 잠시만 기다려주세요!");
+                        return;
+                    }
+
+                    e.preventDefault();    
+                    const chatMessages = document.getElementById("chat-messages");
+                    chatMessages.scrollTop = chatMessages.scrollHeight;           
+                    sendMessage();
+                    return false;
+                } 
+                else if (e.key === "Enter" && e.shiftKey) {
+                    e.preventDefault();
+                    const cursorPosition = inputBar.selectionStart;
+                    inputBar.value =
+                        inputBar.value.slice(0, cursorPosition) + "\n"
+                        + inputBar.value.slice(cursorPosition);
+                    // resizeInput();
+                    return false;
+                }
             }
 
             async function sendMessage() {
@@ -1578,35 +1632,6 @@
                     inputBar.style.overflowY = "hidden";
                 }
             }
-            
-            if (inputBar) {
-                inputBar.addEventListener("keydown", function (e) {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                        if (isLoading) {
-                            e.preventDefault(); // 로딩 중일 때 입력 방지
-                            alert("현재 봇 응답이 생성 중입니다. 잠시만 기다려주세요!");
-                            return;
-                        }
-
-                        e.preventDefault();    
-                        const chatMessages = document.getElementById("chat-messages");
-                        chatMessages.scrollTop = chatMessages.scrollHeight;           
-                        sendMessage();
-                        return false;
-                    } 
-                    else if (e.key === "Enter" && e.shiftKey) {
-                        e.preventDefault();
-                        const cursorPosition = inputBar.selectionStart;
-                        inputBar.value =
-                            inputBar.value.slice(0, cursorPosition) + "\n"
-                            + inputBar.value.slice(cursorPosition);
-                        // resizeInput();
-                        return false;
-                    }
-                });
-                inputBar.addEventListener("input", resizeInput);
-                // resizeInput();
-            }            
         });
 
         function saveChatToDB(chatContent) {
