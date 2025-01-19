@@ -102,7 +102,7 @@
     <script>
         window.onload = function () {
             // localStorage의 특정 키 삭제
-            localStorage.removeItem('chatMessage');
+            // localStorage.removeItem('chatMessage');
 
             // 또는 모든 데이터 삭제
             // localStorage.clear();
@@ -208,7 +208,7 @@
         
         function loadContent(spaPath) {
             if (lastLoadedPath === spaPath) {
-                console.log("중복된 경로로 로드 중단:", spaPath);
+                console.log("중복된 경로로 로드 중단:", spaPath, ",lastPath:", lastLoadedPath);
                 return;
             }
 
@@ -1611,6 +1611,7 @@
 
         function saveChatToDB(chatContent) {
             // 현재 URL에서 chat_id 추출
+            localStorage.removeItem('chatMessage');
             const urlParams = new URLSearchParams(window.location.search);
             const chatId = urlParams.get("chat_id");
             console.log("saveChatToDB CHATID:", chatId);
@@ -1659,20 +1660,24 @@
                             console.error("chat-container element not found.");
                         }
                     }
-                } else {
-                    console.log("chat id:", data.chatting_id, "Chat saved successfully:", data.message || "Success", chatContent);
+                } 
+                else {
                     if (data.chatting_id) {
+                        console.log("chat id:", data.chatting_id, "Chat saved successfully:", data.message || "Success", chatContent);
                         // 기존의 chat_id가 있었다면 URL을 업데이트
                         const newUrl = new URL(window.location.href);
                         newUrl.searchParams.set("chat_id", data.chatting_id); 
                         window.history.replaceState(null, "", newUrl.toString());
+                        lastLoadedPath = newUrl.toString();
                     }
                     if (data.new_chat_id) {
+                        console.log("chat id:", data.chatting_id, "New Chat ID:", data.message || "Success", chatContent);
                         // 새 chat_id가 생성되었다면 URL을 업데이트
                         const newChatId = data.new_chat_id;
                         const newUrl = new URL(window.location.href);
                         newUrl.searchParams.set("chat_id", newChatId);
                         window.history.replaceState(null, "", newUrl.toString());
+                        lastLoadedPath = newUrl.toString();
                     }
                 }
             })

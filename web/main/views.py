@@ -86,8 +86,8 @@ def get_or_create_chat_id(request):
                 })
 
             # 마지막 chat_id 가져오기
-            last_chat = Chatting.objects.filter(profile=user).order_by('-chatting_id').first()
-
+            last_chat = Chatting.objects.filter().order_by('-chatting_id').first()
+            print("las:", last_chat)
             if last_chat:
                 # 마지막 chat_id에서 숫자 추출 후 1 증가
                 last_id = int(last_chat.chatting_id.split('_')[1])
@@ -128,9 +128,10 @@ def get_theme_context(user):
 #         return redirect('login_process')
     
 def login_view(request):
+    countries = get_nationalities()
     if request.method == "GET":
         next_url = request.GET.get("next", "/")  # next 파라미터가 없으면 메인 페이지로 리다이렉트
-        return render(request, "login.html", {"next": next_url})
+        return render(request, "login.html", {"next": next_url, 'countries': countries,})
     elif request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
@@ -375,7 +376,7 @@ def save_chat(request):
                     return JsonResponse({"success": True, "message": "New chat created.", "chatting_id": chatting_instance.chatting_id})
             else:
                 # chatting_id가 없는 경우: 새로운 레코드 생성
-                last_chat = Chatting.objects.filter(profile=user).order_by('-chatting_id').first()
+                last_chat = Chatting.objects.filter().order_by('-chatting_id').first()
 
                 if last_chat:
                     # 마지막 chatting_id에서 숫자 추출 후 증가
