@@ -3,6 +3,8 @@ from chain_model.extraction_loacation_chain import location_chain
 from chain_model.extraction_schedule_or_place_chain import sch_or_place_chain
 from chain_model.place_search_chain import place_search_chain
 from chain_model.schedule_chain import schedule_chain
+from chain_model.discrimination_language import discrimination_language
+from chain_model.translation_question import translation_question
 
 
 from dotenv import load_dotenv
@@ -85,13 +87,34 @@ def run_model(question):
         ScheduleOrplace: Annotated[str, "ScheduleOrplace"]  # 일정 or 장소
         location: Annotated[str, "location"]  # 지역 리스트
         dayCheck: Annotated[str, "dayCheck"]  # 몇일 여행?
+        languageCheck: Annotated[str, "languageCheck"]  # 언어판별
+        translated_question: Annotated[str, "translated_question"]  # 번역된 질문
+        location_error: Annotated[str, "location_error"]  # 장소 에러
+        day_error: Annotated[str, "day_error"]  # 여행 일 수 에러
+        language_error: Annotated[str, "language_error"]  # 여행 일 수 에러
+        
 
 
     ####-----노드 함수--------#####
 
+    def translate_question(state: GraphState) -> GraphState:
+        chain_translation_question = translation_question()
+        response = chain_translation_question.invoke(
+            {
+             "question": state["question"][-1].content
+            }
+        )
 
-    # from rag.utils import format_docs
-    # 웹 검색 or 리트리버 검색
+        return {"translated_question": response}
+    
+    def language_check(state: GraphState) -> GraphState:
+        chain_discrimination_language = discrimination_language()
+        response = chain_discrimination_language.invoke(
+            {"question": state["question"][-1].content}
+        )
+
+        return {"languageCheck": response}
+    
     def Schedule_day_check(state: GraphState) -> GraphState:
         chain_day = day_chain()
         response = chain_day.invoke(
@@ -133,12 +156,16 @@ def run_model(question):
     # 문서 검색 노드--------------------------------------------------------------------------------------------------------------------------
     def retrieve_document_naver(state: GraphState) -> GraphState:
         # 질문을 상태에서 가져옵니다.
-        latest_question = state["question"][-1].content
+        latest_question = state["translated_question"]
         location_str = state['location']
 
-        location = ast.literal_eval(location_str)
+        try : location = ast.literal_eval(location_str)
+        except : return {'location_error' : 1}
 
-        # 문서에서 검색하여 관련성 있는 문서를 찾습니다.
+        if len(location) == 0:
+            return {'location_error' : 1}
+
+        # 문서에서 검색하여 관련성 있는 문서를 찾습니다. 
         yongsan = '용산구'
         jonglo = '종로구'
         gangman = '강남구'
@@ -173,10 +200,14 @@ def run_model(question):
 
     def retrieve_document_opendata(state: GraphState) -> GraphState:
         # 질문을 상태에서 가져옵니다.
-        latest_question = state["question"][-1].content
+        latest_question = state["translated_question"]
         location_str = state['location']
 
-        location = ast.literal_eval(location_str)
+        try : location = ast.literal_eval(location_str)
+        except : return {'location_error' : 1}
+
+        if len(location) == 0:
+            return {'location_error' : 1}
 
         doc_list = []
         # 문서에서 검색하여 관련성 있는 문서를 찾습니다.
@@ -219,9 +250,21 @@ def run_model(question):
         latest_question = state["question"][-1].content
         location_str = state['location']
         day_str = state['dayCheck']
+        language = state['languageCheck']
 
         location = ast.literal_eval(location_str)
-        day = ast.literal_eval(day_str)
+
+        if len(location) == 1:
+            num_retriever_search = 10
+        elif len(location) == 2:
+            num_retriever_search = 7
+        elif len(location) == 3:
+            num_retriever_search = 5
+        elif len(location) == 4:
+            num_retriever_search = 4
+        
+        try : day = ast.literal_eval(day_str)
+        except : return {'day_error' : 1}
 
         place_list = []
         place_yongsan =[]
@@ -238,25 +281,25 @@ def run_model(question):
             if yongsan in location:
                 place_yongsan = state["context_naver_yongsan"]
 
-                place_list.extend(random.sample(place_yongsan, 4))
+                place_list.extend(random.sample(place_yongsan, num_retriever_search))
 
             if jongro in location:
                 place_jongro = state["context_naver_jongro"]
-                place_list.extend(random.sample(place_jongro, 4))
+                place_list.extend(random.sample(place_jongro, num_retriever_search))
 
             if gangman in location:
                 place_gangman = state["context_naver_gangnam"]
-                place_list.extend(random.sample(place_gangman, 4))
+                place_list.extend(random.sample(place_gangman, num_retriever_search))
 
             if junggu in location:
                 place_junggu = state["context_naver_Junggu"]
 
-                place_list.extend(random.sample(place_junggu, 4))
+                place_list.extend(random.sample(place_junggu, num_retriever_search))
 
         
             place_opendata = state["context_opendata"]
             
-            place_list.extend(random.sample(place_opendata, 5))
+            place_list.extend(random.sample(place_opendata, num_retriever_search))
 
             #검색된 문서를 형식화합니다.(프롬프트 입력으로 넣어주기 위함)
             place_list_text = "\n".join(
@@ -273,7 +316,8 @@ def run_model(question):
                     "question": latest_question,
                     "context": place_list_text,
                     "chat_history": messages_to_history(state["messages"]),
-                    "day" : i
+                    "day" : i,
+                    "language" : language
                 }
             )
             place_list.clear()
@@ -293,6 +337,8 @@ def run_model(question):
         # 질문을 상태에서 가져옵니다.
         latest_question = state["question"][-1].content
         location_str = state['location']
+        language = state['languageCheck']
+
 
         location = ast.literal_eval(location_str)
 
@@ -347,6 +393,7 @@ def run_model(question):
                 "question": latest_question,
                 "context": place_list_text,
                 "chat_history": messages_to_history(state["messages"]),
+                "language" : language
             }
         )
         # 생성된 답변, (유저의 질문, 답변) 메시지를 상태에 저장합니다.
@@ -373,6 +420,8 @@ def run_model(question):
     workflow.add_node("llm_Schedule_answer", llm_Schedule_answer)
     workflow.add_node("Schedule_or_place_check", Schedule_or_place_check)
     workflow.add_node("llm_place_answer", llm_place_answer)
+    workflow.add_node("language_check", language_check)
+    workflow.add_node("translate_question", translate_question)
     workflow.add_conditional_edges(
         "Schedule_or_place_check",  
         is_place,
@@ -389,11 +438,14 @@ def run_model(question):
     workflow.add_edge("retrieve_opendata", "Schedule_or_place_check") 
     workflow.add_edge("Schedule_day_check", "llm_Schedule_answer") 
 
+
     workflow.add_edge("llm_Schedule_answer", END)  # 답변 -> 종료
     workflow.add_edge("llm_place_answer", END)  # 답변 -> 종료
 
     # 그래프 진입점 설정
     workflow.set_entry_point("location_check")
+    workflow.set_entry_point("language_check")
+    workflow.set_entry_point("translate_question")
     # workflow.set_entry_point("Schedule_or_place_check")
 
     # 체크포인터 설정

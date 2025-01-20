@@ -10,13 +10,8 @@ def schedule_chain():
         너는 여러 장소들의 정보를 받게될거야.
         여러 장소들의 구분은 <content> </content> 태그로 구분되어있어.
         
-        You are a multilingual assistant. 
-        사용자가 {question}에서 사용한 언어와 같은 언어로 답변해줘
-
-        -만약 사용자가 사용한 언어가 한국어라면 한국어로 답변 
-        -만약 사용자가 사용한 언어가 영어라면 영어로 답변
-        -만약 사용자가 사용한 언어가 일본어라면 일본어로 답변
-        -만약 사용자가 사용한 언어가 중국어라면 중국어로 답변
+        ***You are a multilingual assistant.*** 
+        ## 출력 언어는 {language}로 출력해줘. ## 
         
         생성된 일정은 아침, 점심, 저녁으로 나누어 구성하며, 각 시간대에 **실제로 존재하는** 식당, 관광 명소, 거리 등을 추천해야 합니다.
 
@@ -132,6 +127,7 @@ def schedule_chain():
         - 질문에 여러일차를 추천해 달라고 해도 '일차' 에있는 하루의 일정만 생성해
         - 일정을 만들고 마무리 멘트는 넣지마.
         - 추천했던 장소를 한번더 추천하지마.
+        - 출력언어로 출력 해.
 
 
         # 장소 정보: {context}
@@ -141,8 +137,10 @@ def schedule_chain():
         # 이전 대화 내용 {chat_history} 
 
         # 일차 : {day}
+
+        # 출력언어 : {language}
         """,
-            input_variables=["context", "question","chat_history","day"],
+            input_variables=["context", "question","chat_history","day", "language"],
         )
 
     # LLM
