@@ -16,4 +16,8 @@ if __name__ == "__main__":
         if meta.get('langgraph_node') == 'llm_place_answer':
 
             print(chunk.content, end='')
+
+        if meta.get('langgraph_node') == 'error_handling':
+
+            print(chunk.content, end='')
     
