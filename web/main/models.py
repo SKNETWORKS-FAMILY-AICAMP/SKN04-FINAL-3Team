@@ -62,9 +62,9 @@ class BookmarkPlace(models.Model):
     bookmarkplace_id = models.CharField(max_length=10, primary_key=True)
     name = models.CharField(max_length=30)
     address = models.CharField(max_length=40)
-    category = models.CharField(max_length=30)
-    longitude = models.FloatField()
-    latitude = models.FloatField()
+    category = models.CharField(max_length=30, null=True)
+    longitude = models.FloatField(null=True)
+    latitude = models.FloatField(null=True)
     overview = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

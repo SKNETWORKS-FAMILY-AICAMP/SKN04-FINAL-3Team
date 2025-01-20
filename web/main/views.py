@@ -783,17 +783,11 @@ def add_bookmarklist(request):
             bookmarkplace_id = data.get("bookmarkplace_id")
             bookmarkschedule_id = data.get("bookmarkschedule_id")
             json_data = data.get("json_data")
+            category = data.get("category")
+            longitude = data.get("longitude")
+            latitude = data.get("latitude")
             overview = data.get("overview")
             address = data.get("address")
-
-            print("is_place", is_place)
-            print("name", name)
-            print("bookmark_id", bookmark_id)
-            print("bookmarkplace_id", bookmarkplace_id)
-            print("bookmarkschedule_id", bookmarkschedule_id)
-            print("json_data", json_data)
-            print("name", overview)
-            print("address", address)
             
             if is_place:
                 # 1. bookmarkplace_id 생성
@@ -806,26 +800,33 @@ def add_bookmarklist(request):
                 else:
                     new_index = 1  # 첫 데이터라면 1부터 시작
                 
-                new_place_id = f"sc_{new_index:05d}"  # sc_XXXXX 형식
+                new_place_id = f"pc_{new_index:05d}"  # pc_XXXXX 형식
 
-                # 2. bookmarkplace 데이터 생성
-                new_place = BookmarkPlace.objects.create(
-                    bookmarkplace_id=new_place_id,
+                # 2. bookmarkplace 데이터 가져오거나 생성
+                new_place, created = BookmarkPlace.objects.get_or_create(
                     name=name,
-                    category="",
-                    longitude="",
-                    latitude="",
-                    address=address,
-                    overview=overview,
+                    defaults={
+                        "bookmarkplace_id": new_place_id,
+                        "category": category,
+                        "longitude": longitude,
+                        "latitude": latitude,
+                        "address": address,
+                        "overview": overview,
+                    }
                 )
 
                 # 3. bookmarklist 데이터 생성
                 new_bookmarklist = BookmarkList.objects.create(
                     bookmark_id=bookmark_id,
-                    bookmarkplace_id=new_place_id if new_place_id else None,
+                    bookmarkplace_id=new_place.bookmarkplace_id if new_place else None,
                     bookmarkschedule_id=bookmarkschedule_id if bookmarkschedule_id else None,
                 )
-                return JsonResponse({"success": True, "message": "Bookmark place and list added successfully!"})
+                if created:
+                    message = "Bookmark place created and list added successfully!"
+                else:
+                    message = "Bookmark place already existed; list added successfully!"
+
+                return JsonResponse({"success": True, "message": message})
             else:
                 # 1. bookmarkschedule_id 생성
                 last_schedule = BookmarkSchedule.objects.aggregate(max_id=Max("bookmarkschedule_id"))
