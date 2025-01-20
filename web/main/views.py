@@ -646,8 +646,8 @@ def update_language(request):
 def favorites_places(request):
     context = get_theme_context(request.user)  # 테마 정보 추가
     user = request.user
-    places = Bookmark.objects.filter(profile=user, is_place=True)
-    schedules = Bookmark.objects.filter(profile=user, is_place=False)
+    places = Bookmark.objects.filter(profile=user, is_place=True).order_by('created_at')
+    schedules = Bookmark.objects.filter(profile=user, is_place=False).order_by('created_at')
     context.update({
         "places": places,
         "schedules": schedules,
@@ -803,13 +803,12 @@ def run_gpt_view(request):
 def get_bookmark_items(request, bookmark_id):
     try:
         # BookmarkList에서 데이터 조회
+        rows = []
+        bookmark_type = None
         bookmark_items = BookmarkList.objects.filter(bookmark=bookmark_id)
 
         if not bookmark_items.exists():
-            return JsonResponse({"success": False, "error": "No data found"}, status=404)
-
-        rows = []
-        bookmark_type = None
+            return JsonResponse({"success": True, "type": bookmark_type})
 
         for item in bookmark_items:
             if item.bookmarkplace:

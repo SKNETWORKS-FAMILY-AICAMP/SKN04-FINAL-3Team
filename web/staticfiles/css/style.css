@@ -117,10 +117,10 @@ body {
     box-sizing: border-box;
     border: 2px solid #4caf50;
     border-radius: 5px;
-    resize: none; /* 사용자가 직접 크기 조정 불가 */
-    height: 120px; /* 고정된 높이 (6줄) */
-    min-height: 112px;
-    overflow-y: auto; /* 스크롤바 표시 */
+    resize: none; 
+    height: 95px;
+    min-height: 95px;
+    overflow-y: auto;
     transition: height 0.2s ease-in-out;
 }
 
@@ -145,16 +145,40 @@ body {
 
 /* 입력창 컨테이너 */
 .input-container {
+    position: relative;
     margin: 10px;
-    border: 1px solid #ddd;
+    border: 0px solid #ddd;
     overflow: hidden;
 }
 
 [data-theme="dark"] .input-container {
+    position: relative;
     margin: 10px;
     background-color: #222;
-    border: 1px solid #444;
+    border: 0px solid #444;
     overflow: hidden;
+}
+
+.send-button {
+    background-color: #222;
+    border: none;
+    border-radius: 50%;
+    width: 27px;
+    height: 27px;
+    cursor: pointer;
+}
+
+[data-theme="dark"] .send-button {
+    background-color: white;
+    border: none;
+    border-radius: 50%;
+    width: 27px;
+    height: 27px;
+    cursor: pointer;
+}
+
+.send-button:hover {
+    background-color: #45a049;
 }
 
 .container {
@@ -285,17 +309,17 @@ body {
 
 /* 메시지 목록 컨테이너 (유동적 크기) */
 #chat-messages {
-    flex-grow: 1; /* 채팅창이 유동적으로 늘어나도록 */
-    overflow-y: auto; /* 메시지가 많아지면 스크롤 */
+    flex-grow: 1; 
+    overflow-y: auto; 
     display: flex;
     flex-direction: column;
-    gap: 5px; /* 메시지 간격 */
+    gap: 5px; 
     width: 100%; 
-    height: calc(100% - 190px); /* 원하는 고정 높이 설정 */
+    height: calc(100% - 220px);
     border: 1px solid #ddd;
     box-sizing: border-box;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    background-color: white; /* 채팅창 배경 */
+    background-color: white; 
 }
 
 /* 스크롤바 커스터마이징 */
@@ -405,7 +429,7 @@ body {
 /* 아래로 이동 버튼 */
 .scroll-to-bottom {
     position: absolute;      /* 위치를 자유롭게 조정할 수 있도록 absolute/fixed */
-    bottom: 100px;          /* 화면 아래에서 100px 떨어짐 (입력창 위로) */
+    bottom: 110px;          /* 화면 아래에서 100px 떨어짐 (입력창 위로) */
     width: 40px;
     height: 40px;
     background-color: rgb(0, 0, 0);
@@ -424,7 +448,7 @@ body {
 
 [data-theme="dark"] .scroll-to-bottom {
     position: absolute;      /* 위치를 자유롭게 조정할 수 있도록 absolute/fixed */
-    bottom: 100px;          /* 화면 아래에서 100px 떨어짐 (입력창 위로) */
+    bottom: 110px;          /* 화면 아래에서 100px 떨어짐 (입력창 위로) */
     width: 40px;
     height: 40px;
     background-color: rgb(255, 255, 255); 
@@ -576,7 +600,7 @@ body {
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 50%; /* 기본 높이 */
+    height: 50%;
     background-color: white;
     box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
     border-top-left-radius: 10px;
@@ -612,7 +636,6 @@ body {
 .map-panel-content {
     flex: 1; 
     overflow-y: auto; 
-    padding: 10px; 
 }
 
 #day-button-container {
@@ -740,15 +763,17 @@ body {
     display: flex; 
     align-items: center; 
     margin-bottom: 20px;
+    cursor: pointer;
 }
 
 .bookmark_item p{
     margin: 0; 
     font-size: 16px; 
     font-weight: bold;
+    cursor: pointer;
 }
 
-.bookmark_item div, button{
+.bookmark_item div, .bookmark_item button{
     width: 30px;
     height: 30px;
     border-radius: 50%;
@@ -757,6 +782,7 @@ body {
     align-items: center;
     margin-right: 10px; 
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
 }
 
 .bookmark_item button{
@@ -783,18 +809,29 @@ body {
     color: white;
 }
 
+.button_inactive{
+    cursor: initial;
+}
+
 .button_inactive div{
     background-color: #666; 
-    cursor: pointer;
+    cursor: initial;
 }
 
 .button_inactive span{
     font-size: 27px; 
     color: #222; 
-    cursor: pointer;
+    cursor: initial;
 }
 
 .button_inactive p{
-    cursor: pointer;
+    cursor: initial;
     color: #666;
+}
+
+.bookmarklist-panel .folder-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    height: 30px;
 }

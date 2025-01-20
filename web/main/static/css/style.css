@@ -763,12 +763,14 @@ body {
     display: flex; 
     align-items: center; 
     margin-bottom: 20px;
+    cursor: pointer;
 }
 
 .bookmark_item p{
     margin: 0; 
     font-size: 16px; 
     font-weight: bold;
+    cursor: pointer;
 }
 
 .bookmark_item div, .bookmark_item button{
@@ -780,6 +782,7 @@ body {
     align-items: center;
     margin-right: 10px; 
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
 }
 
 .bookmark_item button{
@@ -806,18 +809,29 @@ body {
     color: white;
 }
 
+.button_inactive{
+    cursor: initial;
+}
+
 .button_inactive div{
     background-color: #666; 
-    cursor: pointer;
+    cursor: initial;
 }
 
 .button_inactive span{
     font-size: 27px; 
     color: #222; 
-    cursor: pointer;
+    cursor: initial;
 }
 
 .button_inactive p{
-    cursor: pointer;
+    cursor: initial;
     color: #666;
+}
+
+.bookmarklist-panel .folder-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    height: 30px;
 }

@@ -216,9 +216,9 @@
     top: 50%;
     /* transform: translateY(-50%); */
     cursor: pointer;
-    width: 24px;  /* 아이콘 크기에 맞춤 */
-    height: 24px;
-    opacity: 0.7;
+    width: 30px;  /* 아이콘 크기에 맞춤 */
+    height: 30px;
+    opacity: 0.3;
     margin-left: auto;
     margin-right: 10px;
     transition: opacity 0.2s;
@@ -298,4 +298,3 @@
 .schedule-item .delete-icon:hover {
     opacity: 1.0;
 }
-

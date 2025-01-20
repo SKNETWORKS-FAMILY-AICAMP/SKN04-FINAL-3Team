@@ -81,6 +81,9 @@
             <button id="closeBookmarkListBtn" onclick="document.querySelector('#bookmarklist-div').classList.remove('active');">∨</button>
         </div>
         <div class="bookmarklist-panel">
+            <div>
+                <h2 style="text-align: center;">Edit this title</h2>
+            </div>
             <ul>
 
             </ul>
@@ -902,6 +905,11 @@
                 // 각 folder-item에 클릭 이벤트 추가
                 folderItems.forEach(item => {
                     item.addEventListener("click", async function () {
+                        if (event.target.classList.contains("delete-icon")) {
+                            console.log("Delete button clicked, folder-item event stopped.");
+                            return; // 삭제 버튼 클릭 시 folder-item의 이벤트 실행 차단
+                        }
+
                         // 새 폴더 버튼은 해당 안하니까 패스
                         if (item.id !== "plus-place" && item.id !== "plus-schedule") {
                             const backBtn = document.getElementById('backBtn');
@@ -1039,7 +1047,8 @@
                                             deleteButton.height = 25;
 
                                             // 삭제 버튼 이벤트 추가
-                                            deleteButton.addEventListener('click', () => {
+                                            deleteButton.addEventListener('click', (event) => {
+                                                event.stopPropagation();
                                                 // UI에서 제거
                                                 bookmarkPlaceItemDiv.removeChild(itemDiv);
 
@@ -1162,6 +1171,9 @@
                                             bookmarkScheduleItemDiv.appendChild(itemDiv);
                                         });
                                     }
+                                }
+                                else {
+                                    console.log("No data found");
                                 }
                             } catch (error) {
                                 console.error("Error fetching bookmark data:", error);
@@ -2438,7 +2450,7 @@
                     const data = await response.json();
                     if (data.success) {                        
                         let innerHtml = "";                        
-                        const bookmarklistPanel = document.querySelector('.bookmarklist-panel ul');
+                        const bookmarklistPanel = document.querySelector('.bookmarklist-panel ul');                        
                         bookmarklistPanel.innerHTML = "";
 
                         if (isPlace) {                            
@@ -2457,10 +2469,6 @@
                             createLi.className = "bookmark_item";
                             createLi.id = bookmark['id'];
                             createLi.style.cursor = "pointer";
-                            console.log("1:", (bookmarkID === bookmark['id']));
-                            console.log("2:", bookmarkID);
-                            console.log("3:", bookmark['id']);
-                            // console.log("4:", bookmark['title']);
                             innerHtml = `
                                 <div style="background-color: ${hexColor}">
                                     <span style="font-size: 17px; color: white;">★</span>
@@ -2477,130 +2485,114 @@
                             
                             bookmarklistPanel.appendChild(createLi);
                         });
-
                         
-                        //새 즐겨찾기 항목 만드는 버튼 추가
+                        //새 즐겨찾기 항목 만드는 버튼 추가                        
                         const createLi = document.createElement('li');
                         createLi.className = "bookmark_item";
-                        createLi.id = "add_bookmark_list_btn";
-                        createLi.style.cursor = "pointer";         
+                        createLi.id = "add_bookmark_list_btn";   
                         innerHtml = `
                             <div>
                                 <span>+</span>
                             </div>
                             <p>새 즐겨찾기 항목</p>
-                        `;               
-                        createLi.addEventListener('click', () => {
-                            // 새 폴더 아이템 생성
-                            const inputItem = document.createElement("div");
-                            inputItem.className = "folder-item";
-
-                            const inputElem = document.createElement("input");
-                            inputElem.type = "text";
-                            inputElem.placeholder = "새 폴더 이름 입력 (Enter)";
-                            inputElem.style.width = "200px";
-                            inputElem.style.marginBottom = "20px";
-
-                            inputItem.appendChild(inputElem);
-                            const plusElement = document.querySelector(".bookmarklist-panel ul");
-                            const folderList = document.querySelector(`#add_bookmark_list_btn`);
-                            plusElement.insertBefore(inputItem, folderList);
-
-                            inputElem.focus();
-
-                            // Enter로 확정
-                            inputElem.addEventListener("keydown", function (e) {
-                                if (e.key === "Enter") {
-                                    e.preventDefault();
-                                    const textValue = inputElem.value.trim();
-                                    const isLightTheme = document.body.getAttribute("data-theme") === "light";
-
-                                    // 입력이 없으면 취소
-                                    if (textValue !== "") {
-                                        const folderList = document.querySelector(`.bookmarklist-panel`);
-                                        const inputItem = document.querySelector(`.bookmarklist-panel .folder-item`);
-                                        const items = document.querySelectorAll('.bookmarklist-panel ul li');
-                                        const count = items.length;
-                                        const add_bookmark_list_btn = document.getElementById("add_bookmark_list_btn");
-                                        
-                                        inputElem.parentElement.remove();
-                                        if (count >= 11) {
-                                            add_bookmark_list_btn.style.pointerEvents = 'none';
-                                            add_bookmark_list_btn.style.opacity = '0.4';
-                                        } else {
-                                            add_bookmark_list_btn.style.pointerEvents = 'auto';
-                                            add_bookmark_list_btn.style.opacity = '1';
-
-                                            // 서버로 AJAX 호출
-                                            fetch("/app/partials/favorites/add/", {
-                                                method: "POST",
-                                                headers: {
-                                                    "Content-Type": "application/json",
-                                                    "X-CSRFToken": getCSRFToken()
-                                                },
-                                                body: JSON.stringify({
-                                                    title: textValue,
-                                                    is_place: isPlace,
-                                                })
-                                            })
-                                            .then(response => {
-                                                if (!response.ok) {
-                                                    throw new Error(`HTTP error! status: ${response.status}`);
-                                                }
-                                                return response.json();
-                                            })
-                                            .then((data) => {
-                                                if (data.success) {
-                                                    const createLi = document.createElement('li');                            
-                                                    const milliseconds = Date.now();
-                                                    const colorValue = milliseconds % 0xFFFFFF; 
-                                                    const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
-                                                    createLi.className = "bookmark_item";
-                                                    createLi.id = data['id'];
-                                                    createLi.style.cursor = "pointer";
-                                                    innerHtml = `
-                                                        <div style="background-color: ${hexColor}">
-                                                            <span style="font-size: 17px; color: white;">★</span>
-                                                        </div>
-                                                        <p>${textValue}</p>
-                                                        <button>
-                                                            ${bookmarkID === data['folderId'] 
-                                                                ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
-                                                                : '<span style="font-size: 27px; color: white;">+</span>'
-                                                            }
-                                                        </button>
-                                                    `;                            
-                                                    createLi.innerHTML = innerHtml;
-                                                    
-                                                    document.querySelector('.bookmarklist-panel ul').insertBefore(createLi, add_bookmark_list_btn);
-                                                } else {
-                                                    alert("생성 실패: " + (data.error || "알 수 없는 오류"));
-                                                    // folderList.removeChild(inputItem);
-                                                }
-                                            })
-                                            .catch((err) => {
-                                                console.error("서버 통신 오류:", err);
-                                                // folderList.removeChild(inputItem);
-                                            });
-                                        }
-                                    }                                    
-                                }
-                            });
-
-                            // addFolderEventHandler(
-                            //     "plus-place",
-                            //     "#placesSection",
-                            //     "새 폴더 이름 입력 (Enter)",
-                            //     true,
-                            //     { light: "/static/images/folder_light.png", dark: "/static/images/folder_dark.png" }
-                            // );
-                        })
-                        
-                        //10개 미만이면 활성화, 그 이상이면 비활성화
+                        `;              
+                        //10개 미만이면 활성화, 그 이상이면 비활성화 
                         if (bookmarklistPanel.childNodes.length < 10) {
+                            createLi.addEventListener('click', () => {
+                                console.log("hi:", document.querySelectorAll("#new-folder").length);
+                                if (document.querySelectorAll("#new-folder").length == 0) {
+                                    const add_bookmark_list_btn = document.getElementById("add_bookmark_list_btn");
+                                    const inputElem = document.createElement("input");
+                                    inputElem.id = "new-folder";
+                                    inputElem.type = "text";
+                                    inputElem.placeholder = "새 폴더 이름 입력 (Enter)";
+                                    inputElem.style.width = "200px";
+                                    inputElem.style.marginBottom = "20px";
+
+                                    const plusElement = document.querySelector(".bookmarklist-panel ul");
+                                    plusElement.insertBefore(inputElem, add_bookmark_list_btn);
+
+                                    inputElem.focus();
+
+                                    // Enter로 확정
+                                    inputElem.addEventListener("keydown", function (e) {
+                                        if (e.key === "Enter") {
+                                            e.preventDefault();
+                                            const textValue = inputElem.value.trim();
+                                            const isLightTheme = document.body.getAttribute("data-theme") === "light";
+
+                                            // 입력이 없으면 취소
+                                            if (textValue !== "") {
+                                                const inputItem = document.querySelector(`.bookmarklist-panel .folder-item`);
+                                                const items = document.querySelectorAll('.bookmarklist-panel ul li');                                                                             
+                                                inputElem.remove();
+
+                                                // 서버로 AJAX 호출
+                                                fetch("/app/partials/favorites/add/", {
+                                                    method: "POST",
+                                                    headers: {
+                                                        "Content-Type": "application/json",
+                                                        "X-CSRFToken": getCSRFToken()
+                                                    },
+                                                    body: JSON.stringify({
+                                                        title: textValue,
+                                                        is_place: isPlace,
+                                                    })
+                                                })
+                                                .then(response => {
+                                                    if (!response.ok) {
+                                                        throw new Error(`HTTP error! status: ${response.status}`);
+                                                    }
+                                                    return response.json();
+                                                })
+                                                .then((data) => {
+                                                    if (data.success) {
+                                                        const createLi = document.createElement('li');                            
+                                                        const milliseconds = Date.now();
+                                                        const colorValue = milliseconds % 0xFFFFFF; 
+                                                        const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
+                                                        createLi.className = "bookmark_item";
+                                                        createLi.id = data['id'];
+                                                        innerHtml = `
+                                                            <div style="background-color: ${hexColor}">
+                                                                <span style="font-size: 17px; color: white;">★</span>
+                                                            </div>
+                                                            <p>${textValue}</p>
+                                                            <button>
+                                                                ${bookmarkID === data['folderId'] 
+                                                                    ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
+                                                                    : '<span style="font-size: 27px; color: white;">+</span>'
+                                                                }
+                                                            </button>
+                                                        `;                            
+                                                        createLi.innerHTML = innerHtml;
+                                                        console.log("whia:", document.querySelector('.bookmarklist-panel ul'));
+                                                        document.querySelector('.bookmarklist-panel ul').insertBefore(createLi, add_bookmark_list_btn);
+                                                    } else {
+                                                        alert("생성 실패: " + (data.error || "알 수 없는 오류"));
+                                                    }
+                                                })
+                                                .catch((err) => {
+                                                    console.error("서버 통신 오류:", err);
+                                                });
+                                            }                                    
+                                        }
+                                    });
+                                }
+
+                                // addFolderEventHandler(
+                                //     "plus-place",
+                                //     "#placesSection",
+                                //     "새 폴더 이름 입력 (Enter)",
+                                //     true,
+                                //     { light: "/static/images/folder_light.png", dark: "/static/images/folder_dark.png" }
+                                // );
+                            })
+                            createLi.classList.remove("button_inactive");
                             createLi.classList.add("button_active");
                         }
                         else {
+                            createLi.classList.remove("button_active");
                             createLi.classList.add("button_inactive");
                         }
 
