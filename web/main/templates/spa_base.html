@@ -201,6 +201,7 @@
 
         // 현재 활성화된 nav-btn 표시 함수
         function highlightActiveLink(spaPath) {
+            console.log("highlightActiveLink");
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 const url = btn.getAttribute('data-url');
                 if (!url) return;  // home-btn이 data-url이 없으므로 건너뜀
@@ -282,7 +283,7 @@
 
                     if (!spaPath) return; // URL이 없는 경우 무시
                     
-                    if (isLoggedIn === "false") {
+                    if (isLoggedIn === false) {
                         // 비로그인 상태일 경우 alert 창 띄우기
                         const confirmLogin = confirm("로그인이 필요한 화면입니다. 로그인하시겠습니까?");
                         if (confirmLogin) {
