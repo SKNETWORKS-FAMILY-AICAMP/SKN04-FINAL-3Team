@@ -2523,28 +2523,33 @@
 
                         //기존 즐겨찾기 항목 버튼들 추가
                         data.bookmarks.forEach(bookmark => {
-                            const createLi = document.createElement('li');                            
-                            const milliseconds = new Date(bookmark['created_at']).getTime();
-                            const colorValue = milliseconds % 0xFFFFFF; 
-                            const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
-                            createLi.className = "bookmark_item";
-                            createLi.id = bookmark['id'];
-                            createLi.style.cursor = "pointer";
-                            innerHtml = `
-                                <div style="background-color: ${hexColor}">
-                                    <span style="font-size: 17px; color: white;">★</span>
-                                </div>
-                                <p>${bookmark['title']}</p>
-                                <button>
-                                    ${bookmarkID === bookmark['id'] 
-                                        ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
-                                        : '<span style="font-size: 27px; color: white;">+</span>'
-                                    }
-                                </button>
-                            `;                            
-                            createLi.innerHTML = innerHtml;
-                            
-                            bookmarklistPanel.appendChild(createLi);
+                                const createLi = document.createElement('li');                            
+                                const milliseconds = new Date(bookmark['created_at']).getTime();
+                                const colorValue = milliseconds % 0xFFFFFF; 
+                                const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
+                                createLi.className = "bookmark_item";
+                                createLi.id = bookmark['id'];
+                                createLi.style.cursor = "pointer";
+                                innerHtml = `
+                                    <div style="background-color: ${hexColor}">
+                                        <span style="font-size: 17px; color: white;">★</span>
+                                    </div>
+                                    <p>${bookmark['title']}</p>
+                                    <button>
+                                        ${bookmarkID === bookmark['id'] 
+                                            ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
+                                            : '<span style="font-size: 27px; color: white;">+</span>'
+                                        }
+                                    </button>
+                                `;                            
+                                createLi.innerHTML = innerHtml;
+                                
+                                createLi.addEventListener('click', () => addToBookmark(createLi.querySelector('button span')));
+                                createLi.querySelector('div').addEventListener('click', () => addToBookmark(createLi.querySelector('button span')));
+                                createLi.querySelector('span').addEventListener('click', () => addToBookmark(createLi.querySelector('button span')));
+                                createLi.querySelector('button').addEventListener('click', () => addToBookmark(createLi.querySelector('button span')));
+                                createLi.querySelector('p').addEventListener('click', () => addToBookmark(createLi.querySelector('button span')));
+                                bookmarklistPanel.appendChild(createLi);
                         });
                         
                         //새 즐겨찾기 항목 만드는 버튼 추가                        
@@ -2557,10 +2562,10 @@
                             </div>
                             <p>새 즐겨찾기 항목</p>
                         `;              
+
                         //10개 미만이면 활성화, 그 이상이면 비활성화 
                         if (bookmarklistPanel.childNodes.length < 10) {
                             createLi.addEventListener('click', () => {
-                                console.log("hi:", document.querySelectorAll("#new-folder").length);
                                 if (document.querySelectorAll("#new-folder").length == 0) {
                                     const add_bookmark_list_btn = document.getElementById("add_bookmark_list_btn");
                                     const inputElem = document.createElement("input");
@@ -2669,6 +2674,17 @@
             else {
                 alert("즐겨찾기에 저장할 데이터가 없습니다.");
             }
+        }
+
+        function addClickEvent() {
+            
+        }
+
+        function addToBookmark(span) {
+            span.textContent = "✔";
+            span.style.fontSize = "17px";
+            span.style.color = "#5454ea";
+            console.log("addToBookmark");
         }
 
         function removeContent() {
