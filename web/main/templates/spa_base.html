@@ -65,9 +65,12 @@
             <div id="map-panel">
                 <div id="drag-handle"></div> <!-- 드래그 핸들 추가 -->
                 <div id="button-panel">
-                    <button id="removeContentBtn" onclick="removeContent()">D</button>
-                    <button id="getBookmarkListBtn" onclick="getBookmarkList()">☆</button>
-                    <button id="toggleUIBtn" onclick="toggleMapPanel()">⮟</button>
+                    <strong id="panel-title"></strong>
+                    <div class="button-group">
+                        <button id="removeContentBtn" onclick="removeContent()">🗑️</button>
+                        <button id="getBookmarkListBtn" onclick="getBookmarkList()">☆</button>
+                        <button id="toggleUIBtn" onclick="toggleMapPanel()">⮟</button>
+                    </div>
                 </div> 
                 <div class="map-panel-content">
                 </div>
@@ -81,8 +84,10 @@
             <button id="closeBookmarkListBtn" onclick="document.querySelector('#bookmarklist-div').classList.remove('active');">∨</button>
         </div>
         <div class="bookmarklist-panel">
-            <div>
-                <h2 style="text-align: center;">Edit this title</h2>
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h2 style="text-align: center; margin: 0; margin-bottom: 10px;">Edit this title</h2>
+                <input id="change-title" type="text" style="display: none; margin: 0 auto; margin-bottom: 10px;" maxlength="20">
+                <h6 style="text-align: center; margin: 0;">(Double click the title to edit)</h6>
             </div>
             <ul>
 
@@ -580,9 +585,11 @@
                                 const target = event.target;
                                 const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
                                 const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
-
+                                
                                 if (currentBackgroundColor !== "rgb(76, 175, 80)") {
                                     // 서식을 유지한 상태로 출력
+                                    const panelTitle = document.getElementById("panel-title");
+                                    panelTitle.textContent = "";
                                     const formattedMessage = messageContent
                                         .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
                                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
@@ -1011,6 +1018,8 @@
 
                                                     // 장소 정보 표시
                                                     if (data) {
+                                                        const panelTitle = document.getElementById("panel-title");
+                                                        panelTitle.innerHTML = `${row.name}`;
                                                         const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
                                                         getBookmarkListBtn.classList.remove("schedule");
                                                         getBookmarkListBtn.classList.add("place");
@@ -1120,6 +1129,8 @@
 
                                                     // 일정 정보 표시
                                                     if (data) {;
+                                                        const panelTitle = document.getElementById("panel-title");
+                                                        panelTitle.innerHTML = `${row.name}`;
                                                         const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
                                                         getBookmarkListBtn.classList.remove("place");
                                                         getBookmarkListBtn.classList.add("schedule");
@@ -1460,7 +1471,6 @@
             
             if (sendBtn) {
                 sendBtn.addEventListener("click", function (e) {
-                    console.log("isL:", isLoading);
                     if (isLoading) {
                         e.preventDefault(); // 로딩 중일 때 입력 방지
                         alert("현재 봇 응답이 생성 중입니다. 잠시만 기다려주세요!");
@@ -1571,15 +1581,14 @@
                             const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
 
                             if (currentBackgroundColor !== "rgb(76, 175, 80)") {
+                                const panelTitle = document.getElementById("panel-title");
+                                panelTitle.textContent = "";
                                 // 서식을 유지한 상태로 출력
                                 const formattedMessage = messageContent
                                     .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
                                     .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
-                                // Example Usage
-                                console.log("formattedMessage:", formattedMessage);
                                 const jsonData = parseItineraryToJson(formattedMessage);
-                                console.log("Clicked Message:", jsonData);
                                 generateDayButtons(jsonData);
                                 generateDynamicPlanContent(jsonData);
                             }
@@ -1810,6 +1819,9 @@
                         const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
 
                         if (currentBackgroundColor !== "rgb(76, 175, 80)") {
+                            const panelTitle = document.getElementById("panel-title");
+                            panelTitle.textContent = "";
+
                             // 서식을 유지한 상태로 출력
                             const formattedMessage = messageContent
                                 .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
@@ -2451,13 +2463,62 @@
                     if (data.success) {                        
                         let innerHtml = "";                        
                         const bookmarklistPanel = document.querySelector('.bookmarklist-panel ul');                        
+                        const title = document.querySelector(".bookmarklist-panel h2");
+                        const changeTitle = document.getElementById("change-title")
+                        const panelTitle = document.querySelector("#panel-title");
                         bookmarklistPanel.innerHTML = "";
 
-                        if (isPlace) {                            
-                            
+                        if (isPlace) {          
+                            //장소 이름을 그대로 제목으로 짓기
+                            title.textContent = document.querySelector("#panel-title").textContent;
+                            title.addEventListener("dblclick", function () {
+                                changeTitle.value = title.textContent;
+                                changeTitle.style.display = "block"; // 입력창 표시
+                                title.style.display = "none"; // 기존 텍스트 숨김
+                                changeTitle.focus();
+                            });
+
+                            // 2) Enter: 제목 저장, ESC: 취소
+                            changeTitle.addEventListener("keydown", async function (e) {
+                                if (event.key === "Enter") {
+                                    console.log("wwww:", changeTitle.value.trim());
+                                    const newTitle = changeTitle.value.trim();
+                                    
+                                    if (!newTitle) {
+                                        alert("제목을 입력해주세요.");
+                                        return;
+                                    }
+                                    
+                                    title.textContent = newTitle;
+                                    title.style.display = "block"; // 기존 텍스트 표시
+                                    changeTitle.style.display = "none"; // 입력창 숨김
+                                } 
+                                else if (event.key === "Escape") {
+                                    title.style.display = "block"; // 기존 텍스트 표시
+                                    changeTitle.style.display = "none";  // 입력창 숨김
+                                }                    
+                            });
                         }
                         else if (isSchedule) {
-                            
+                            //일정 이름은 (일정 + 시간)으로 짓기  (예:일정250120102730)
+                            // title.textContent = "";
+                            if (panelTitle.textContent == "") {
+                                // 현재 시각 포맷팅
+                                const now = new Date();
+                                const year = String(now.getFullYear()).slice(2); // 연도 마지막 두 자리
+                                const month = String(now.getMonth() + 1).padStart(2, "0"); // 월 (1~12)
+                                const day = String(now.getDate()).padStart(2, "0"); // 일
+                                const hours = String(now.getHours()).padStart(2, "0"); // 시간 (0~23)
+                                const minutes = String(now.getMinutes()).padStart(2, "0"); // 분
+                                const seconds = String(now.getSeconds()).padStart(2, "0"); // 초
+                                const milliseconds = now.getTime();
+                                // const curDate = `${year}.${month}.${day} ${hours}:${minutes}:${seconds}`;
+                                const curDate = `${milliseconds.toString(16)}`;
+                                title.textContent = "일정 " + curDate;
+                            }
+                            else {
+                                title.textContent = panelTitle.textContent;
+                            }
                         } 
 
                         //기존 즐겨찾기 항목 버튼들 추가
@@ -2613,11 +2674,13 @@
         function removeContent() {
             const map_panel_content = document.querySelector(".map-panel-content");
             const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+            const panelTitle= document.getElementById("panel-title");
             getBookmarkListBtn.classList.remove('place');
             getBookmarkListBtn.classList.remove('schedule');
             getBookmarkListBtn.textContent = "☆";
 
-            map_panel_content.innerHTML = '';
+            panelTitle.innerHTML = "";
+            map_panel_content.innerHTML = "";
         }
 
         function toggleMapPanel() {
