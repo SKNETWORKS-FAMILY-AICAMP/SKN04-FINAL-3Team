@@ -598,6 +598,9 @@
                                     const jsonData = parseItineraryToJson(formattedMessage);
                                     generateDayButtons(jsonData);
                                     generateDynamicPlanContent(jsonData);
+
+                                    const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+                                    getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonData));
                                 }
                             });
                             chatMessages.appendChild(botBubble); // DOM에 추가
@@ -1031,6 +1034,8 @@
                                                         getBookmarkListBtn.classList.remove("schedule");
                                                         getBookmarkListBtn.classList.add("place");
                                                         getBookmarkListBtn.setAttribute("bookmark_id", row.bookmark);
+                                                        getBookmarkListBtn.setAttribute("bookmarkplace_id", row.id);
+                                                        getBookmarkListBtn.setAttribute("json_data", null);
                                                         const placeSection = document.createElement("div");
                                                         placeSection.className = "place-section";
                                                         placeSection.innerHTML = `
@@ -1142,7 +1147,9 @@
                                                         getBookmarkListBtn.classList.remove("place");
                                                         getBookmarkListBtn.classList.add("schedule");
                                                         getBookmarkListBtn.setAttribute("bookmark_id", row.bookmark);
+                                                        getBookmarkListBtn.setAttribute("bookmarkschedule_id", row.id);
                                                         const jsonData = JSON.parse(data.json_data);
+                                                        getBookmarkListBtn.setAttribute("json_data", data.json_data);
                                                         generateDayButtons(jsonData);
                                                         generateDynamicPlanContent(jsonData);
                                                     } else {
@@ -1598,6 +1605,9 @@
                                 const jsonData = parseItineraryToJson(formattedMessage);
                                 generateDayButtons(jsonData);
                                 generateDynamicPlanContent(jsonData);
+
+                                const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+                                getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonData));
                             }
                         });
                         console.log("봇2:", response); // botMessage의 HTML 내용을 출력
@@ -1839,6 +1849,9 @@
                             console.log("Clicked Message:", jsonData);
                             generateDayButtons(jsonData);
                             generateDynamicPlanContent(jsonData);
+
+                            const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+                            getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonData));
                         }
                     });
 
@@ -2478,6 +2491,7 @@
                         if (sectionData) {
                             const name = sectionData["장소"] || sectionData["명소이름"];
                             const address = sectionData["주소"] || sectionData["명소위치"];
+                            const overview = sectionData["음식점특징"] || sectionData["명소특징"];
 
                             if (name && address) {
                                 const listItem = document.createElement('p');
@@ -2485,6 +2499,8 @@
 
                                 const buttonContainer = document.createElement('div');
                                 buttonContainer.className = "button-container";
+                                buttonContainer.setAttribute('overview', overview);
+                                buttonContainer.setAttribute('address', address);
                                 buttonContainer.style.display = 'inline-flex';
                                 buttonContainer.style.alignItems = 'center';
                                 buttonContainer.style.flexWrap = "nowrap";
@@ -2831,11 +2847,11 @@
                                 `;                            
                                 createLi.innerHTML = innerHtml;
                                 
-                                createLi.addEventListener('click', () => addToBookmark(createLi.querySelector('button span')));
-                                createLi.querySelector('div').addEventListener('click', () => addToBookmark(createLi.querySelector('button span')));
-                                createLi.querySelector('span').addEventListener('click', () => addToBookmark(createLi.querySelector('button span')));
-                                createLi.querySelector('button').addEventListener('click', () => addToBookmark(createLi.querySelector('button span')));
-                                createLi.querySelector('p').addEventListener('click', () => addToBookmark(createLi.querySelector('button span')));
+                                createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span')) });
+                                createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span')) });
+                                createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span')) });
+                                createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span')) });
+                                createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span')) });
                                 bookmarklistPanel.appendChild(createLi);
                         });
                         
@@ -2967,11 +2983,62 @@
             
         }
 
-        function addToBookmark(span) {
+        function addToBookmark(li, span) {
+            const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+            const panelTitle= document.getElementById("panel-title");
+            const bookmarkId = li.id; 
+            const name = document.querySelector(".bookmarklist-panel h2").textContent;
+            let body = null;
+
+            if ( getBookmarkListBtn.classList.contains('place')) {
+                // getBookmarkListBtn.classList.remove('place');
+                body = JSON.stringify({
+                    is_place: true,
+                    name: name,
+                    bookmark_id: bookmarkId,
+                    bookmarkplace_id: getBookmarkListBtn.getAttribute("bookmarkplace_id"),
+                    bookmarkschedule_id: null,
+                    address: getBookmarkListBtn.getAttribute("address"),
+                    overview: getBookmarkListBtn.getAttribute("overview"),
+                })
+            }
+            else if ( getBookmarkListBtn.classList.contains('schedule')) {
+                // getBookmarkListBtn.classList.remove('schedule');
+                console.log("bookmarkschedule_id:", getBookmarkListBtn.getAttribute("bookmarkschedule_id"));
+                console.log("json_data:", getBookmarkListBtn.getAttribute("json_data"));
+                body = JSON.stringify({
+                    is_place: false,
+                    name: name,
+                    bookmark_id: bookmarkId,
+                    bookmarkplace_id: null,
+                    bookmarkschedule_id: getBookmarkListBtn.getAttribute("bookmarkschedule_id"),
+                    json_data: getBookmarkListBtn.getAttribute("json_data"),
+                })
+            }
+
             span.textContent = "✔";
             span.style.fontSize = "17px";
             span.style.color = "#5454ea";
-            console.log("addToBookmark");
+
+            fetch("/app/partials/favorites/add_bookmarklist/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken(), // Django CSRF 토큰 필요
+                },
+                body: body,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("Bookmark list added successfully!");
+                } else {
+                    console.error("Error:", data.error || data.message);
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
         }
 
         function removeContent() {
@@ -2980,10 +3047,15 @@
             const panelTitle= document.getElementById("panel-title");
             getBookmarkListBtn.classList.remove('place');
             getBookmarkListBtn.classList.remove('schedule');
+            getBookmarkListBtn.setAttribute("bookmark_id", null);
+            getBookmarkListBtn.setAttribute("bookmarkplace_id", null);
+            getBookmarkListBtn.setAttribute("bookmarkschedule_id", null);
+            getBookmarkListBtn.setAttribute("json_data", null);
             getBookmarkListBtn.textContent = "☆";
 
             panelTitle.innerHTML = "";
             map_panel_content.innerHTML = "";
+
         }
 
         function toggleMapPanel() {
