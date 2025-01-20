@@ -687,18 +687,36 @@ body {
 
 #button-panel {
     display: flex;
-    justify-content: flex-end;
-    align-items: flex-end;
+    justify-content: space-between; /* 양쪽 정렬 */
+    align-items: center; /* 수직 정렬 */
     height: 30px;
+    padding: 0 10px; /* 좌우 여백 추가 */
 }
 
-#button-panel button{
+#panel-title {
+    margin: 0;
+    font-size: 16px;
+    color: #222;
+}
+
+.button-group {
+    display: flex;
+    gap: 5px; /* 버튼 간격 설정 */
+}
+
+.button-group button {
     width: 30px;
     height: 30px;
     font-size: 20px;
     background-color: white;
     color: #222;
     border: none;
+}
+
+[data-theme="dark"] #panel-title {
+    margin: 0;
+    font-size: 16px;
+    color: white;
 }
 
 [data-theme="dark"] #button-panel button{
