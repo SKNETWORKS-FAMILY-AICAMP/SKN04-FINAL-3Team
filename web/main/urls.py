@@ -36,11 +36,12 @@ urlpatterns = [
     path('app/partials/favorites/bookmark-schedule-detail/<str:bookmark_id>/', views.bookmark_schedule_detail, name='bookmark_schedule_detail'),
     path('app/partials/favorites/add/', views.add_folder, name='add_folder'),
     path('app/partials/favorites/delete/', views.delete_favorite, name='delete_favorite'),
+    path('app/partials/favorites/add_bookmarklist/', views.add_bookmarklist, name='add_bookmarklist'),
 
     path('app/partials/settings/', views.settings, name='settings'),
     path('app/partials/settings/update_theme/', views.update_theme, name='update_theme'),
     path('app/partials/settings/update_language/', views.update_language, name='update_language'),
-    
+
     path('app/partials/profile/', views.profile, name='profile'),
     path('app/partials/profile/update_thumbnail/', views.update_thumbnail, name='update_thumbnail'),
     path('app/partials/profile/update_nickname/', views.update_nickname, name='update_nickname'),

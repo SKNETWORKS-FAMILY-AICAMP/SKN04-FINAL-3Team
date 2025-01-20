@@ -9,6 +9,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db import models
+from django.db.models import Max
 from main.models import Chatting, Bookmark, BookmarkList, Settings, Country, CustomUser, BookmarkPlace, BookmarkSchedule
 from urllib.parse import quote
 from dotenv import load_dotenv
@@ -771,6 +772,94 @@ def delete_favorite(request):
     return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
 
 
+def add_bookmarklist(request):
+    if request.method == "POST":
+        try:
+            # POST 데이터 가져오기
+            data = json.loads(request.body)
+            is_place = data.get("is_place")
+            name = data.get("name")
+            bookmark_id = data.get("bookmark_id")
+            bookmarkplace_id = data.get("bookmarkplace_id")
+            bookmarkschedule_id = data.get("bookmarkschedule_id")
+            json_data = data.get("json_data")
+            overview = data.get("overview")
+            address = data.get("address")
+
+            print("is_place", is_place)
+            print("name", name)
+            print("bookmark_id", bookmark_id)
+            print("bookmarkplace_id", bookmarkplace_id)
+            print("bookmarkschedule_id", bookmarkschedule_id)
+            print("json_data", json_data)
+            print("name", overview)
+            print("address", address)
+            
+            if is_place:
+                # 1. bookmarkplace_id 생성
+                last_place = BookmarkPlace.objects.aggregate(max_id=Max("bookmarkplace_id"))
+                last_id = last_place["max_id"]
+
+                if last_id:
+                    last_index = int(last_id.split("_")[1])  # 'sc_XXXXX'의 숫자 부분
+                    new_index = last_index + 1
+                else:
+                    new_index = 1  # 첫 데이터라면 1부터 시작
+                
+                new_place_id = f"sc_{new_index:05d}"  # sc_XXXXX 형식
+
+                # 2. bookmarkplace 데이터 생성
+                new_place = BookmarkPlace.objects.create(
+                    bookmarkplace_id=new_place_id,
+                    name=name,
+                    category="",
+                    longitude="",
+                    latitude="",
+                    address=address,
+                    overview=overview,
+                )
+
+                # 3. bookmarklist 데이터 생성
+                new_bookmarklist = BookmarkList.objects.create(
+                    bookmark_id=bookmark_id,
+                    bookmarkplace_id=new_place_id if new_place_id else None,
+                    bookmarkschedule_id=bookmarkschedule_id if bookmarkschedule_id else None,
+                )
+                return JsonResponse({"success": True, "message": "Bookmark place and list added successfully!"})
+            else:
+                # 1. bookmarkschedule_id 생성
+                last_schedule = BookmarkSchedule.objects.aggregate(max_id=Max("bookmarkschedule_id"))
+                last_id = last_schedule["max_id"]
+
+                if last_id:
+                    last_index = int(last_id.split("_")[1])  # 'sc_XXXXX'의 숫자 부분
+                    new_index = last_index + 1
+                else:
+                    new_index = 1  # 첫 데이터라면 1부터 시작
+                
+                new_schedule_id = f"sc_{new_index:05d}"  # sc_XXXXX 형식
+
+                # 2. bookmarkschedule 데이터 생성
+                new_schedule = BookmarkSchedule.objects.create(
+                    bookmarkschedule_id=new_schedule_id,
+                    name=name,
+                    json_data=json.dumps(json_data),  # JSON 데이터를 문자열로 저장
+                )
+
+                # 3. bookmarklist 데이터 생성
+                new_bookmarklist = BookmarkList.objects.create(
+                    bookmark_id=bookmark_id,
+                    bookmarkplace_id=bookmarkplace_id if bookmarkplace_id else None,
+                    bookmarkschedule_id=new_schedule_id if new_schedule_id else None,
+                )
+                return JsonResponse({"success": True, "message": "Bookmark schedule and list added successfully!"})
+            
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+    
+    return JsonResponse({"success": False, "message": "Invalid request method."})
+
+
 @login_required
 def chatting(request):
     context = get_theme_context(request.user)  # 테마 정보 추가
@@ -923,7 +1012,7 @@ def get_bookmark(request):
 
     user = request.user
     is_place = request.GET.get('is_place', 'true') == 'true'  # 기본값은 장소
-    bookmarks = Bookmark.objects.filter(profile=user, is_place=is_place)
+    bookmarks = Bookmark.objects.filter(profile=user, is_place=is_place).order_by('created_at')
 
     bookmark_list = []
     for bookmark in bookmarks:
@@ -934,3 +1023,5 @@ def get_bookmark(request):
         })
 
     return JsonResponse({"success": True, "bookmarks": bookmark_list})
+
+
