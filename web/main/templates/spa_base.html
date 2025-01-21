@@ -344,7 +344,7 @@
                 const deltaY = e.clientY - startY; // 마우스 이동 거리
                 const newHeight = startHeight - deltaY; // 새로운 패널 높이 계산
                 
-                const maxHeight = window.innerHeight; // 화면 전체 높이
+                const maxHeight = window.innerHeight * 9 / 10; // 화면 전체 높이의 90%
                 const minHeight = 45; // 최소 높이 제한
                 
                 if (newHeight >= minHeight && newHeight <= maxHeight) {
@@ -3149,30 +3149,45 @@
         }
 
         function toggleMapPanel() {
-            const minHeight = "45px";
+            const minHeight = 45; // 터미널 최소 높이
+            const maxHeight = window.innerHeight / 2; // 터미널 최대 높이
             const toggleUIBtn = document.getElementById("toggleUIBtn");
             const mapPanel = document.getElementById("map-panel");
+            const buttonContainer = document.getElementById("day-button-container");
 
             // transition 적용
             mapPanel.style.transition = "height 0.5s ease";
 
+            // 터미널 높이 및 버튼 상태 변경
             if (toggleUIBtn.textContent === "⮝") {
-                // 높이가 최소인 경우, 원래 높이로 복원
-                mapPanel.style.height = "50%"; // 원하는 초기 높이
+                // 터미널 확장
+                mapPanel.style.height = `${maxHeight}px`;
                 toggleUIBtn.textContent = "⮟";
                 console.log("UI restored");
             } else {
-                // 슬라이드 효과로 높이를 최소 높이로 설정
-                mapPanel.style.height = minHeight;
+                // 터미널 축소
+                mapPanel.style.height = `${minHeight}px`;
                 toggleUIBtn.textContent = "⮝";
                 console.log("UI hidden");
             }
 
-            // transition을 제거하기 위해 500ms 후 실행
+            // 버튼 컨테이너 위치 업데이트
+            if (buttonContainer) {
+                buttonContainer.style.transition = "top 0.5s ease"; // 부드럽게 이동
+                const mapPanelHeight = parseInt(mapPanel.style.height, 10);
+                const mapPanelTop = window.innerHeight - mapPanelHeight; // mapPanel의 상단 위치 계산
+                buttonContainer.style.top = `${mapPanelTop - buttonContainer.offsetHeight - 15}px`; // 터미널 위로 15px
+            }
+
+            // transition 제거 (500ms 후)
             setTimeout(() => {
                 mapPanel.style.transition = "none";
+                if (buttonContainer) {
+                    buttonContainer.style.transition = "none";
+                }
             }, 500); // transition 시간과 동일하게 설정
         }
+
 
         function toggleAnimation() {
             const animatedDiv = document.getElementById('bookmarklist-div');
