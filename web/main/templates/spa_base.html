@@ -1098,7 +1098,9 @@
                                                 bookmarkPlaceItemDiv.removeChild(itemDiv);
 
                                                 //DB에서도 해당 데이터 제거
-                                                console.log("bookmarkplace_id:", item.id);
+                                                console.log("bookmarkplace_id:", row.bookmark); //bm_00001
+                                                console.log("data:", row.id); 
+                                                deleteBookmarklist(row);
                                             });
 
                                             deleteButton.addEventListener('mouseover', () => {
@@ -1172,8 +1174,12 @@
                                                         getBookmarkListBtn.classList.add("schedule");
                                                         getBookmarkListBtn.setAttribute("bookmark_id", row.bookmark);
                                                         getBookmarkListBtn.setAttribute("bookmarkschedule_id", row.id);
-                                                        const jsonData = JSON.parse(data.json_data);
-                                                        getBookmarkListBtn.setAttribute("json_data", data.json_data);
+                                                        const jsonData = data.json_data;
+                                                        console.log("werewr:", jsonData);
+                                                        if (typeof json_data === "string") {
+                                                            jsonData = JSON.parse(data.json_data);
+                                                        }    
+                                                        getBookmarkListBtn.setAttribute("json_data", jsonData);
                                                         generateDayButtons(jsonData);
                                                         generateDynamicPlanContent(jsonData);
                                                     } else {
@@ -1205,7 +1211,9 @@
                                                 itemDiv.remove();
 
                                                 //DB에서도 해당 데이터 제거
-
+                                                console.log("bookmarkplace_id:", row.bookmark); //bm_00001
+                                                console.log("data:", row.id); 
+                                                deleteBookmarklist(row);
                                             });
 
                                             deleteButton.addEventListener('mouseover', () => {
@@ -2632,9 +2640,15 @@
             } else {
                 buttonContainer.innerHTML = ''; // 기존 버튼 초기화
             }
+
+            console.log("jsonData:", jsonData);
+            console.log("1typeof jsonData:", typeof jsonData);
             if (typeof jsonData === "string") {
                 jsonData = JSON.parse(jsonData);
+                console.log("2typeof jsonData:", typeof jsonData);
             }
+            console.log("3typeof jsonData:", typeof jsonData);
+            
             let firstButton = null;
             jsonData.forEach((day, index) => {
                 const dayButton = document.createElement('button');
@@ -2718,7 +2732,6 @@
 
                 // 현재 마커를 전역 배열에 저장
                 window.currentMarkers.push(marker);
-                console.log("window.currentMarkers:", window.currentMarkers);
             });
 
             // 새 선 추가
@@ -2739,9 +2752,6 @@
 
             // 지도 범위를 업데이트
             if (markerData.length > 0) {
-                markerData.forEach(marker => 
-                    console.log("@!#!@#!@#", marker.position)
-                );
                 const bounds = new naver.maps.LatLngBounds();
                 markerData.forEach(marker => bounds.extend(marker.position));
                 map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
@@ -3032,6 +3042,36 @@
             
         }
 
+        async function deleteBookmarklist(row) {
+            const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+            try {
+                const payload = {
+                    bookmark_id: row.bookmark_id, // bookmark_id는 항상 포함
+                };
+                if (row.id.includes("pc")) {
+                    payload.bookmarkplace_id = row.id;
+                    if (row.id == getBookmarkListBtn.getAttribute("bookmarkplace_id")) {
+                        removeContent();
+                    }
+                }
+                if (row.id.includes("sc")) {
+                    payload.bookmarkschedule_id = row.bookmarkschedule_id;
+                    if (row.id == getBookmarkListBtn.getAttribute("bookmarkschedule_id")) {
+                        removeContent();
+                    }
+                }
+                const response = await fetch(`/app/partials/favorites/delete_bookmarklist/`, {
+                    method: "POST", // POST 요청
+                    headers: {
+                        "Content-Type": "application/json", // JSON 데이터 전송
+                    },
+                    body: JSON.stringify(payload), // payload를 JSON으로 변환하여 본문에 추가
+                });
+            } catch (error) {
+                console.error("Error fetching bookmarks:", error);
+            }
+        }
+
         function addToBookmark(li, span, isPlace, name, address) {
             const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
             const panelTitle= document.getElementById("panel-title");
@@ -3056,7 +3096,6 @@
                 })
             }
             else {
-                // getBookmarkListBtn.classList.remove('schedule');
                 body = JSON.stringify({
                     is_place: false,
                     name: nameData,
