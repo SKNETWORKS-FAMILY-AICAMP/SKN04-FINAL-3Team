@@ -36,6 +36,7 @@ urlpatterns = [
     path('app/partials/favorites/bookmark-schedule-detail/<str:bookmark_id>/', views.bookmark_schedule_detail, name='bookmark_schedule_detail'),
     path('app/partials/favorites/add/', views.add_folder, name='add_folder'),
     path('app/partials/favorites/delete/', views.delete_favorite, name='delete_favorite'),
+    path('app/partials/favorites/delete_bookmarklist/', views.delete_bookmarklist, name='delete_bookmarklist'),
     path('app/partials/favorites/add_bookmarklist/', views.add_bookmarklist, name='add_bookmarklist'),
 
     path('app/partials/settings/', views.settings, name='settings'),

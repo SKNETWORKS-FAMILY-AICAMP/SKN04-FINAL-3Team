@@ -772,6 +772,35 @@ def delete_favorite(request):
     return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
 
 
+@csrf_exempt
+@login_required
+def delete_bookmarklist(request):
+    """
+    즐겨찾기(폴더) 삭제용 예시. 
+    POST 바디: {"bookmark_id": ...}
+    """
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            bookmark_id = data.get("bookmark_id")
+            bookmarkplace_id = data.get("bookmarkplace_id")
+            bookmarkschedule_id = data.get("bookmarkschedule_id")
+            if bookmarkplace_id:
+                bookmarklist = BookmarkList.objects.get(bookmark_id=bookmark_id, bookmarkplace_id=bookmarkplace_id)
+                bookmarklist.delete()
+            elif bookmarkschedule_id:
+                bookmarklist = BookmarkList.objects.get(bookmark_id=bookmark_id, bookmarkschedule_id=bookmarkschedule_id)
+                bookmarklist.delete()
+                bookmarkschedule = BookmarkSchedule.objects.get(bookmarkschedule_id=bookmarkschedule_id)
+                bookmarkschedule.delete()
+            return JsonResponse({"success": True})
+        except Bookmark.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Bookmark not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
+    return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
+
+
 def add_bookmarklist(request):
     if request.method == "POST":
         try:
@@ -844,7 +873,7 @@ def add_bookmarklist(request):
                 new_schedule = BookmarkSchedule.objects.create(
                     bookmarkschedule_id=new_schedule_id,
                     name=name,
-                    json_data=json.dumps(json_data),  # JSON 데이터를 문자열로 저장
+                    json_data=json_data,
                 )
 
                 # 3. bookmarklist 데이터 생성
