@@ -43,7 +43,8 @@ load_dotenv()
 naver_client_id = os.getenv("NCP_CLIENT_ID")
 naver_client_secret = os.getenv("NCP_CLIENT_SECRET")
 # 사용 예제
-address = "서울 중구 명동10길 29"
+address = input("주소를 입력해주세요:")
+# address = "서울 중구 명동10길 29"
 coordinates = geocode_address_naver(address, naver_client_id, naver_client_secret)
 
 if coordinates:
