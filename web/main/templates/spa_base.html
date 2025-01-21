@@ -159,17 +159,17 @@
                         });
 
                         // 정보창 생성
-                        var infoWindow = new naver.maps.InfoWindow({
-                            content: `<div style="width:200px;text-align:center;padding:10px;">
-                                        <h4>가맹점 정보</h4>
-                                        <p>여기에 가맹점 정보를 표시합니다.</p>
-                                    </div>`
-                        });
+                        // var infoWindow = new naver.maps.InfoWindow({
+                        //     content: `<div style="width:200px;text-align:center;padding:10px;">
+                        //                 <h4>가맹점 정보</h4>
+                        //                 <p>여기에 가맹점 정보를 표시합니다.</p>
+                        //             </div>`
+                        // });
 
                         // 마커 클릭 이벤트 (선택 사항)
                         naver.maps.Event.addListener(marker, 'click', function () {
                             alert(`${data.title}입니다!`);
-                            infoWindow.open(map, marker); // 마커 클릭 시 정보창 열기
+                            // infoWindow.open(map, marker); // 마커 클릭 시 정보창 열기
                         });
                     });
 
@@ -544,12 +544,12 @@
 
                 if (initialMessage) {
                     saveChatToDB(`<나>${initialMessage}`);
-                    newMessage.className = "bubble left-bubble";
+                    newMessage.className = "bubble right-bubble";
                     newMessage.innerHTML = initialMessage.replace(/\n/g, "<br>");
                     chatMessages.appendChild(newMessage);
                     
                     const loadingBubble = document.createElement("div");
-                    loadingBubble.classList.add("bubble", "right-bubble", "loading-bubble");
+                    loadingBubble.classList.add("bubble", "left-bubble", "loading-bubble");
                     loadingBubble.innerHTML = `
                         <div class="loader">
                             <span></span>
@@ -567,18 +567,18 @@
                             saveChatToDB(`<봇>${gptResponse}`);
                             // GPT 응답 표시
                             const botBubble = document.createElement("div");
-                            botBubble.classList.add("bubble", "right-bubble");
+                            botBubble.classList.add("bubble", "left-bubble");
                             botBubble.addEventListener("mouseenter", function (event) {
                                 const currentBackgroundColor = window.getComputedStyle(this).backgroundColor;
-                                if (currentBackgroundColor !== "rgb(76, 175, 80)") {
-                                    this.style.backgroundColor = "#f0f8ff"; // 기본 하이라이트 색상
+                                if (botBubble.className.includes("left-bubble")) {
+                                    this.style.backgroundColor = "#589258"; // 기본 하이라이트 색상
                                 }
                             });
 
                             botBubble.addEventListener("mouseleave", function (event) {
                                 const target = event.target;
                                 const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
-                                if (currentBackgroundColor !== "rgb(76, 175, 80)") {
+                                if (botBubble.className.includes("left-bubble")) {
                                     this.style.backgroundColor = ""; // 원래 배경색 복구
                                 }
                             });
@@ -588,7 +588,7 @@
                                 const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
                                 const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
                                 
-                                if (currentBackgroundColor !== "rgb(76, 175, 80)") {
+                                if (botBubble.className.includes("left-bubble")) {
                                     // 서식을 유지한 상태로 출력
                                     const panelTitle = document.getElementById("panel-title");
                                     panelTitle.textContent = "";
@@ -597,11 +597,13 @@
                                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
                                     const jsonData = parseItineraryToJson(formattedMessage);
-                                    generateDayButtons(jsonData);
-                                    generateDynamicPlanContent(jsonData);
+                                    if (jsonData.length > 0) {
+                                        generateDayButtons(jsonData);
+                                        generateDynamicPlanContent(jsonData);
 
-                                    const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
-                                    getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonData));
+                                        const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+                                        getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonData));
+                                    }
                                 }
                             });
                             chatMessages.appendChild(botBubble); // DOM에 추가
@@ -1029,7 +1031,7 @@
 
                                                     // 장소 정보 표시
                                                     if (data) {
-                                                        const panelTitle = document.getElementById("panel-title");
+                                                        const panelTitle = document.getElementById("panel-title");                                                        
                                                         panelTitle.innerHTML = `${row.name}`;
                                                         const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
                                                         getBookmarkListBtn.classList.remove("schedule");
@@ -1046,6 +1048,27 @@
                                                             <p><strong>설명:</strong> ${data.description || "설명이 없습니다."}</p>
                                                         `;
                                                         mapPanelContent.appendChild(placeSection);
+                                                        if (data.longitude && data.latitude && data.name) {
+                                                            const markerData = [];
+                                                            markerData.push({
+                                                                position: new naver.maps.LatLng(data.latitude, data.longitude),
+                                                                title: data.name,
+                                                                icon: `https://chart.googleapis.com/chart?chst=d_map_pin_number&chld=${markerData.length + 1}|FF0000|000000`,
+                                                            });
+                                                            addMarkersToMap(markerData);
+                                                        }
+                                                        else if (data.address && data.name) {
+                                                            const addresses = [];
+                                                            addresses.push({
+                                                                address: data.address,
+                                                                title: data.name,
+                                                            })
+                                                            globalMarkerData = await getCoordinates(addresses);
+                                                            addMarkersToMap(globalMarkerData);
+                                                        }
+                                                        else {
+                                                            console.log("data에 든 게 하나도 없으니 마커를 띄우길 포기");
+                                                        }
                                                     } else {
                                                         const noDataMessage = document.createElement("p");
                                                         noDataMessage.textContent = "해당 데이터가 없습니다.";
@@ -1075,7 +1098,7 @@
                                                 bookmarkPlaceItemDiv.removeChild(itemDiv);
 
                                                 //DB에서도 해당 데이터 제거
-
+                                                console.log("bookmarkplace_id:", item.id);
                                             });
 
                                             deleteButton.addEventListener('mouseover', () => {
@@ -1538,14 +1561,14 @@
 
                 // 사용자의 메시지를 채팅창에 추가
                 const userMessage = document.createElement("div");
-                userMessage.className = "bubble left-bubble";
+                userMessage.className = "bubble right-bubble";
                 userMessage.innerHTML = message.replace(/\n/g, "<br>");
                 chatMessages.appendChild(userMessage);                
 
                 inputBar.value = ""; // 입력창 초기화
 
                 const loadingBubble = document.createElement("div");
-                loadingBubble.classList.add("bubble", "right-bubble", "loading-bubble");
+                loadingBubble.classList.add("bubble", "left-bubble", "loading-bubble");
                 loadingBubble.innerHTML = `
                     <div class="loader">
                         <span></span>
@@ -1570,14 +1593,14 @@
 
                     if (response) {
                         const botMessage = document.createElement("div");
-                        botMessage.className = "bubble right-bubble";
+                        botMessage.className = "bubble left-bubble";
                         chatMessages.appendChild(botMessage);
                         chatMessages.scrollTop = chatMessages.scrollHeight;
                         botMessage.addEventListener("mouseenter", function (event) {
                             const target = event.target;
                             const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
-                            if (currentBackgroundColor !== "rgb(76, 175, 80)") {
-                                this.style.backgroundColor = "#f0f8ff"; // 기본 하이라이트 색상
+                            if (botMessage.className.includes("left-bubble")) {
+                                this.style.backgroundColor = "#589258"; // 기본 하이라이트 색상
                             }
                         });
 
@@ -1585,7 +1608,7 @@
                         botMessage.addEventListener("mouseleave", function (event) {
                             const target = event.target;
                             const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
-                            if (currentBackgroundColor !== "rgb(76, 175, 80)") {
+                            if (botMessage.className.includes("left-bubble")) {
                                 this.style.backgroundColor = ""; // 원래 배경색 복구
                             }
                         });
@@ -1595,7 +1618,7 @@
                             const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
                             const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
 
-                            if (currentBackgroundColor !== "rgb(76, 175, 80)") {
+                            if (botMessage.className.includes("left-bubble")) {
                                 const panelTitle = document.getElementById("panel-title");
                                 panelTitle.textContent = "";
                                 // 서식을 유지한 상태로 출력
@@ -1604,11 +1627,13 @@
                                     .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
                                 const jsonData = parseItineraryToJson(formattedMessage);
-                                generateDayButtons(jsonData);
-                                generateDynamicPlanContent(jsonData);
+                                if (jsonData.length > 0) {
+                                    generateDayButtons(jsonData);
+                                    generateDynamicPlanContent(jsonData);
 
-                                const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
-                                getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonData));
+                                    const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+                                    getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonData));
+                                }
                             }
                         });
                         console.log("봇2:", response); // botMessage의 HTML 내용을 출력
@@ -1621,7 +1646,7 @@
                     } else {
                         console.error("Error fetching GPT response:", error);
                         const errorMessage = document.createElement("div");
-                        errorMessage.className = "bubble right-bubble error";
+                        errorMessage.className = "bubble left-bubble error";
                         errorMessage.innerHTML = "오류가 발생했습니다. 다시 시도해주세요.";
                         chatMessages.appendChild(errorMessage);
                     }
@@ -1817,8 +1842,8 @@
                     bubble.addEventListener("mouseenter", function (event) {
                         const target = event.target;
                         const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
-                        if (currentBackgroundColor !== "rgb(76, 175, 80)") {
-                            this.style.backgroundColor = "#f0f8ff"; // 기본 하이라이트 색상
+                        if (bubble.className.includes("left-bubble")) {
+                            this.style.backgroundColor = "#589258"; // 기본 하이라이트 색상
                         }
                     });
 
@@ -1826,7 +1851,7 @@
                     bubble.addEventListener("mouseleave", function (event) {
                         const target = event.target;
                         const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
-                        if (currentBackgroundColor !== "rgb(76, 175, 80)") {
+                        if (bubble.className.includes("left-bubble")) {
                             this.style.backgroundColor = ""; // 원래 배경색 복구
                         }
                     });
@@ -1835,8 +1860,7 @@
                         const target = event.target;
                         const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
                         const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
-
-                        if (currentBackgroundColor !== "rgb(76, 175, 80)") {
+                        if (bubble.className.includes("left-bubble")) {
                             const panelTitle = document.getElementById("panel-title");
                             panelTitle.textContent = "";
 
@@ -1847,12 +1871,13 @@
 
                             // Example Usage
                             const jsonData = parseItineraryToJson(formattedMessage);
-                            console.log("Clicked Message:", jsonData);
-                            generateDayButtons(jsonData);
-                            generateDynamicPlanContent(jsonData);
-
-                            const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
-                            getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonData));
+                            if (jsonData.length > 0) {
+                                generateDayButtons(jsonData);
+                                generateDynamicPlanContent(jsonData);
+    
+                                const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+                                getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonData));
+                            }
                         }
                     });
 
@@ -1866,9 +1891,9 @@
 
                     // 스피커에 따라 스타일 지정
                     if (currentSpeaker === "user") {
-                        bubble.classList.add("left-bubble");
-                    } else if (currentSpeaker === "bot") {
                         bubble.classList.add("right-bubble");
+                    } else if (currentSpeaker === "bot") {
+                        bubble.classList.add("left-bubble");
                     }
 
                     chatMessages.appendChild(bubble);
@@ -2414,6 +2439,31 @@
             }
         }
 
+        // 네이버 Geocoding API를 통해 경도와 위도를 가져오는 함수
+        async function getCoordinates(addresses) {
+            if (!Array.isArray(addresses)) {
+                console.error("Addresses must be an array.");
+                return [];
+            }
+            const markerData = [];
+            const promises = addresses.map(async ({ address, title }) => {
+                if (!address) return; // address가 없는 경우 건너뜀
+
+                const coordinates = await fetchCoordinates(address);
+                if (coordinates) {
+                    const [lat, lng] = coordinates;
+                    markerData.push({
+                        position: new naver.maps.LatLng(lat, lng),
+                        title: title,
+                        icon: `https://chart.googleapis.com/chart?chst=d_map_pin_number&chld=${markerData.length + 1}|FF0000|000000`,
+                    });
+                }
+            });
+
+            await Promise.all(promises); // 모든 비동기 작업이 완료될 때까지 대기
+            return markerData;
+        }
+
         async function generateDynamicPlanContent(jsonData) {
             const mapPanelContent = document.querySelector('.map-panel-content');
             //터미널에 추가된 내용이 스케줄이라는 것을 체크하기 위함
@@ -2424,34 +2474,6 @@
                 console.error('map-panel-content 요소를 찾을 수 없습니다.');
                 return;
             }
-
-            // 네이버 Geocoding API를 통해 경도와 위도를 가져오는 함수
-            async function getCoordinates(addresses) {
-
-                if (!Array.isArray(addresses)) {
-                    console.error("Addresses must be an array.");
-                    return [];
-                }
-
-                const markerData = [];
-                const promises = addresses.map(async ({ address, title }) => {
-                    if (!address) return; // address가 없는 경우 건너뜀
-
-                    const coordinates = await fetchCoordinates(address);
-                    if (coordinates) {
-                        const [lat, lng] = coordinates;
-                        markerData.push({
-                            position: new naver.maps.LatLng(lat, lng),
-                            title: title,
-                            icon: `https://chart.googleapis.com/chart?chst=d_map_pin_number&chld=${markerData.length + 1}|FF0000|000000`,
-                        });
-                    }
-                });
-
-                await Promise.all(promises); // 모든 비동기 작업이 완료될 때까지 대기
-                return markerData;
-            }
-
 
             // 마커 데이터를 저장하는 배열
             let markerData = [];
@@ -2509,7 +2531,7 @@
                                 // 즐겨찾기 등록 버튼 추가
                                 const bookmarkButton = document.createElement('button');
                                 bookmarkButton.style.cursor = 'pointer';
-                                bookmarkButton.style.marginLeft = '10px';
+                                bookmarkButton.style.marginLeft = '5px';
                                 bookmarkButton.style.border = "none";
                                 bookmarkButton.textContent = "☆";
                                 bookmarkButton.style.justifyContent = "center";
@@ -2610,7 +2632,9 @@
             } else {
                 buttonContainer.innerHTML = ''; // 기존 버튼 초기화
             }
-
+            if (typeof jsonData === "string") {
+                jsonData = JSON.parse(jsonData);
+            }
             let firstButton = null;
             jsonData.forEach((day, index) => {
                 const dayButton = document.createElement('button');
@@ -2646,11 +2670,12 @@
         }
 
         function addMarkersToMap(markerData) {
+            console.log("markerData:", markerData);
             if (!map || !isMapInitialized) {
                 console.error("Map is not initialized yet!");
                 return;
             }
-
+            
             // 기존 마커 제거
             if (window.currentMarkers) {
                 window.currentMarkers.forEach(marker => marker.setMap(null));
@@ -2670,7 +2695,7 @@
                     map: map,
                     title: data.title,
                     icon: {
-                        url: data.icon, // 커스텀 마커 이미지 URL
+                        url: data.icon,
                         size: new naver.maps.Size(36, 36), // 마커 크기
                         origin: new naver.maps.Point(0, 0),
                         anchor: new naver.maps.Point(18, 36), // 마커 위치 조정
@@ -2678,21 +2703,22 @@
                 });
 
                 // 정보창 생성
-                var infoWindow = new naver.maps.InfoWindow({
-                    content: `<div style="width:100px;text-align:center;padding:10px;">
-                                <h4>가맹점 정보</h4>
-                                <p>여기에 가맹점 정보를 표시합니다.</p>
-                            </div>`
-                });
+                // var infoWindow = new naver.maps.InfoWindow({
+                //     content: `<div style="width:100px;text-align:center;padding:10px;">
+                //                 <h4>가맹점 정보</h4>
+                //                 <p>여기에 가맹점 정보를 표시합니다.</p>
+                //             </div>`
+                // });
 
                 // 마커 클릭 이벤트 (선택 사항)
                 naver.maps.Event.addListener(marker, 'click', function () {
                     alert(`${data.title}입니다!`);
-                    infoWindow.open(map, marker); // 마커 클릭 시 정보창 열기
+                    //infoWindow.open(map, marker); // 마커 클릭 시 정보창 열기
                 });
 
                 // 현재 마커를 전역 배열에 저장
                 window.currentMarkers.push(marker);
+                console.log("window.currentMarkers:", window.currentMarkers);
             });
 
             // 새 선 추가
@@ -2713,6 +2739,9 @@
 
             // 지도 범위를 업데이트
             if (markerData.length > 0) {
+                markerData.forEach(marker => 
+                    console.log("@!#!@#!@#", marker.position)
+                );
                 const bounds = new naver.maps.LatLngBounds();
                 markerData.forEach(marker => bounds.extend(marker.position));
                 map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
@@ -2779,8 +2808,22 @@
 
                         if (isPlace) {          
                             //장소 이름을 그대로 제목으로 짓기
-                            addressTitle.textContent = document.querySelectorAll(".place-section p")[1].textContent.split(": ")[1];
-                            title.textContent = document.querySelector("#panel-title").textContent;
+                            if (address) {
+                                addressTitle.textContent = address;
+                            }
+                            else if (document.querySelectorAll(".place-section p")[1]) {
+                                addressTitle.textContent = document.querySelectorAll(".place-section p")[1].textContent.split(": ")[1];
+                            }
+                            // else { // 채팅 내역에서 장소를 즐겨찾기 등록하는 케이스
+                            // }
+                            if (name) {
+                                title.textContent = name;
+                            }
+                            else if (document.querySelector("#panel-title").textContent.trim()) {
+                                title.textContent = document.querySelector("#panel-title").textContent.trim();
+                            }
+                            // else { // 채팅 내역에서 장소를 즐겨찾기 등록하는 케이스
+                            // } 
                             title.addEventListener("dblclick", function () {
                                 changeTitle.value = title.textContent;
                                 changeTitle.style.display = "block"; // 입력창 표시

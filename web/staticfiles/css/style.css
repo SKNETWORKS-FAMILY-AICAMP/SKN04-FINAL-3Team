@@ -755,6 +755,7 @@ body {
 }
 
 #bookmarklist-div {
+    border-radius: 20px 20px 0 0;
     position: absolute;
     bottom: -700px; /* 시작 위치: 아래에 숨김 */
     left: 80px;
@@ -852,4 +853,12 @@ body {
     align-items: center;
     margin-bottom: 20px;
     height: 30px;
+}
+
+.bookmarklist-panel h2, h6 {
+    color: white;
+}
+
+.bookmarklist-panel li p {
+    color: white;
 }
