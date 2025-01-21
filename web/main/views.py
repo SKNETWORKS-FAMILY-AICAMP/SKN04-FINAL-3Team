@@ -936,7 +936,7 @@ def get_bookmark_items(request, bookmark_id):
         # BookmarkList에서 데이터 조회
         rows = []
         bookmark_type = None
-        bookmark_items = BookmarkList.objects.filter(bookmark=bookmark_id)
+        bookmark_items = BookmarkList.objects.filter(bookmark=bookmark_id).order_by('created_at')
 
         if not bookmark_items.exists():
             return JsonResponse({"success": True, "type": bookmark_type})

@@ -105,6 +105,10 @@ class BookmarkList(models.Model):
     class Meta:
         db_table = 'bookmarklist'
         managed = True
+        unique_together = [
+            ('bookmark', 'bookmarkplace'),  # bookmark_id와 bookmarkplace_id 조합의 중복 방지
+            ('bookmark', 'bookmarkschedule'),  # bookmark_id와 bookmarkschedule_id 조합의 중복 방지
+        ]
 
 
 class Chatting(models.Model):
