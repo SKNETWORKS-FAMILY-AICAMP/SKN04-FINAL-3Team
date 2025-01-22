@@ -88,7 +88,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     "main",
-    'langgraph',
+    'langraph',
 ]
 
 AUTH_USER_MODEL = 'main.CustomUser'
