@@ -568,6 +568,7 @@
                             // GPT 응답 표시
                             const botBubble = document.createElement("div");
                             botBubble.classList.add("bubble", "left-bubble");
+                            botBubble.textContent = response; // 최종 메시지 전체를 말풍선에 표시
                             botBubble.addEventListener("mouseenter", function (event) {
                                 const currentBackgroundColor = window.getComputedStyle(this).backgroundColor;
                                 if (botBubble.className.includes("left-bubble")) {
@@ -1602,6 +1603,7 @@
                     if (response) {
                         const botMessage = document.createElement("div");
                         botMessage.className = "bubble left-bubble";
+                        botMessage.textContent += response; // 최종 메시지 전체를 말풍선에 표시
                         chatMessages.appendChild(botMessage);
                         chatMessages.scrollTop = chatMessages.scrollHeight;
                         botMessage.addEventListener("mouseenter", function (event) {
@@ -1664,6 +1666,24 @@
                     inputBar.focus();
                 }
             }
+
+            function updateChatBubble(chunk) {
+                const chatMessages = document.querySelector("#chat-messages"); // 채팅 메시지 영역
+                let botMessage = chatMessages.querySelector(".bubble.left-bubble");
+
+                // 기존 말풍선이 없으면 생성
+                if (!botMessage) {
+                    botMessage = document.createElement("div");
+                    botMessage.className = "bubble left-bubble";
+                    chatMessages.appendChild(botMessage);
+                }
+
+                // 청크 데이터를 추가
+                botMessage.textContent += chunk;
+
+                // 스크롤을 최신 메시지로 이동
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
             
             async function fetchGPTResponse(userInput, signal) {
                 try {
@@ -1674,23 +1694,39 @@
                             "X-CSRFToken": getCSRFToken(),
                         },
                         body: JSON.stringify({ question: userInput }),
-                        signal, // AbortController에서 받은 signal 추가
+                        signal,
                     });
 
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
 
-                    const data = await response.json();
-                    return data.answer; // 서버로부터 받은 답변
+                    // 스트리밍 데이터 읽기
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder("utf-8");
+                    let completeMessage = ""; // 전체 메시지를 저장할 변수
+
+                    while (true) {
+                        const { done, value } = await reader.read(); // 스트림 읽기
+                        if (done) break; // 스트림 끝 도달
+                        const chunk = decoder.decode(value, { stream: true }); // 청크 디코딩
+                        completeMessage += chunk; // 메시지 이어붙이기
+
+                        // 실시간으로 청크 처리
+                        updateChatBubble(chunk); // 실시간으로 말풍선 업데이트
+                    }
+
+                    return completeMessage; // 최종 메시지 반환
                 } catch (error) {
                     if (error.name === "AbortError") {
                         console.log("요청이 취소되었습니다.");
                     } else {
-                        throw error;
+                        console.error("Error fetching GPT response:", error);
                     }
+                    return null;
                 }
             }
+
 
             function resizeInput() {
                 inputBar.style.height = "auto"; 
