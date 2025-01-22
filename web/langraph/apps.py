@@ -1,6 +1,6 @@
-# langgraph/apps.py
+# langraph/apps.py
 from django.apps import AppConfig
 
-class LanggraphConfig(AppConfig):
+class LangraphConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'web.langgraph'  # Django에서 사용하는 경로
+    name = 'langraph'  # 앱 이름은 디렉토리 이름과 동일해야 합니다.
