@@ -1,5 +1,6 @@
-from langraph.langraph import run_gpt_api
-from django.http import HttpResponseForbidden
+from langraph.chain_model.extraction_day_chain import day_chain
+from langraph.langgraph_chatbot_model import run_model
+from django.http import HttpResponseForbidden, StreamingHttpResponse
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth import authenticate, login, logout
@@ -338,23 +339,8 @@ def save_chat(request):
             chat_content = data.get("chat", "").strip()
             chatting_id = data.get("chat_id", None)  # 클라이언트에서 전달받은 chatting_id
             user = get_authenticated_user(request)
-            # 요청에서 데이터 파싱
-            chat_count = Chatting.objects.filter(profile=user).count()
-            print("count:", chat_count)
-            if chat_count >= 10:
-                # 데이터가 10개 이상이면 경고 메시지와 함께 chatting 페이지로 리다이렉트
-                return JsonResponse({
-                    "success": False,
-                    "error": "채팅 내역이 꽉 찼습니다!",
-                })
+            chat_count = Chatting.objects.filter(profile=user).count()                
 
-            if not user:
-                return JsonResponse({"success": False, "error": "User is not authenticated."})
-
-            if not chat_content:
-                return JsonResponse({"success": False, "error": "Chat content cannot be empty."})
-
-            print("chatting_id:", chatting_id)
             if chatting_id:
                 # chatting_id가 있는 경우: 기존 내용에 추가
                 try:
@@ -363,9 +349,8 @@ def save_chat(request):
                         chatting_instance.content += f"{chat_content}"  # 기존 내용이 없으면 바로 추가
                     else:
                         chatting_instance.content += f"\n{chat_content}"  # 기존 내용이 있으면 줄바꿈 추가
-                    print("chat_content:", chat_content)
-                    print("chatting_instance.content:", chatting_instance.content)
                     chatting_instance.save()
+
                     return JsonResponse({"success": True, "message": "Chat updated.", "chatting_id": chatting_instance.chatting_id})
                 except Chatting.DoesNotExist:
                     # chatting_id가 있지만 해당 레코드가 없는 경우 새로 생성
@@ -377,8 +362,15 @@ def save_chat(request):
                     return JsonResponse({"success": True, "message": "New chat created.", "chatting_id": chatting_instance.chatting_id})
             else:
                 # chatting_id가 없는 경우: 새로운 레코드 생성
+                print("count:", chat_count)
+                if chat_count >= 10:
+                    # 데이터가 10개 이상이면 경고 메시지와 함께 chatting 페이지로 리다이렉트
+                    return JsonResponse({
+                        "success": False,
+                        "error": "채팅 내역이 꽉 찼습니다!",
+                    })
+                
                 last_chat = Chatting.objects.filter().order_by('-chatting_id').first()
-
                 if last_chat:
                     # 마지막 chatting_id에서 숫자 추출 후 증가
                     last_id = int(last_chat.chatting_id.split('_')[1])
@@ -456,7 +448,7 @@ def get_chat_content(request):
 
     try:
         chat = Chatting.objects.get(chatting_id=chat_id, profile=request.user)
-        print("chatcontent:", chat.content)
+
         return JsonResponse({"success": True, "content": chat.content})
     except Chatting.DoesNotExist:
         return JsonResponse({"success": False, "error": "해당 chat_id에 대한 채팅이 존재하지 않습니다."}, status=404)
@@ -939,24 +931,45 @@ def admin_required(view_func):
     return _wrapped_view
 
 
+def stream(answer):
+    llms = ['llm_Schedule_answer', 'llm_place_answer', 'llm_Schedule_change_answer', 'error_handling']
+    try:
+        for chunk, meta in answer:
+            if meta.get('langgraph_node') in llms:
+                yield chunk.content  # 원하는 content를 yield
+    except GeneratorExit:
+        print("Generator was closed (possibly due to client disconnection).")
+    except Exception as e:
+        print(f"Error while streaming generator: {e}")
+        import traceback
+        traceback.print_exc()
+
+
 def run_gpt_view(request):
     if request.method == "POST":
         try:
-            # JSON 데이터 파싱
             data = json.loads(request.body)
             user_input = data.get("question")
 
             if not user_input:
                 return JsonResponse({"error": "Invalid input"}, status=400)
-            # run_gpt_api 호출
-            answer = run_gpt_api(user_input)
 
-            return JsonResponse({"answer": answer}, status=200)
+            # Generator 반환
+            answer = run_model(user_input)
+
+            if not hasattr(answer, "__iter__"):  # Generator 확인
+                raise ValueError("run_model did not return a generator.")
+
+            # StreamingHttpResponse 반환
+            return StreamingHttpResponse(stream(answer), content_type="text/plain")
 
         except Exception as e:
             # 에러 로그 출력
-            print("Error in run_gpt_view:", e)
-            return JsonResponse({"answer": "에러가 발생했습니다. 다시 질문해주세요."}, status=200)
+            print(f"Error in run_gpt_view: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({"error": "Internal Server Error"}, status=500)
+
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
