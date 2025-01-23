@@ -65,7 +65,13 @@
             <div id="map-panel">
                 <div id="drag-handle"></div> <!-- 드래그 핸들 추가 -->
                 <div id="button-panel">
-                    <strong id="panel-title"></strong>
+                    <div class="title-group">
+                        <strong id="panel-title"></strong>
+                        <input id="edit-title" type="text" style="display: none;" maxlength="20">
+                        <button id="editPanelTitleBtn" onclick="editPanelTitle()">✏️</button>
+                        <button id="editPanelTitleOKBtn" onclick="editPanelTitleOK()">✅</button>
+                        <button id="editPanelTitleNOBtn" onclick="editPanelTitleNO()">❌</button>
+                    </div>
                     <div class="button-group">
                         <button id="removeContentBtn" onclick="removeContent()">🗑️</button>
                         <button id="getBookmarkListBtn" onclick="getBookmarkList()">☆</button>
@@ -558,65 +564,14 @@
                         </div>
                     `;
                     chatMessages.appendChild(loadingBubble);
-                            
-                    try {
-                        const gptResponse = await fetchGPTResponse(initialMessage);
-
-                        if (gptResponse) {
-                            console.log("봇1:", gptResponse);
-                            saveChatToDB(`<봇>${gptResponse}`);
-                            // GPT 응답 표시
-                            const botBubble = document.createElement("div");
-                            botBubble.classList.add("bubble", "left-bubble");
-                            botBubble.textContent = response; // 최종 메시지 전체를 말풍선에 표시
-                            botBubble.addEventListener("mouseenter", function (event) {
-                                const currentBackgroundColor = window.getComputedStyle(this).backgroundColor;
-                                if (botBubble.className.includes("left-bubble")) {
-                                    this.style.backgroundColor = "#589258"; // 기본 하이라이트 색상
-                                }
-                            });
-
-                            botBubble.addEventListener("mouseleave", function (event) {
-                                const target = event.target;
-                                const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
-                                if (botBubble.className.includes("left-bubble")) {
-                                    this.style.backgroundColor = ""; // 원래 배경색 복구
-                                }
-                            });
-
-                            botBubble.addEventListener("click", function (event) {
-                                const target = event.target;
-                                const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
-                                const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
-                                
-                                if (botBubble.className.includes("left-bubble")) {
-                                    // 서식을 유지한 상태로 출력
-                                    const panelTitle = document.getElementById("panel-title");
-                                    panelTitle.textContent = "";
-                                    const formattedMessage = messageContent
-                                        .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
-                                        .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
-
-                                    const jsonData = parseItineraryToJson(formattedMessage);
-                                    if (jsonData.length > 0) {
-                                        generateDayButtons(jsonData);
-                                        generateDynamicPlanContent(jsonData);
-
-                                        const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
-                                        getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonData));
-                                    }
-                                }
-                            });
-                            chatMessages.appendChild(botBubble); // DOM에 추가
-                            chatMessages.scrollTop = chatMessages.scrollHeight;
-                            typeText(botBubble, gptResponse, loadingBubble);
-                        } else {
-                            console.error("GPT 응답이 없습니다.");
-                        }
-                    } catch (error) {
-                        console.error("Error fetching GPT response:", error);
-                        chatMessages.removeChild(loadingBubble); // 오류 시 로딩 애니메이션 삭제
-                    }                    
+                          
+                    if (activeAbortController) {
+                        activeAbortController.abort();
+                    }
+                    // 새로운 AbortController 생성
+                    activeAbortController = new AbortController();
+                    const { signal } = activeAbortController;
+                    fetchGPTResponse(initialMessage, signal);
                 }             
 
                 if (plannerTitle) {
@@ -817,6 +772,7 @@
                 const placesSection = document.getElementById('placesSection');
                 const scheduleSection = document.getElementById('scheduleSection');
                 const bodyElement = document.body; // 테마를 확인하기 위한 body 요소
+                const editTitle = document.getElementById("edit-title");
 
                 //즐겨찾기 페이지에서 뒤로 가기 버튼 눌렀을 때 기능
                 backBtn.addEventListener('click', () => {
@@ -837,6 +793,15 @@
                         AllFolderLists.forEach(folderList => {
                             folderList.style.display = "block";
                         });
+                    }
+                });
+
+                editTitle.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        editPanelTitleOK();
+                    }
+                    else if (event.key === 'Escape') {
+                        editPanelTitleNO();
                     }
                 });
 
@@ -994,6 +959,8 @@
                                                 <p style="display: flex; align-items: center;"><strong>이름:</strong> ${row.name}</p>
                                             `;
                                             itemDiv.addEventListener("click", async () => {
+                                                // const editPanelTitleBtn = document.getElementById("editPanelTitleBtn");
+                                                // editPanelTitleBtn.style.display = "contents";
                                                 //DB에서 해당 데이터 불러오기
                                                 document.querySelectorAll(".place-item").forEach(folder => {                                                
                                                     folder.style.backgroundColor = ""; // 원래 색으로 복원 (CSS 초기값)
@@ -1130,6 +1097,8 @@
                                                 <p style="display: flex; align-items: center;"><strong>이름:</strong> ${row.name}</p>
                                             `;
                                             itemDiv.addEventListener("click", async () => {
+                                                const editPanelTitleBtn = document.getElementById("editPanelTitleBtn");
+                                                editPanelTitleBtn.style.display = "contents";
                                                 document.querySelectorAll(".schedule-item").forEach(folder => {                                                
                                                     folder.style.backgroundColor = ""; // 원래 색으로 복원 (CSS 초기값)
                                                 });
@@ -1587,104 +1556,22 @@
                 `;
                 chatMessages.appendChild(loadingBubble);
 
-                try {
-                    // 이전 AbortController가 있다면 중단
-                    if (activeAbortController) {
-                        activeAbortController.abort();
-                    }
-
-                    // 새로운 AbortController 생성
-                    activeAbortController = new AbortController();
-                    const { signal } = activeAbortController;
-
-                    // 서버 요청 (AbortController로 취소 가능)
-                    const response = await fetchGPTResponse(message, signal);
-
-                    if (response) {
-                        const botMessage = document.createElement("div");
-                        botMessage.className = "bubble left-bubble";
-                        botMessage.textContent += response; // 최종 메시지 전체를 말풍선에 표시
-                        chatMessages.appendChild(botMessage);
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
-                        botMessage.addEventListener("mouseenter", function (event) {
-                            const target = event.target;
-                            const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
-                            if (botMessage.className.includes("left-bubble")) {
-                                this.style.backgroundColor = "#589258"; // 기본 하이라이트 색상
-                            }
-                        });
-
-                        // 마우스 아웃 이벤트
-                        botMessage.addEventListener("mouseleave", function (event) {
-                            const target = event.target;
-                            const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
-                            if (botMessage.className.includes("left-bubble")) {
-                                this.style.backgroundColor = ""; // 원래 배경색 복구
-                            }
-                        });
-
-                        botMessage.addEventListener("click", function (event) {
-                            const target = event.target;
-                            const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
-                            const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
-
-                            if (botMessage.className.includes("left-bubble")) {
-                                const panelTitle = document.getElementById("panel-title");
-                                panelTitle.textContent = "";
-                                // 서식을 유지한 상태로 출력
-                                const formattedMessage = messageContent
-                                    .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
-                                    .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
-
-                                const jsonData = parseItineraryToJson(formattedMessage);
-                                if (jsonData.length > 0) {
-                                    generateDayButtons(jsonData);
-                                    generateDynamicPlanContent(jsonData);
-
-                                    const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
-                                    getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonData));
-                                }
-                            }
-                        });
-                        console.log("봇2:", response); // botMessage의 HTML 내용을 출력
-                        saveChatToDB(`<봇>${response}`); // HTML 내용을 문자열로 저장
-                        typeText(botMessage, response, loadingBubble); // 타이핑 효과
-                    }
-                } catch (error) {
-                    if (error.name === "AbortError") {
-                        console.log("비동기 작업이 취소되었습니다.");
-                    } else {
-                        console.error("Error fetching GPT response:", error);
-                        const errorMessage = document.createElement("div");
-                        errorMessage.className = "bubble left-bubble error";
-                        errorMessage.innerHTML = "오류가 발생했습니다. 다시 시도해주세요.";
-                        chatMessages.appendChild(errorMessage);
-                    }
-                } finally {
-                    isLoading = false;
-                    inputBar.disabled = false; // 입력창 활성화
-                    inputBar.focus();
+                if (activeAbortController) {
+                    activeAbortController.abort();
                 }
+                // 새로운 AbortController 생성
+                activeAbortController = new AbortController();
+                const { signal } = activeAbortController;
+                fetchGPTResponse(message, signal);
             }
 
-            function updateChatBubble(chunk) {
-                const chatMessages = document.querySelector("#chat-messages"); // 채팅 메시지 영역
-                let botMessage = chatMessages.querySelector(".bubble.left-bubble");
+            function updateChatBubble(botMessage, chunk) {
+                const chatMessages = document.querySelector("#chat-messages"); // 채팅 메시지 영역                
 
-                // 기존 말풍선이 없으면 생성
-                if (!botMessage) {
-                    botMessage = document.createElement("div");
-                    botMessage.className = "bubble left-bubble";
-                    chatMessages.appendChild(botMessage);
-                }
-
-                // 청크 데이터를 추가
-                botMessage.textContent += chunk;
-
-                // 스크롤을 최신 메시지로 이동
+                botMessage.innerHTML = chunk;
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
-            
+
             async function fetchGPTResponse(userInput, signal) {
                 try {
                     const response = await fetch("/app/partials/planner/run-gpt/", {
@@ -1704,19 +1591,72 @@
                     // 스트리밍 데이터 읽기
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder("utf-8");
+
+                    const chatMessages = document.querySelector("#chat-messages"); 
                     let completeMessage = ""; // 전체 메시지를 저장할 변수
+                    let buffer = ""; // 청크를 임시로 저장할 버퍼
+                    let botBubble = document.createElement("div"); // 새 말풍선을 생성
+                    botBubble.className = "bubble left-bubble";
+                    botBubble.textContent = "";
+                    botBubble.classList.add("bubble", "left-bubble");
+                    document.querySelector(".loading-bubble").remove(); // 로딩 채팅 창 없애기
+                    chatMessages.appendChild(botBubble);
+
+                    botBubble.addEventListener("mouseenter", function (event) {
+                        const currentBackgroundColor = window.getComputedStyle(this).backgroundColor;
+                        if (botBubble.className.includes("left-bubble")) {
+                            this.style.backgroundColor = "#589258"; // 기본 하이라이트 색상
+                        }
+                    });
+
+                    botBubble.addEventListener("mouseleave", function (event) {
+                        const target = event.target;
+                        const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
+                        if (botBubble.className.includes("left-bubble")) {
+                            this.style.backgroundColor = ""; // 원래 배경색 복구
+                        }
+                    });
+
+                    botBubble.addEventListener("click", function (event) {
+                        const target = event.target;
+                        const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
+                        const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
+                        
+                        if (botBubble.className.includes("left-bubble")) {
+                            // 서식을 유지한 상태로 출력
+                            const panelTitle = document.getElementById("panel-title");
+                            panelTitle.textContent = "";
+                            const formattedMessage = messageContent
+                                .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
+                                .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
+
+                            const jsonData = parseItineraryToJson(formattedMessage);
+                            if (jsonData.length > 0) {
+                                generateDayButtons(jsonData);
+                                generateDynamicPlanContent(jsonData);
+
+                                const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+                                getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonData));
+                            }
+                        }
+                    });
 
                     while (true) {
                         const { done, value } = await reader.read(); // 스트림 읽기
                         if (done) break; // 스트림 끝 도달
-                        const chunk = decoder.decode(value, { stream: true }); // 청크 디코딩
-                        completeMessage += chunk; // 메시지 이어붙이기
 
-                        // 실시간으로 청크 처리
-                        updateChatBubble(chunk); // 실시간으로 말풍선 업데이트
+                        const chunk = decoder.decode(value, { stream: true }); // 청크 디코딩
+                        buffer += chunk; // 버퍼에 데이터 추가
+                        
+                        updateChatBubble(botBubble, buffer); // 실시간으로 말풍선 업데이트
                     }
 
-                    return completeMessage; // 최종 메시지 반환
+                    // 마지막 남은 버퍼 처리
+                    if (buffer.trim()) {
+                        updateChatBubble(botBubble, buffer + "\n");
+                    }
+
+                    saveChatToDB(`<봇>${buffer}`);
                 } catch (error) {
                     if (error.name === "AbortError") {
                         console.log("요청이 취소되었습니다.");
@@ -1724,9 +1664,12 @@
                         console.error("Error fetching GPT response:", error);
                     }
                     return null;
+                } finally {
+                    isLoading = false;
+                    inputBar.disabled = false; // 입력창 활성화
+                    inputBar.focus();
                 }
             }
-
 
             function resizeInput() {
                 inputBar.style.height = "auto"; 
@@ -1747,7 +1690,6 @@
             localStorage.removeItem('chatMessage');
             const urlParams = new URLSearchParams(window.location.search);
             const chatId = urlParams.get("chat_id");
-            console.log("saveChatToDB CHATID:", chatId);
 
             fetch("/app/partials/planner/save_chat/", {
                 method: "POST",
@@ -1946,6 +1888,84 @@
         }
 
         function parseItineraryToJson(text) {
+            const lines = text.split("\n");
+            const result = [];
+            let currentDay = null;
+            let currentMeal = null;
+            let currentSection = null;
+
+            lines.forEach(line => {
+                const trimmedLine = line.trim();
+                console.log("t:", trimmedLine);
+                if (!trimmedLine) return; // 빈 줄 무시
+
+                // dayMatch 처리
+                const dayMatch = trimmedLine.match(/^\- \*\*(\d+)일차\*\*/);
+                if (dayMatch) {
+                    currentDay = {
+                        day: parseInt(dayMatch[1]),
+                        meals: {}
+                    };
+                    result.push(currentDay);
+                }
+
+                const mealMatch = trimmedLine.match(/^\- \*\*(아침|점심|저녁)\*\*/);
+                if (mealMatch) {
+                    currentMeal = mealMatch[1];
+                    if (currentDay && !currentDay.meals[currentMeal]) {
+                        currentDay.meals[currentMeal] = {
+                            식사장소: {
+                                장소: null,
+                                주소: null,
+                                영업시간: null,
+                                음식점특징: null,
+                                // 기타정보: null,
+                            },
+                            명소: {
+                                명소이름: null,
+                                영업시간: null,
+                                명소특징: null,
+                                명소위치: null,
+                                // 기타정보: null,
+                            }
+                        };
+                    }
+                    currentSection = null;
+                } 
+
+                // Key-Value 처리
+                const keyValueMatch = trimmedLine.match(/- \*\*(.*?)\*\*: (.*)/);
+                if (keyValueMatch && currentDay && currentMeal) {
+                    const [, key, value] = keyValueMatch;
+                    const mealSection = currentDay.meals[currentMeal];
+                    // 식사 장소와 명소 구분
+                    if (key.includes("식사 장소")) {
+                        mealSection.식사장소.장소 = value;
+                        currentSection = "식사장소";
+                    } else if (key === "명소") {
+                        mealSection.명소.명소이름 = value;
+                        currentSection = "명소";
+                    } else if (currentSection) {
+                        if (currentSection === "식사장소") {
+                            if (key === "주소") mealSection.식사장소.주소 = value;
+                            if (key === "영업 시간") mealSection.식사장소.영업시간 = value;
+                            if (key === "음식점 특징") mealSection.식사장소.음식점특징 = value;
+                            // if (key === "기타 정보") mealSection.식사장소.기타정보 = value;
+                        } else if (currentSection === "명소") {
+                            if (key === "영업 시간") mealSection.명소.영업시간 = value;
+                            if (key === "명소 특징") mealSection.명소.명소특징 = value;
+                            if (key === "명소 위치") mealSection.명소.명소위치 = value;
+                            // if (key === "기타 정보") mealSection.명소.기타정보 = value;
+                        }
+                    } 
+                } 
+            });
+
+            return result;
+        }
+
+
+        function parseItineraryToJson2(text) {
             const lines = text.split("\n");
             const result = [];
             let currentDay = null;
@@ -2677,13 +2697,9 @@
                 buttonContainer.innerHTML = ''; // 기존 버튼 초기화
             }
 
-            console.log("jsonData:", jsonData);
-            console.log("1typeof jsonData:", typeof jsonData);
             if (typeof jsonData === "string") {
                 jsonData = JSON.parse(jsonData);
-                console.log("2typeof jsonData:", typeof jsonData);
             }
-            console.log("3typeof jsonData:", typeof jsonData);
             
             let firstButton = null;
             jsonData.forEach((day, index) => {
@@ -2697,7 +2713,11 @@
 
                 dayButton.addEventListener('click', () => {
                     const allButtons = buttonContainer.querySelectorAll('button');
-                    allButtons.forEach(btn => (btn.style.backgroundColor = '#ddd'));
+                    allButtons.forEach(btn => {
+                        btn.style.backgroundColor = '#ddd';
+                        btn.style.border = 'none';
+                    });
+                    dayButton.style.border = '1.5px solid black';
                     dayButton.style.backgroundColor = 'white';
 
                     if (typeof renderDayContentCallback === 'function') {
@@ -2751,14 +2771,6 @@
                         anchor: new naver.maps.Point(18, 36), // 마커 위치 조정
                     },
                 });
-
-                // 정보창 생성
-                // var infoWindow = new naver.maps.InfoWindow({
-                //     content: `<div style="width:100px;text-align:center;padding:10px;">
-                //                 <h4>가맹점 정보</h4>
-                //                 <p>여기에 가맹점 정보를 표시합니다.</p>
-                //             </div>`
-                // });
 
                 // 마커 클릭 이벤트 (선택 사항)
                 naver.maps.Event.addListener(marker, 'click', function () {
@@ -3167,10 +3179,95 @@
             });
         }
 
+        function editPanelTitle() {
+            console.log("editPanelTitle");
+            const panelTitle = document.getElementById("panel-title");
+            const editTitle = document.getElementById("edit-title");
+            const editPanelTitleBtn = document.getElementById("editPanelTitleBtn");
+            const editPanelTitleOKBtn = document.getElementById("editPanelTitleOKBtn");
+            const editPanelTitleNOBtn = document.getElementById("editPanelTitleNOBtn");
+            
+            editPanelTitleBtn.style.display = "none";
+            editPanelTitleOKBtn.style.display = "contents";      
+            editPanelTitleNOBtn.style.display = "contents";      
+            panelTitle.style.display = "none";
+            editTitle.style.display = "block";
+            editTitle.value = panelTitle.textContent;      
+        }
+        
+        async function editPanelTitleOK() {
+            const panelTitle = document.getElementById("panel-title");
+            const editTitle = document.getElementById("edit-title");
+            const editPanelTitleBtn = document.getElementById("editPanelTitleBtn");
+            const editPanelTitleOKBtn = document.getElementById("editPanelTitleOKBtn");
+            const editPanelTitleNOBtn = document.getElementById("editPanelTitleNOBtn");
+            const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+            const bookmarkschedule_id = getBookmarkListBtn.getAttribute("bookmarkschedule_id");
+            const scheduleItems = document.querySelectorAll(".schedule-item");
+            const oldName = panelTitle.textContent;
+
+            editPanelTitleBtn.style.display = "contents";   
+            editPanelTitleOKBtn.style.display = "none";      
+            editPanelTitleNOBtn.style.display = "none";  
+            editTitle.style.display = "none";    
+            panelTitle.style.display = "block";
+            panelTitle.textContent = editTitle.value;
+
+            try {
+                const response = await fetch('/app/partials/favorites/update_bookmark_title/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(), // CSRF 토큰 추가
+                    },
+                    body: JSON.stringify({ 
+                        bookmarkschedule_id: bookmarkschedule_id,
+                        name: editTitle.value,
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    console.log("일정 즐겨찾기 항목 제목 업데이트 완료");
+                    scheduleItems.forEach(item => {
+                        // console.log("p1:", item.querySelector('p').innerText.split("이름:")[1].trim());
+                        // console.log("p2:", oldName.trim());
+                        if (item.querySelector('p').innerText.split("이름:")[1].trim() === oldName.trim()) {
+                            item.querySelector('p').innerText = "이름:" + editTitle.value.trim();
+                        }
+                    });
+                } else {
+                    console.error("1.Error updating schdule bookmark title:", error);
+                }
+            } catch (error) {
+                console.error("2.Error updating schdule bookmark title:", error);
+            }
+        }
+
+        function editPanelTitleNO() {
+            const panelTitle = document.getElementById("panel-title");
+            const editTitle = document.getElementById("edit-title");
+            const editPanelTitleBtn = document.getElementById("editPanelTitleBtn");
+            const editPanelTitleOKBtn = document.getElementById("editPanelTitleOKBtn");
+            const editPanelTitleNOBtn = document.getElementById("editPanelTitleNOBtn");
+            
+            editPanelTitleBtn.style.display = "contents";     
+            editPanelTitleOKBtn.style.display = "none";      
+            editPanelTitleNOBtn.style.display = "none";    
+            editTitle.style.display = "none";     
+            panelTitle.style.display = "block";
+        }
+
         function removeContent() {
             const map_panel_content = document.querySelector(".map-panel-content");
             const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
             const panelTitle= document.getElementById("panel-title");
+            const editPanelTitleBtn = document.getElementById("editPanelTitleBtn");
+            
             getBookmarkListBtn.classList.remove('place');
             getBookmarkListBtn.classList.remove('schedule');
             getBookmarkListBtn.setAttribute("bookmark_id", null);
@@ -3178,10 +3275,10 @@
             getBookmarkListBtn.setAttribute("bookmarkschedule_id", null);
             getBookmarkListBtn.setAttribute("json_data", null);
             getBookmarkListBtn.textContent = "☆";
-
+            
             panelTitle.innerHTML = "";
             map_panel_content.innerHTML = "";
-
+            editPanelTitleBtn.style.display = "none";
         }
 
         function toggleMapPanel() {
@@ -3223,7 +3320,6 @@
                 }
             }, 500); // transition 시간과 동일하게 설정
         }
-
 
         function toggleAnimation() {
             const animatedDiv = document.getElementById('bookmarklist-div');

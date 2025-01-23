@@ -699,6 +699,15 @@ body {
     color: #222;
 }
 
+.title-group {
+    display: flex;
+    gap: 5px; /* 버튼 간격 설정 */
+}
+
+#editPanelTitleBtn, #editPanelTitleOKBtn, #editPanelTitleNOBtn {
+    display: none;
+}
+
 .button-group {
     display: flex;
     gap: 5px; /* 버튼 간격 설정 */

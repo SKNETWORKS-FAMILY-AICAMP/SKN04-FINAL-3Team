@@ -699,6 +699,12 @@ body {
     color: #222;
 }
 
+[data-theme="dark"] #panel-title {
+    margin: 0;
+    font-size: 16px;
+    color: white;
+}
+
 .button-group {
     display: flex;
     gap: 5px; /* 버튼 간격 설정 */
@@ -713,13 +719,7 @@ body {
     border: none;
 }
 
-[data-theme="dark"] #panel-title {
-    margin: 0;
-    font-size: 16px;
-    color: white;
-}
-
-[data-theme="dark"] #button-panel button{
+[data-theme="dark"] #button-group button{
     width: 30px;
     height: 30px;
     font-size: 20px;
