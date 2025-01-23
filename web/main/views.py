@@ -57,13 +57,17 @@ def spa(request):
                 'ncp_client_id': ncp_client_id,
                 'ncp_client_secret': ncp_client_secret,
             }  # 기본 컨텍스트
-    context.update(get_theme_context(request.user))  # 테마 정보 추가
+    context.update(get_settings_context(request.user))  # 테마 정보 추가
+
     return render(request, 'spa_base.html', context)
 
 
 # 메인 페이지
 def main(request):
-    return render(request, 'main.html')  
+    context = {}
+    context.update(get_settings_context(request.user))
+    print(get_settings_context(request.user))
+    return render(request, 'main.html', context)
 
 
 @csrf_exempt
@@ -107,14 +111,14 @@ def get_or_create_chat_id(request):
         return JsonResponse({"success": False, "error": "Invalid request method."}, status=405)
 
 
-def get_theme_context(user):
+def get_settings_context(user):
     if user and user.is_authenticated:
         try:
             settings = Settings.objects.get(profile=user)
             return {"settings": settings}
         except Settings.DoesNotExist:
             pass
-    return {"settings": {"is_white_theme": True}}
+    return {"settings": {"is_white_theme": True, "country_id": "US"}}
 
 
 # # (1) login_view: GET이면 login.html 렌더링
@@ -254,7 +258,7 @@ def planner(request):
     user = request.user if request.user.is_authenticated else None
     
     # get_theme_context 호출 시, user가 None이어도 안전하게 처리
-    context.update(get_theme_context(user))
+    context.update(get_settings_context(user))
 
     if request.method == "POST":
         try:
@@ -484,7 +488,7 @@ def get_chat_count(request):
 
 @login_required
 def profile(request):
-    context = get_theme_context(request.user)  # 테마 정보 추가
+    context = get_settings_context(request.user)  # 테마 정보 추가
     profile_user = request.user
     image_range = range(1, 11)  # 1부터 10까지의 숫자
     context.update({
@@ -637,7 +641,7 @@ def update_language(request):
 
 @login_required
 def favorites_places(request):
-    context = get_theme_context(request.user)  # 테마 정보 추가
+    context = get_settings_context(request.user)  # 테마 정보 추가
     user = request.user
     places = Bookmark.objects.filter(profile=user, is_place=True).order_by('created_at')
     schedules = Bookmark.objects.filter(profile=user, is_place=False).order_by('created_at')
@@ -886,7 +890,7 @@ def add_bookmarklist(request):
 
 @login_required
 def chatting(request):
-    context = get_theme_context(request.user)  # 테마 정보 추가
+    context = get_settings_context(request.user)  # 테마 정보 추가
     user = request.user
     chattings = Chatting.objects.filter(profile=user).order_by('created_at')
     context.update({
@@ -937,7 +941,6 @@ def stream(answer):
     llms = ['llm_Schedule_answer', 'llm_place_answer', 'llm_Schedule_change_answer', 'error_handling']
     try:
         for chunk, meta in answer:
-            print(chunk.content)
             if meta.get('langgraph_node') in llms:
                 yield chunk.content
 
