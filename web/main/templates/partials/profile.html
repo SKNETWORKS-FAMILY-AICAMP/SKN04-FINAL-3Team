@@ -4,7 +4,13 @@
 </head>
 <div class="container">
     <div class="panel" id="profilePanel">
-        <h2>Profile</h2>
+        <h2>
+            {% if settings.country_id == "US" %}Profile
+            {% elif settings.country_id == "KR" %}내 프로필
+            {% elif settings.country_id == "JP" %}プロフィール
+            {% elif settings.country_id == "CN" %}轮廓{% endif %}
+        </h2>
+        
         <!-- 테마 선택 -->
         <div class="section">
             <div class="section-child">
@@ -20,7 +26,12 @@
                 <!-- 팝업 창 -->
                 <div id="image-popup" class="popup hidden">
                     <div class="popup-content">
-                        <h3>Choose a Profile Image</h3>
+                        <h3>
+                            {% if settings.country_id == "US" %}Choose a Profile Image
+                            {% elif settings.country_id == "KR" %}프로필 이미지 선택
+                            {% elif settings.country_id == "JP" %}プロフィール画像を選択してください
+                            {% elif settings.country_id == "CN" %}选择个人资料图片{% endif %}
+                        </h3>
                         <div class="image-grid">
                             <!-- 10개의 기본 이미지 버튼 -->
                             {% for i in image_range %}
@@ -61,25 +72,51 @@
         </div>
 
         <div class="section">
-            <label>Birthday</label>
+            <label>
+                {% if settings.country_id == "US" %}Birthday
+                {% elif settings.country_id == "KR" %}생년월일
+                {% elif settings.country_id == "JP" %}生年月日
+                {% elif settings.country_id == "CN" %}出生日期{% endif %}
+            </label>
             <!-- profile_user.birthday가 datetime/date 필드라면, |date:"Y.m.d" 등으로 포맷 -->
             <p>{{ profile_user.birthday|date:"Y.m.d" }}</p>
         </div>
         
         <div class="section">
-            <label>Nationality</label>
+            <label>
+                {% if settings.country_id == "US" %}Nationality
+                {% elif settings.country_id == "KR" %}국적
+                {% elif settings.country_id == "JP" %}国籍
+                {% elif settings.country_id == "CN" %}国籍{% endif %}
+            </label>
             <!-- country_id (e.g. "Korea") -->
             <p>{{ profile_user.country_id }}</p>
         </div>
         <div class="section">
-            <label>Gender</label>
+            <label>
+                {% if settings.country_id == "US" %}Gender
+                {% elif settings.country_id == "KR" %}성별
+                {% elif settings.country_id == "JP" %}性別
+                {% elif settings.country_id == "CN" %}性别{% endif %}
+            </label>
             <!-- 성별 표시 -->
             <p>
                 {% if profile_user.gender == 1 %}
-                    Male
+                    {% if settings.country_id == "US" %}Male
+                    {% elif settings.country_id == "KR" %}남성
+                    {% elif settings.country_id == "JP" %}男
+                    {% elif settings.country_id == "CN" %}男性{% endif %}
                 {% elif profile_user.gender == 2 %}
+                    {% if settings.country_id == "US" %}Female
+                    {% elif settings.country_id == "KR" %}여성
+                    {% elif settings.country_id == "JP" %}女
+                    {% elif settings.country_id == "CN" %}女性{% endif %}
                     Female
                 {% else %}
+                    {% if settings.country_id == "US" %}Other
+                    {% elif settings.country_id == "KR" %}기타
+                    {% elif settings.country_id == "JP" %}その他
+                    {% elif settings.country_id == "CN" %}等等{% endif %}
                     Other
                 {% endif %}
             </p>
@@ -88,7 +125,14 @@
         </div>
 
         <div class="section">            
-            <span class="logout-btn"><a href="/logout/">Logout</a></span>
+            <span class="logout-btn">
+                <a href="/logout/">                    
+                    {% if settings.country_id == "US" %}Logout
+                    {% elif settings.country_id == "KR" %}로그아웃
+                    {% elif settings.country_id == "JP" %}ログアウト
+                    {% elif settings.country_id == "CN" %}退出{% endif %}
+                </a>
+            </span>
         </div>
 
         <div class="toggle-button" id="toggleButton"><&nbsp;</div>

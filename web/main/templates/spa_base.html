@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPA Example</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
@@ -16,42 +15,42 @@
                      data-dark="{% static 'images/nav/nav_home_dark.png' %}" 
                      src="{% static 'images/nav/nav_home_light.png' %}" 
                      style="width: 30px; height: 30px;">
-                <br>Home
+                <span id="label_home"><br>{% if settings.country_id == "US" %}Home{% elif settings.country_id == "KR" %}홈{% elif settings.country_id == "JP" %}うち{% elif settings.country_id == "CN" %}房子{% endif %}</span>
             </button>
             <button class="nav-btn" data-url="/app/planner/">
                 <img class="nav-icon" data-light="{% static 'images/nav/nav_planner_light.png' %}" 
                      data-dark="{% static 'images/nav/nav_planner_dark.png' %}" 
                      src="{% static 'images/nav/nav_planner_light.png' %}" 
                      style="width: 30px; height: 30px;">
-                <br>Planner
+                <span id="label_planner"><br>{% if settings.country_id == "US" %}Planner{% elif settings.country_id == "KR" %}플래너{% elif settings.country_id == "JP" %}プランナー{% elif settings.country_id == "CN" %}规划师{% endif %}</span>
             </button>
             <button class="nav-btn" data-url="/app/chatting/">
                 <img class="nav-icon" data-light="{% static 'images/nav/nav_chattings_light.png' %}" 
                      data-dark="{% static 'images/nav/nav_chattings_dark.png' %}" 
                      src="{% static 'images/nav/nav_chattings_light.png' %}" 
                      style="width: 30px; height: 30px;">
-                <br>Chatting
+                <span id="label_chatting"><br>{% if settings.country_id == "US" %}Chatting{% elif settings.country_id == "KR" %}채팅{% elif settings.country_id == "JP" %}おしゃべり{% elif settings.country_id == "CN" %}聊天{% endif %}</span>
             </button>
             <button class="nav-btn" data-url="/app/favorites/">
                 <img class="nav-icon" data-light="{% static 'images/nav/nav_favorites_light.png' %}" 
                      data-dark="{% static 'images/nav/nav_favorites_dark.png' %}" 
                      src="{% static 'images/nav/nav_favorites_light.png' %}" 
                      style="width: 30px; height: 30px;">
-                <br>Bookmarks
+                <span id="label_bookmarks"><br>{% if settings.country_id == "US" %}Bookmarks{% elif settings.country_id == "KR" %}즐겨찾기{% elif settings.country_id == "JP" %}お気に入り{% elif settings.country_id == "CN" %}收藏夹{% endif %}</span>
             </button>
             <button class="nav-btn" data-url="/app/settings/">
                 <img class="nav-icon" data-light="{% static 'images/nav/nav_settings_light.png' %}" 
                      data-dark="{% static 'images/nav/nav_settings_dark.png' %}" 
                      src="{% static 'images/nav/nav_settings_light.png' %}" 
                      style="width: 30px; height: 30px;">
-                <br>Settings
+                <span id="label_settings"><br>{% if settings.country_id == "US" %}Settings{% elif settings.country_id == "KR" %}설정{% elif settings.country_id == "JP" %}設定{% elif settings.country_id == "CN" %}设置{% endif %}</span>
             </button>
             <button class="nav-btn" data-url="/app/profile/">
                 <img class="nav-icon" data-light="{% static 'images/nav/nav_profile_light.png' %}" 
                      data-dark="{% static 'images/nav/nav_profile_dark.png' %}" 
                      src="{% static 'images/nav/nav_profile_light.png' %}" 
                      style="width: 30px; height: 30px;">
-                <br>Profile
+                <span id="label_profile"><br>{% if settings.country_id == "US" %}Profile{% elif settings.country_id == "KR" %}내 프로필{% elif settings.country_id == "JP" %}プロフィール{% elif settings.country_id == "CN" %}轮廓{% endif %}</span>
             </button>
         </div>
 

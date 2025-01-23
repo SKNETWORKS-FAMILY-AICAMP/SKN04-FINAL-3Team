@@ -5,12 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>Styled Layout</title>
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
 </head>
 <body>
     <!-- 프로필 섹션 -->
     <!-- 클릭 시 이동: id="profileLink" -->
+    <div class="language-section">
+        <span style="font-size: 40px;">🌏</span>
+        <label id="label_language" for="language">
+        <select id="language" onchange="updateLanguage(this.value)">
+            <option value="US" {% if settings.country_id == 'US' %}selected{% endif %}>English</option> 
+            <option value="KR" {% if settings.country_id == 'KR' %}selected{% endif %}>한국어</option> 
+            <option value="JP" {% if settings.country_id == 'JP' %}selected{% endif %}>日本語</option> 
+            <option value="CN" {% if settings.country_id == 'CN' %}selected{% endif %}>简体字</option> 
+        </select>
+    </div>
     <div class="profile-section">
         <img class="nav-icon" id="nav-icon"
                 data-light="{% static 'images/nav/nav_profile_light.png' %}" 
@@ -21,7 +30,11 @@
             {% if user.is_authenticated %}
                 {{ user.username }}
             {% else %}
-                Sign In
+                {% if settings.country_id == "US" %}Sign In
+                {% elif settings.country_id == "KR" %}로그인
+                {% elif settings.country_id == "JP" %}サインイン
+                {% elif settings.country_id == "CN" %}登入
+                {% else %}Sign In{% endif %}
             {% endif %}
         </span>
 
@@ -29,10 +42,38 @@
         {% if user.is_authenticated %}
         <div id="profilePopup" class="popup hidden">
             <ul>
-                <li><a href="/app/chatting/">Chattings</a></li>
-                <li><a href="/app/favorites/">Bookmark</a></li>
-                <li><a href="/app/settings/">Settings</a></li>
-                <li><a href="/app/profile/">Profile</a></li>
+                <li>
+                    <a href="/app/chatting/">                        
+                        {% if settings.country_id == "US" %}Chattings
+                        {% elif settings.country_id == "KR" %}채팅
+                        {% elif settings.country_id == "JP" %}おしゃべり
+                        {% elif settings.country_id == "CN" %}聊天{% endif %}
+                    </a>
+                </li>
+                <li>
+                    <a href="/app/favorites/">                        
+                        {% if settings.country_id == "US" %}Bookmarks
+                        {% elif settings.country_id == "KR" %}즐겨찾기
+                        {% elif settings.country_id == "JP" %}お気に入り
+                        {% elif settings.country_id == "CN" %}收藏夹{% endif %}
+                    </a>
+                </li>
+                <li>
+                    <a href="/app/settings/">                        
+                        {% if settings.country_id == "US" %}Settings
+                        {% elif settings.country_id == "KR" %}설정
+                        {% elif settings.country_id == "JP" %}設定
+                        {% elif settings.country_id == "CN" %}设置{% endif %}
+                    </a>
+                </li>
+                <li>
+                    <a href="/app/profile/">                        
+                        {% if settings.country_id == "US" %}Profile
+                        {% elif settings.country_id == "KR" %}내 프로필
+                        {% elif settings.country_id == "JP" %}プロフィール
+                        {% elif settings.country_id == "CN" %}轮廓{% endif %}
+                    </a>
+                </li>
             </ul>
         </div>
         {% endif %}
@@ -62,6 +103,7 @@
         // user.is_authenticated는 True 또는 False를 파이썬 부울형으로 가지므로,
         // 템플릿 필터 yesno:"true,false"를 사용해 JS에서 쓸 수 있도록 변환
         const isLoggedIn = {{ user.is_authenticated|yesno:"true,false" }};
+        const name = `{{ user.username }}`;
 
         // (B) "My Profile" 클릭 시 처리
         document.addEventListener('DOMContentLoaded', function() {
@@ -186,6 +228,57 @@
         function getCSRFToken() {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             return csrfToken;
+        }
+
+        function updateLanguage(selectedCountryId) {
+            const profilePopups = document.querySelectorAll("#profilePopup li a");
+            const profileLink = document.querySelector("#profileLink");
+
+            const translations_for_sign_in = {
+                US: "Sign In",
+                KR: "로그인",
+                JP: "サインイン",
+                CN: "登入",
+            }
+
+            const translations_for_popups = [
+                {
+                    US: "Chattings",
+                    KR: "채팅",
+                    JP: "おしゃべり",
+                    CN: "聊天",
+                },
+                {
+                    US: "Bookmarks",
+                    KR: "즐겨찾기",
+                    JP: "お気に入り",
+                    CN: "收藏夹",
+                },
+                {
+                    US: "Settings",
+                    KR: "설정",
+                    JP: "設定",
+                    CN: "设置",
+                },
+                {
+                    US: "Profile",
+                    KR: "내 프로필",
+                    JP: "プロフィール",
+                    CN: "轮廓",
+                },
+            ];
+
+            // 새로 선택된 언어에 따른 텍스트로 업데이트
+            if (name) {
+                profileLink.textContent = name;
+            }
+            else {
+                profileLink.textContent = translations_for_sign_in[selectedCountryId];
+            }
+            profilePopups.forEach((popup, index) => {
+                popup.textContent = translations_for_popups[index][selectedCountryId];
+                console.log("pp:", popup, ",index:", index, ",id:", selectedCountryId);
+            });
         }
     </script>
 </body>

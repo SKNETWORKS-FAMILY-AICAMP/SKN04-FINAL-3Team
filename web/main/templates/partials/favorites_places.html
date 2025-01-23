@@ -6,14 +6,39 @@
 
 <div class="container" id="favoritesPanel">
     <div class="panel">
-        <h2>Bookmarks</h2>
+        <h2>
+            {% if settings.country_id == "US" %}Bookmarks
+            {% elif settings.country_id == "KR" %}즐겨찾기
+            {% elif settings.country_id == "JP" %}お気に入り
+            {% elif settings.country_id == "CN" %}收藏夹{% endif %}
+        </h2>
 
         <!-- 상단 “장소”, “일정” 버튼 -->
         <div class="top-menu">
-            <button id="backBtn">뒤로가기</button>
-            <strong id="bookmark_title">Title</strong>
-            <button id="placeBtn">장소</button>
-            <button id="scheduleBtn">일정</button>
+            <button id="backBtn">
+                {% if settings.country_id == "US" %}Back
+                {% elif settings.country_id == "KR" %}뒤로가기
+                {% elif settings.country_id == "JP" %}戻る
+                {% elif settings.country_id == "CN" %}回去{% endif %}
+            </button>
+            <strong id="bookmark_title">                
+                {% if settings.country_id == "US" %}Title
+                {% elif settings.country_id == "KR" %}제목
+                {% elif settings.country_id == "JP" %}タイトル
+                {% elif settings.country_id == "CN" %}标题{% endif %}
+            </strong>
+            <button id="placeBtn">                
+                {% if settings.country_id == "US" %}Place
+                {% elif settings.country_id == "KR" %}장소
+                {% elif settings.country_id == "JP" %}場所
+                {% elif settings.country_id == "CN" %}地点{% endif %}
+            </button>
+            <button id="scheduleBtn">                
+                {% if settings.country_id == "US" %}Schedule
+                {% elif settings.country_id == "KR" %}일정
+                {% elif settings.country_id == "JP" %}スケジュール
+                {% elif settings.country_id == "CN" %}日程{% endif %}
+            </button>
         </div>
 
         <!-- (A) 장소 UI -->
@@ -37,7 +62,11 @@
                             {% if settings.is_white_theme %}{% static 'images/plus_light.png' %}
                             {% else %}{% static 'images/plus_dark.png' %}{% endif %}" 
                             alt="plus" width="50px" height="50px">
-                    &nbsp;&nbsp;&nbsp;&nbsp;새 폴더
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    {% if settings.country_id == "US" %}New Folder
+                    {% elif settings.country_id == "KR" %}새 폴더
+                    {% elif settings.country_id == "JP" %}新しいフォルダ
+                    {% elif settings.country_id == "CN" %}新文件夹{% endif %}
                 </div>
             </div>
             <div class="bookmark-place-item">
@@ -66,7 +95,11 @@
                             {% if settings.is_white_theme %}{% static 'images/plus_light.png' %}
                             {% else %}{% static 'images/plus_dark.png' %}{% endif %}" 
                             alt="plus" width="50px" height="50px">
-                    &nbsp;&nbsp;&nbsp;&nbsp;새 폴더
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    {% if settings.country_id == "US" %}New Folder
+                    {% elif settings.country_id == "KR" %}새 폴더
+                    {% elif settings.country_id == "JP" %}新しいフォルダ
+                    {% elif settings.country_id == "CN" %}新文件夹{% endif %}
                 </div>
             </div>
             <div class="bookmark-schedule-item">

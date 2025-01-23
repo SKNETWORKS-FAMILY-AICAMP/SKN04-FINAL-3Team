@@ -1431,6 +1431,7 @@ document.addEventListener("spaContentLoaded", async function () {
             </div>
         `;
         chatMessages.appendChild(loadingBubble);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
 
         if (activeAbortController) {
             activeAbortController.abort();
@@ -1523,7 +1524,7 @@ document.addEventListener("spaContentLoaded", async function () {
 
                 const chunk = decoder.decode(value, { stream: true }); // 청크 디코딩
                 buffer += chunk; // 버퍼에 데이터 추가
-                
+                console.log("chunk:", chunk);
                 updateChatBubble(botBubble, buffer); // 실시간으로 말풍선 업데이트
             }
 
@@ -1764,6 +1765,7 @@ function parseAndDisplayChatContent(chatContent) {
 }
 
 function parseItineraryToJson(text) {
+    text = text.replace(/([^\n])(\s*- \*\*\d+일차\*\*:)/g, "$1\n$2");
     const lines = text.split("\n");
     const result = [];
     let currentDay = null;
@@ -3205,4 +3207,122 @@ function toggleAnimation() {
         // 비활성화 상태이면 나타냄
         animatedDiv.classList.add('active');
     }
+}
+
+function updateLanguage(selectedCountryId) {
+    const label_Settings = document.querySelector("#label_Settings");
+    const label_theme = document.querySelector("#label_theme");
+    const label_light = document.querySelector("#label_light");
+    const label_dark = document.querySelector("#label_dark");
+    const label_language = document.querySelector("#label_language");
+    const label_contact = document.querySelector("#label_contact");
+    const label_deleteBtn = document.querySelector(".delete-btn");
+
+    const label_home = document.querySelector("#label_home");
+    const label_planner = document.querySelector("#label_planner");
+    const label_chatting = document.querySelector("#label_chatting");
+    const label_bookmarks = document.querySelector("#label_bookmarks");
+    const label_settings = document.querySelector("#label_settings");
+    const label_profile = document.querySelector("#label_profile");
+
+    // 각 country_id에 따른 텍스트 맵핑
+    const translations_for_settings_page = [
+        {
+            US: "Settings",
+            KR: "설정",
+            JP: "設定",
+            CN: "环境",
+        },
+        {
+            US: "Theme",
+            KR: "테마",
+            JP: "テーマ",
+            CN: "主题",
+        },
+        {
+            US: "Light",
+            KR: "밝은 모드",
+            JP: "明るい",
+            CN: "光",
+        },
+        {
+            US: "Dark",
+            KR: "어두운 모드",
+            JP: "暗い",
+            CN: "黑暗的",
+        },
+        {
+            US: "Language",
+            KR: "언어",
+            JP: "言語",
+            CN: "语言",
+        },
+        {
+            US: "Contact Us",
+            KR: "연락처",
+            JP: "お問い合わせ",
+            CN: "接触",
+        },
+        {
+            US: "Delete Account",
+            KR: "계정 삭제",
+            JP: "アカウントの削除",
+            CN: "删除帐户",
+        },
+    ];
+
+    const translations_for_spa_page = [
+        {
+            US: "Home",
+            KR: "홈",
+            JP: "うち",
+            CN: "房子",
+        },
+        {
+            US: "Planner",
+            KR: "플래너",
+            JP: "プランナー",
+            CN: "规划师",
+        },
+        {
+            US: "Chatting",
+            KR: "채팅",
+            JP: "おしゃべり",
+            CN: "聊天",
+        },
+        {
+            US: "Bookmarks",
+            KR: "즐겨찾기",
+            JP: "お気に入り",
+            CN: "收藏夹",
+        },
+        {
+            US: "Settings",
+            KR: "설정",
+            JP: "設定",
+            CN: "设置",
+        },
+        {
+            US: "Profile",
+            KR: "내 프로필",
+            JP: "プロフィール",
+            CN: "轮廓",
+        },
+    ];
+
+    // 새로 선택된 언어에 따른 텍스트로 업데이트
+    label_Settings.textContent = translations_for_settings_page[0][selectedCountryId] || "Settings";
+    label_theme.textContent = translations_for_settings_page[1][selectedCountryId] || "Theme";
+    label_light.textContent = translations_for_settings_page[2][selectedCountryId] || "Light";
+    label_dark.textContent = translations_for_settings_page[3][selectedCountryId] || "Dark";
+    label_language.textContent = translations_for_settings_page[4][selectedCountryId] || "Language";
+    label_contact.textContent = translations_for_settings_page[5][selectedCountryId] || "Contact Us";
+    label_deleteBtn.textContent = translations_for_settings_page[6][selectedCountryId] || "Delete Account";
+
+    label_home.textContent = translations_for_spa_page[0][selectedCountryId] || "Home";
+    label_planner.textContent = translations_for_spa_page[1][selectedCountryId] || "Planner";
+    label_chatting.textContent = translations_for_spa_page[2][selectedCountryId] || "Chatting";
+    label_bookmarks.textContent = translations_for_spa_page[3][selectedCountryId] || "Bookmarks";
+    label_settings.textContent = translations_for_spa_page[4][selectedCountryId] || "Settings";
+    label_profile.textContent = translations_for_spa_page[5][selectedCountryId] || "Profile";
 }

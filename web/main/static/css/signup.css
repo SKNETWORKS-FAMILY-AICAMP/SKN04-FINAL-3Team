@@ -19,7 +19,7 @@ body {
 
 .signup-container {
     width: 400px;
-    height: 600px;
+    height: 650px;
     padding: 20px;
     background: white;
     border-radius: 10px;
@@ -106,8 +106,9 @@ body {
 }
 
 .radio-group label {
-    display: flex; /* 내부 요소를 가로로 정렬 */
-    align-items: center; /* 라디오 버튼과 텍스트를 세로로 정렬 */
-    gap: 5px; /* 버튼과 텍스트 간격 조정 */
-    cursor: pointer; /* 클릭 시 포인터 */
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    white-space: nowrap;
 }
