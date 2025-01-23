@@ -1764,6 +1764,7 @@ function parseAndDisplayChatContent(chatContent) {
 }
 
 function parseItineraryToJson(text) {
+    text = text.replace(/([^\n])(\s*- \*\*\d+일차\*\*:)/g, "$1\n$2");
     const lines = text.split("\n");
     const result = [];
     let currentDay = null;
