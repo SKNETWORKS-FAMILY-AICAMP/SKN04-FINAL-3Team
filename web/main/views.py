@@ -651,18 +651,20 @@ def favorites_places(request):
 @csrf_exempt
 @login_required
 def update_bookmark_title(request):
-    """DB에 채팅 제목 업데이트"""
+    """DB에 일정 즐겨찾기 개별 항목의 제목 업데이트"""
     if request.method == "POST":
         data = json.loads(request.body)
-        chat_id = data.get("chat_id")
-        title = data.get("title")
+        bookmarkschedule_id = data.get("bookmarkschedule_id")
+        name = data.get("name")
 
-        if not chat_id or not title:
+        print("name:", name)
+
+        if not bookmarkschedule_id:
             return JsonResponse({"success": False, "error": "Invalid data"})
 
         try:
-            chat = Chatting.objects.get(chatting_id=chat_id, profile=request.user)
-            chat.title = title
+            chat = BookmarkSchedule.objects.get(bookmarkschedule_id=bookmarkschedule_id)
+            chat.name = name
             chat.save()
             return JsonResponse({"success": True})
         except Chatting.DoesNotExist:
@@ -935,8 +937,10 @@ def stream(answer):
     llms = ['llm_Schedule_answer', 'llm_place_answer', 'llm_Schedule_change_answer', 'error_handling']
     try:
         for chunk, meta in answer:
+            print(chunk.content)
             if meta.get('langgraph_node') in llms:
-                yield chunk.content  # 원하는 content를 yield
+                yield chunk.content
+
     except GeneratorExit:
         print("Generator was closed (possibly due to client disconnection).")
     except Exception as e:
