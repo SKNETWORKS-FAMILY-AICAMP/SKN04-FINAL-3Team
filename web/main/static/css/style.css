@@ -122,6 +122,8 @@ body {
     min-height: 95px;
     overflow-y: auto;
     transition: height 0.2s ease-in-out;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
 }
 
 /* 스크롤바 스타일 */
@@ -149,6 +151,7 @@ body {
     margin: 10px;
     border: 0px solid #ddd;
     overflow: hidden;
+    height: 160px;
 }
 
 [data-theme="dark"] .input-container {
@@ -157,6 +160,7 @@ body {
     background-color: #222;
     border: 0px solid #444;
     overflow: hidden;
+    height: 160px;
 }
 
 .send-button {
@@ -428,8 +432,8 @@ body {
 
 /* 아래로 이동 버튼 */
 .scroll-to-bottom {
-    position: absolute;      /* 위치를 자유롭게 조정할 수 있도록 absolute/fixed */
-    bottom: 110px;          /* 화면 아래에서 100px 떨어짐 (입력창 위로) */
+    position: absolute;      
+    bottom: 130px;          
     width: 40px;
     height: 40px;
     background-color: rgb(0, 0, 0);
@@ -447,8 +451,8 @@ body {
 }
 
 [data-theme="dark"] .scroll-to-bottom {
-    position: absolute;      /* 위치를 자유롭게 조정할 수 있도록 absolute/fixed */
-    bottom: 110px;          /* 화면 아래에서 100px 떨어짐 (입력창 위로) */
+    position: absolute;      
+    bottom: 130px;          
     width: 40px;
     height: 40px;
     background-color: rgb(255, 255, 255); 
