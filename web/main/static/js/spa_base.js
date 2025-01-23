@@ -879,7 +879,9 @@ document.addEventListener("spaContentLoaded", async function () {
                                                 panelTitle.innerHTML = `${row.name}`;
                                                 const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
                                                 const dayButtonContainer = document.getElementById("day-button-container");
-                                                dayButtonContainer.textContent = "";
+                                                if (dayButtonContainer) {
+                                                    dayButtonContainer.textContent = "";
+                                                }
                                                 getBookmarkListBtn.classList.remove("schedule");
                                                 getBookmarkListBtn.classList.add("place");
                                                 getBookmarkListBtn.setAttribute("bookmark_id", row.bookmark);
@@ -2970,10 +2972,11 @@ function addClickEvent() {
 }
 
 async function deleteBookmarklist(row) {
+    console.log("row:", row);
     const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
     try {
         const payload = {
-            bookmark_id: row.bookmark_id, // bookmark_id는 항상 포함
+            bookmark_id: row.bookmark, // bookmark_id는 항상 포함
         };
         if (row.id.includes("pc")) {
             payload.bookmarkplace_id = row.id;
