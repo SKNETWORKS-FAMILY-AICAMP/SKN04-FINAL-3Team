@@ -448,7 +448,7 @@ def run_model(question):
     # 일정 생성 노드----------------------------------------------------------------------------
 
     def llm_Schedule_answer(state: GraphState) -> GraphState:
-    # 질문을 상태에서 가져옵니다.
+        # 질문을 상태에서 가져옵니다.
         latest_question = state["question"][-1].content
         location_str = state['location']
         day_str = state['dayCheck']
@@ -477,39 +477,69 @@ def run_model(question):
         place_jongro =[]
         place_gangman =[]
         place_junggu =[]
-        coordinates_list=[]
+        additional_list=[]
         # 문서에서 검색하여 관련성 있는 문서를 찾습니다.
         yongsan = '용산구'
         jongro = '종로구'
         gangman = '강남구'
         junggu = '중구'
-
+    # ['장소이름 : ' + test.metadata.get('store_name') + ', 영문이름 : ' + test.metadata.get('store_name_english') + ' 영문주소 : ' + test.metadata.get('address_english')  for test in test_list]
+    # ['장소이름 : ' + test.metadata.get('store_name') + ', 일본어이름 : ' + test.metadata.get('store_name_japanese') + ' 일본어주소 : ' + test.metadata.get('address_japanese')  for test in test_list]
+    # ['장소이름 : ' + test.metadata.get('store_name') + ', 중국어이름 : ' + test.metadata.get('store_name_chinese') + ' 중국어주소 : ' + test.metadata.get('address_chinese')  for test in test_list]
         for i in range(1, day+1):
             if yongsan in location:
                 place_yongsan = state["context_naver_yongsan"]
                 selected = random.sample(place_yongsan, num_retriever_search)
-                coordinates_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') for i in selected])
+                if language == '영어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '한국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '일본어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in selected]) 
+                elif language == '중국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in selected]) 
                 place_list.extend(selected)
                 place_list.extend(random.sample(state["context_opendata_yongsan"], num_retriever_search))
 
             if jongro in location:
                 place_jongro = state["context_naver_jongro"]
                 selected = random.sample(place_jongro, num_retriever_search)
-                coordinates_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') for i in selected])
+                if language == '영어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '한국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '일본어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in selected]) 
+                elif language == '중국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in selected]) 
                 place_list.extend(selected)
                 place_list.extend(random.sample(state["context_opendata_jongro"], num_retriever_search))
 
             if gangman in location:
                 place_gangman = state["context_naver_gangnam"]
                 selected = random.sample(place_gangman, num_retriever_search)
-                coordinates_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') for i in selected])
+                if language == '영어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '한국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '일본어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in selected]) 
+                elif language == '중국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in selected]) 
                 place_list.extend(selected)
                 place_list.extend(random.sample(state["context_opendata_gangnam"], num_retriever_search))
 
             if junggu in location:
                 place_junggu = state["context_naver_Junggu"]
                 selected = random.sample(place_junggu, num_retriever_search)
-                coordinates_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') for i in selected])
+                if language == '영어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '한국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '일본어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in selected]) 
+                elif language == '중국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in selected]) 
                 place_list.extend(selected)
                 place_list.extend(random.sample(state["context_opendata_Junggu"], num_retriever_search))
 
@@ -521,10 +551,10 @@ def run_model(question):
             ]
             )
 
-            coordinates_text = "\n".join(
+            additional_text = "\n".join(
             [
-                f"<coordinates>{doc}</coordinates>"
-                for doc in coordinates_list
+                f"<additional>{doc}</additional>"
+                for doc in additional_list
             ]
             )
 
@@ -537,7 +567,7 @@ def run_model(question):
                     "chat_history": messages_to_history(state["messages"]),
                     "day" : i,
                     "language" : language,
-                    "coordinates" : coordinates_text
+                    "additional" : additional_text
                 }
             )
             place_list.clear()
