@@ -7,7 +7,7 @@ if __name__ == "__main__":
     user_input = input('중구, 용산구, 종로구, 강남구 일정을 물어보세요 : ')
     result = run_model(user_input)
 
-    for chunk, meta in ans:
+    for chunk, meta in result:
 
         if meta.get('langgraph_node') == 'llm_Schedule_answer':
 

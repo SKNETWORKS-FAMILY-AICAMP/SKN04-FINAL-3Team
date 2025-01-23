@@ -51,6 +51,7 @@ def schedule_chain():
         - 요청한 활동(예: 관광, 식사, 쇼핑 등)
 
         5. **이동 동선 최소화**:
+        - 좌표를 참고하여 동선을 최소화 하세요.
         - 일정에서의 경로는 효율적이어야 합니다.
         - 추천된 장소들이 서로 가까운 곳에 위치하도록 구성하세요.
 
@@ -128,6 +129,8 @@ def schedule_chain():
         - 일정을 만들고 마무리 멘트는 넣지마.
         - 추천했던 장소를 한번더 추천하지마.
         - 출력언어로 출력 해.
+        - 명소에 음식점은 추천하지마.
+        - 사용자의 특별하 요청이 없으면 리뷰 수가 많은 곳을 우선으로 추천해.
 
         # 장소 정보: {context}
 
@@ -138,8 +141,10 @@ def schedule_chain():
         # 일차 : {day}
 
         # 출력언어 : {language}
+
+        # 좌표 : {coordinates}
         """,
-            input_variables=["context", "question","chat_history","day", "language"],
+            input_variables=["context", "question","chat_history","day", "language", "coordinates"],
         )
 
     # LLM
