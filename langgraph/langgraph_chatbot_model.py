@@ -98,7 +98,6 @@ def run_model(question):
             faiss_index: faiss.Index, 
             documents: List[dict], 
             metadata_list: List[dict], 
-            # openai_api_key: str, 
             top_k: int = 5
         ):
             super().__init__()
@@ -109,7 +108,6 @@ def run_model(question):
             self._top_k = top_k
             self._embeddings = OpenAIEmbeddings(
                 model="text-embedding-ada-002",
-                # openai_api_key=openai_api_key
             )
             self._okt = Okt()
 
@@ -483,9 +481,7 @@ def run_model(question):
         jongro = '종로구'
         gangman = '강남구'
         junggu = '중구'
-    # ['장소이름 : ' + test.metadata.get('store_name') + ', 영문이름 : ' + test.metadata.get('store_name_english') + ' 영문주소 : ' + test.metadata.get('address_english')  for test in test_list]
-    # ['장소이름 : ' + test.metadata.get('store_name') + ', 일본어이름 : ' + test.metadata.get('store_name_japanese') + ' 일본어주소 : ' + test.metadata.get('address_japanese')  for test in test_list]
-    # ['장소이름 : ' + test.metadata.get('store_name') + ', 중국어이름 : ' + test.metadata.get('store_name_chinese') + ' 중국어주소 : ' + test.metadata.get('address_chinese')  for test in test_list]
+    
         for i in range(1, day+1):
             if yongsan in location:
                 place_yongsan = state["context_naver_yongsan"]
@@ -581,7 +577,6 @@ def run_model(question):
         ]
         )
         # 생성된 답변, (유저의 질문, 답변) 메시지를 상태에 저장합니다.
-        # print(state["messages"])
         return {
             "answer": response,
             "messages": [("user", latest_question), ("assistant", response_list_text)],
@@ -668,7 +663,6 @@ def run_model(question):
 
 
         # 생성된 답변, (유저의 질문, 답변) 메시지를 상태에 저장합니다.
-        # print(state["messages"])
         return {
             "answer": response,
             "messages": [("user", latest_question), ("assistant", response)],
@@ -740,8 +734,8 @@ def run_model(question):
                 "language" : language
             }
         )
+
         # 생성된 답변, (유저의 질문, 답변) 메시지를 상태에 저장합니다.
-        # print(state["messages"])
         return {
             "answer": response,
             "messages": [("user", latest_question), ("assistant", response)],
