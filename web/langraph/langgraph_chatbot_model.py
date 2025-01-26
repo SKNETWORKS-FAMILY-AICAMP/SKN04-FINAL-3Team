@@ -863,7 +863,6 @@ def run_model(question, chat_history=None):
             chain_place_search = place_search_chain_eng()
         elif language == '일본어':
             chain_place_search = place_search_chain_ja()
-        chain_place_search = place_search_chain()
 
         response = chain_place_search.invoke(
             {
@@ -872,7 +871,6 @@ def run_model(question, chat_history=None):
                 "chat_history": state['pre_chat'],
                 "language" : language,
                 "additional" : additional_text
-
             }
         )
 
@@ -891,6 +889,7 @@ def run_model(question, chat_history=None):
 
     # 노드 정의
     workflow.add_node("location_check", location_check)
+    workflow.add_node("location_check_schdule_change", location_check)
     workflow.add_node("Schedule_day_check", Schedule_day_check)
     workflow.add_node("retrieve_document_naver", retrieve_document_naver)
     workflow.add_node("retrieve_opendata", retrieve_document_opendata)
@@ -903,6 +902,7 @@ def run_model(question, chat_history=None):
     workflow.add_node("language_check_is_normal", language_check_is_normal)
     workflow.add_node("day_locatoin_check", day_locatoin_check)
     workflow.add_node("error_check", error_check)
+    workflow.add_node("error_check_schdule_change", error_check)
     workflow.add_node("initialize_error_status", initialize_error_status)
     workflow.add_node("language_error_node", language_error_node)
     workflow.add_node("llm_Schedule_change_answer", llm_Schedule_change_answer)
@@ -939,10 +939,21 @@ def run_model(question, chat_history=None):
         {
             "일정": "day_locatoin_check",  #일정
             "장소검색": "retrieve_document_naver_search", # 장소검색
-            "일정변경" : "llm_Schedule_change_answer" 
+            "일정변경" : "location_check_schdule_change" 
         },
     )
+    
+    workflow.add_edge("location_check_schdule_change", "error_check_schdule_change")
 
+    workflow.add_conditional_edges(
+        "error_check_schdule_change",  
+        is_error,
+        {
+            "에러": "error_handling",  #일정
+            "정상": "llm_Schedule_change_answer",  
+        },
+    )
+    
     workflow.add_edge("day_locatoin_check", "location_check") 
     workflow.add_edge("day_locatoin_check", "Schedule_day_check") 
 
@@ -956,7 +967,7 @@ def run_model(question, chat_history=None):
         is_error,
         {
             "에러": "error_handling",  #일정
-            "정상": "llm_Schedule_answer",  # 장소검색
+            "정상": "llm_Schedule_answer",  
         },
     )
 
