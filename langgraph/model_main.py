@@ -5,7 +5,7 @@ if __name__ == "__main__":
     
     # run_gpt_api 호출 및 결과 출력
     user_input = input('중구, 용산구, 종로구, 강남구 일정을 물어보세요 : ')
-    result = run_model(user_input)
+    result = run_model(user_input, chat_history=None)
 
     for chunk, meta in result:
 
