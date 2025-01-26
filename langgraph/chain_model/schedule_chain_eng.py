@@ -114,6 +114,9 @@ def schedule_chain_eng():
             - **Shopping Mall Address**: [Shopping Mall Address]
             - **Shopping Mall Information**: [Shopping Mall Information] *Do not display if no shopping mall information is available
 
+            
+        *** 하루의 일정이 종료되면 개행문자를 출력하여 한줄 띄우기
+
 
         ### 주의사항
         - 추천된 장소는 반드시 실제로 존재해야 합니다.
@@ -128,7 +131,9 @@ def schedule_chain_eng():
         - 출력언어로 출력 해.
         - 명소에 음식점은 추천하지마.
         - 사용자의 특별한 요청이 없으면 리뷰 수가 많은 곳을 우선으로 추천해.
-        - 펍이나 술집은 저녁에만 추천 할 수 있어.
+        - 펍이나 술집은 아침이나 점심에 추천하지마.
+        -'[' ']'는 출력하지마.
+        - 링크는 출력하지마.
 
         # 장소 정보: {context}
 
