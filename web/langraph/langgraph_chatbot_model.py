@@ -34,6 +34,7 @@ from typing import List
 from langchain.schema import Document, BaseRetriever
 from konlpy.tag import Okt
 from rank_bm25 import BM25Okapi
+import jpype
 
 from pydantic import PrivateAttr
 
@@ -61,25 +62,39 @@ def run_model(question):
             metadata_list = pickle.load(f)
         return metadata_list
 
-    documents_gangnam = load_documents("faiss_bm25/gangnam/documents_gangnam.json")
-    documents_jongro = load_documents("faiss_bm25/jongro/documents_jongro.json")
-    documents_yongsan = load_documents("faiss_bm25/yongsan/documents_yongsan.json")
-    documents_junggu = load_documents("faiss_bm25/junggu/documents_Junggu.json")
+    # from konlpy.jvm import init_jvm
+    # try:
+    #     jvmpath = r"C:\Program Files\Java\jdk-17\bin\server\jvm.dll"
 
-    bm25_gangnam = load_bm25("faiss_bm25/gangnam/bm25_gangnam.pkl")
-    bm25_jongro = load_bm25("faiss_bm25/jongro/bm25_jongro.pkl")
-    bm25_yongsan = load_bm25("faiss_bm25/yongsan/bm25_yongsan.pkl")
-    bm25_junggu = load_bm25("faiss_bm25/junggu/bm25_Junggu.pkl")
+    #     if not jpype.isJVMStarted():
+    #         init_jvm(jvmpath)
 
-    faiss_index_gangnam = load_faiss_index("faiss_bm25/gangnam/faiss_gangnam.index")
-    faiss_index_jongro = load_faiss_index("faiss_bm25/jongro/faiss_jongro.index")
-    faiss_index_yongsan = load_faiss_index("faiss_bm25/yongsan/faiss_yongsan.index")
-    faiss_index_junggu = load_faiss_index("faiss_bm25/junggu/faiss_Junggu.index")
+    #     okt = Okt()
+    #     print("Okt instance created successfully!")
+    # except Exception as e:
+    #     print(f"Error: {e}")
 
-    metadata_list_gangnam = load_faiss_metadata("faiss_bm25/gangnam/faiss_metadata_gangnam.pkl")
-    metadata_list_jongro = load_faiss_metadata("faiss_bm25/jongro/faiss_metadata_jongro.pkl")
-    metadata_list_yongsan = load_faiss_metadata("faiss_bm25/yongsan/faiss_metadata_yongsan.pkl")
-    metadata_list_junggu = load_faiss_metadata("faiss_bm25/junggu/faiss_metadata_Junggu.pkl")
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+    documents_gangnam = load_documents(os.path.join(BASE_DIR, "faiss_bm25", "gangnam", "documents_gangnam.json"))
+    documents_jongro = load_documents(os.path.join(BASE_DIR, "faiss_bm25", "jongro", "documents_jongro.json"))
+    documents_yongsan = load_documents(os.path.join(BASE_DIR, "faiss_bm25", "yongsan", "documents_yongsan.json"))
+    documents_junggu = load_documents(os.path.join(BASE_DIR, "faiss_bm25", "junggu", "documents_Junggu.json"))
+
+    bm25_gangnam = load_bm25(os.path.join(BASE_DIR, "faiss_bm25", "gangnam", "bm25_gangnam.pkl"))
+    bm25_jongro = load_bm25(os.path.join(BASE_DIR, "faiss_bm25", "jongro", "bm25_jongro.pkl"))
+    bm25_yongsan = load_bm25(os.path.join(BASE_DIR, "faiss_bm25", "yongsan", "bm25_yongsan.pkl"))
+    bm25_junggu = load_bm25(os.path.join(BASE_DIR, "faiss_bm25", "junggu", "bm25_Junggu.pkl"))
+
+    faiss_index_gangnam = load_faiss_index(os.path.join(BASE_DIR, "faiss_bm25", "gangnam", "faiss_gangnam.index"))
+    faiss_index_jongro = load_faiss_index(os.path.join(BASE_DIR, "faiss_bm25", "jongro", "faiss_jongro.index"))
+    faiss_index_yongsan = load_faiss_index(os.path.join(BASE_DIR, "faiss_bm25", "yongsan", "faiss_yongsan.index"))
+    faiss_index_junggu = load_faiss_index(os.path.join(BASE_DIR, "faiss_bm25", "junggu", "faiss_Junggu.index"))
+
+    metadata_list_gangnam = load_faiss_metadata(os.path.join(BASE_DIR, "faiss_bm25", "gangnam", "faiss_metadata_gangnam.pkl"))
+    metadata_list_jongro = load_faiss_metadata(os.path.join(BASE_DIR, "faiss_bm25", "jongro", "faiss_metadata_jongro.pkl"))
+    metadata_list_yongsan = load_faiss_metadata(os.path.join(BASE_DIR, "faiss_bm25", "yongsan", "faiss_metadata_yongsan.pkl"))
+    metadata_list_junggu = load_faiss_metadata(os.path.join(BASE_DIR, "faiss_bm25", "junggu", "faiss_metadata_Junggu.pkl"))
 
 
     class HybridBM25FaissRetriever(BaseRetriever):

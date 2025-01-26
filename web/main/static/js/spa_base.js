@@ -1769,7 +1769,269 @@ function parseAndDisplayChatContent(chatContent) {
 }
 
 function parseItineraryToJson(text) {
+    const dayMappings = [
+        {
+            "식사 장소": {
+                "음식점 이름": null,
+                "음식점 주소": null,
+                "영업 시간": null,
+                "음식점 특징": null,
+                "기타 정보": null,
+            },
+            "명소": {
+                "명소 이름": null,
+                "명소 주소": null,
+                "영업 시간": null,
+                "명소 특징": null,
+                "기타 정보": null,
+            },
+            "카페": {
+                "카페 이름": null,
+                "카페 주소": null,
+                "영업 시간": null,
+                "카페 정보": null,
+                "카페 특징": null,
+            },
+            "쇼핑몰": {
+                "쇼핑몰 이름": null,
+                "쇼핑몰 주소": null,
+                "쇼핑몰 정보": null,
+            },
+            "숙소": {
+                "숙소 이름": null,
+                "숙소 특징": null,
+                "숙소 위치": null,
+                "숙소 정보": null,
+            },
+        },
+        {
+            "食場所": {
+                "レストラン名": null,
+                "レストラン住所": null,
+                "営業時間": null,
+                "レストランの特徴": null,
+                "その他情報": null,
+            },
+            "観光名所": {
+                "名所名": null,
+                "名所住所": null,
+                "営業時間": null,
+                "名所の特徴": null,
+                "その他情報": null,
+            },
+            "カフェ": {
+                "カフェ名": null,
+                "カフェ住所": null,
+                "営業時間": null,
+                "カフェ情報": null,
+                "カフェの特徴": null,
+            },
+            "ショッピングモール": {
+                "ショッピングモール名": null,
+                "ショッピングモール住所": null,
+                "ショッピングモール情報": null,
+            },
+            "宿泊施設": {
+                "宿泊施設名": null,
+                "宿泊施設の特徴": null,
+                "宿泊施設の位置": null,
+                "宿泊施設情報": null,
+            },
+        },
+        {
+            "餐地点": {
+                "餐厅名称": null,
+                "餐厅地址": null,
+                "营业时间": null,
+                "餐厅特点": null,
+                "其他信息": null,
+            },
+            "景点": {
+                "景点名称": null,
+                "景点地址": null,
+                "营业时间": null,
+                "景点特点": null,
+                "其他信息": null,
+            },
+            "咖啡馆": {
+                "咖啡馆名称": null,
+                "咖啡馆地址": null,
+                "营业时间": null,
+                "咖啡馆信息": null,
+                "咖啡馆特点": null,
+            },
+            "购物中心": {
+                "购物中心名称": null,
+                "购物中心地址": null,
+                "购物中心信息": null,
+            },
+            "住宿": {
+                "住宿名称": null,
+                "住宿特点": null,
+                "住宿位置": null,
+                "住宿信息": null,
+            },
+        },
+        {
+            "Location": {
+                "Restaurant Name": null,
+                "Restaurant Address": null,
+                "Opening Hours": null,
+                "Restaurant Features": null,
+                "Additional Information": null,
+            },
+            "Attraction": {
+                "Attraction Name": null,
+                "Attraction Address": null,
+                "Opening Hours": null,
+                "Attraction Features": null,
+                "Additional Information": null,
+            },
+            "Cafe": {
+                "Cafe Name": null,
+                "Cafe Address": null,
+                "Opening Hours": null,
+                "Cafe Information": null,
+                "Cafe Features": null,
+            },
+            "Shopping Mall": {
+                "Shopping Mall Name": null,
+                "Shopping Mall Address": null,
+                "Shopping Mall Information": null,
+            },
+            "Accommodation": {
+                "Accommodation Name": null,
+                "Accommodation Features": null,
+                "Accommodation Location": null,
+                "Accommodation Information": null,
+            },
+        },
+    ]
+
+    const dayMatches = [
+        /^\- \*\*(\d+)일차\*\*/,
+        /^\- \*\*(\d+)日目\*\*/,
+        /^\- \*\*(\d+)第天\*\*/,
+        /^\- \*\*Day (\d+)\*\*/
+    ]; 
+
+    const mealMatches = [
+        /^\- \*\*(아침|점심|저녁)\*\*/,
+        /^\- \*\*(朝.?|昼.?|夜.?)\*\*/,
+        /^\- \*\*(早晨|中午|午餐|晚上)\*\*/,
+        /^\- \*\*(Morning|Afternoon|Evening)\*\*/
+    ];
+
+    const sectionKeys = {
+        "식사 장소": ["식사 장소", "食場所", "餐地点", "Location"],
+        "명소": ["명소", "観光名所", "景点", "Attraction"],
+        "카페": ["카페", "カフェ", "咖啡馆", "Cafe"],
+        "쇼핑몰": ["쇼핑몰", "ショッピングモール", "购物中心", "Shopping Mall"],
+    };
+
+    const fieldMappings = [
+        {
+            "식사 장소": {
+                "주소": "음식점 주소",
+                "영업 시간": "영업 시간",
+                "음식점 특징": "음식점 특징",
+                "기타 정보": "기타 정보",
+            },
+            "명소": {
+                "주소": "명소 주소",
+                "영업 시간": "영업 시간",
+                "명소 특징": "명소 특징",
+                "기타 정보": "기타 정보",
+            },
+            "카페": {
+                "카페 주소": "카페 주소",
+                "영업 시간": "영업 시간",
+                "카페 정보": "카페 정보",
+                "카페 특징": "카페 특징",
+            },
+            "쇼핑몰": {
+                "쇼핑몰 주소": "쇼핑몰 주소",
+                "쇼핑몰 정보": "쇼핑몰 정보",
+            },
+        },
+        {
+            "食場所": {
+                "住所": "レストラン住所",
+                "営業時間": "営業時間",
+                "レストランの特徴": "レストランの特徴",
+                "その他情報": "その他情報",
+            },
+            "観光名所": {
+                "営業時間": "営業時間",
+                "名所の特徴": "名所の特徴",
+                "住所": "名所住所",
+                "その他情報": "その他情報",
+            },
+            "カフェ": {
+                "住所": "カフェ住所",
+                "営業時間": "営業時間",
+                "カフェ情報": "カフェ情報",
+                "カフェの特徴": "カフェの特徴",
+            },
+            "ショッピングモール": {
+                "ショッピングモール住所": "ショッピングモール住所",
+                "ショッピングモール情報": "ショッピングモール情報",
+            },
+        },
+        {
+            "餐地点": {
+                "地址": "餐厅地址",
+                "营业时间": "营业时间",
+                "餐厅特点": "餐厅特点",
+                "其他信息": "其他信息",
+            },
+            "景点": {
+                "地址": "景点地址",
+                "营业时间": "营业时间",
+                "景点特点": "景点特点",
+                "其他信息": "其他信息",
+            },
+            "咖啡馆": {
+                "地址": "咖啡馆地址",
+                "营业时间": "营业时间",
+                "咖啡馆信息": "咖啡馆信息",
+                "咖啡馆特点": "咖啡馆特点",
+            },
+            "购物中心": {
+                "购物中心地址": "购物中心地址",
+                "购物中心信息": "购物中心信息",
+            },
+        },
+        {
+            "Location": {
+                "Address": "Restaurant Address",
+                "Opening Hours": "Opening Hours",
+                "Restaurant Features": "Restaurant Features",
+                "Additional Information": "Additional Information",
+            },
+            "Attraction": {
+                "Address": "Attraction Address",
+                "Opening Hours": "Opening Hours",
+                "Attraction Features": "Attraction Features",
+                "Additional Information": "Additional Information",
+            },
+            "Cafe": {
+                "Address": "Cafe Address",
+                "Opening Hours": "Opening Hours",
+                "Cafe Information": "Cafe Information",
+                "Cafe Features": "Cafe Features",
+            },
+            "ShoppingMall": {
+                "Shopping Mall Address": "Shopping Mall Address",
+                "Shopping Mall Information": "Shopping Mall Information",
+            },
+        },
+    ];
+
     text = text.replace(/([^\n])(\s*- \*\*\d+일차\*\*:)/g, "$1\n$2");
+    text = text.replace(/([^\n])(\s*- \*\*\d+日目\*\*:)/g, "$1\n$2");
+    text = text.replace(/([^\n])(\s*- \*\*\d+第天\*\*:)/g, "$1\n$2");
+    text = text.replace(/([^\n])(\s*- \*\*Day \d+\*\*:)/g, "$1\n$2");
     const lines = text.split("\n");
     const result = [];
     let currentDay = null;
@@ -1781,36 +2043,30 @@ function parseItineraryToJson(text) {
         console.log("t:", trimmedLine);
         if (!trimmedLine) return; // 빈 줄 무시
 
-        // dayMatch 처리
-        const dayMatch = trimmedLine.match(/^\- \*\*(\d+)일차\*\*/);
-        if (dayMatch) {
+        // dayMatch 처리               
+        const dayMatch = dayMatches.map(regex => trimmedLine.match(regex)).find(match => match);
+        const dayIndex = dayMatches.findIndex(regex => regex.test(trimmedLine));
+        if (dayIndex >= 0) {
             currentDay = {
-                day: parseInt(dayMatch[1]),
+                day: parseInt(dayMatch[dayIndex]),
                 meals: {}
             };
             result.push(currentDay);
         }
 
-        const mealMatch = trimmedLine.match(/^\- \*\*(아침|점심|저녁)\*\*/);
-        if (mealMatch) {
-            currentMeal = mealMatch[1];
+        const mealMatch = mealMatches.map(regex => trimmedLine.match(regex)).find(match => match);
+        const mealIndex = mealMatches.findIndex(regex => {
+            regex.test(trimmedLine);
+            console.log("regex:", regex);
+            console.log("regex test:", regex.test(trimmedLine));
+        });
+        console.log("mealIndex:", mealIndex);
+        if (mealIndex >= 0) {
+            currentMeal = mealMatch[mealIndex];
+            console.log("currentMeal:", currentMeal);
             if (currentDay && !currentDay.meals[currentMeal]) {
-                currentDay.meals[currentMeal] = {
-                    식사장소: {
-                        장소: null,
-                        주소: null,
-                        영업시간: null,
-                        음식점특징: null,
-                        // 기타정보: null,
-                    },
-                    명소: {
-                        명소이름: null,
-                        영업시간: null,
-                        명소특징: null,
-                        명소위치: null,
-                        // 기타정보: null,
-                    }
-                };
+                currentDay.meals[currentMeal] = dayMappings[mealIndex];
+                console.log("dayMappings:", dayMappings[mealIndex]);
             }
             currentSection = null;
         } 
@@ -1820,114 +2076,60 @@ function parseItineraryToJson(text) {
         if (keyValueMatch && currentDay && currentMeal) {
             const [, key, value] = keyValueMatch;
             const mealSection = currentDay.meals[currentMeal];
-            // 식사 장소와 명소 구분
-            if (key.includes("식사 장소")) {
-                mealSection.식사장소.장소 = value;
-                currentSection = "식사장소";
-            } else if (key === "명소") {
-                mealSection.명소.명소이름 = value;
-                currentSection = "명소";
-            } else if (currentSection) {
-                if (currentSection === "식사장소") {
-                    if (key === "주소") mealSection.식사장소.주소 = value;
-                    if (key === "영업 시간") mealSection.식사장소.영업시간 = value;
-                    if (key === "음식점 특징") mealSection.식사장소.음식점특징 = value;
-                    // if (key === "기타 정보") mealSection.식사장소.기타정보 = value;
-                } else if (currentSection === "명소") {
-                    if (key === "영업 시간") mealSection.명소.영업시간 = value;
-                    if (key === "명소 특징") mealSection.명소.명소특징 = value;
-                    if (key === "명소 위치") mealSection.명소.명소위치 = value;
-                    // if (key === "기타 정보") mealSection.명소.기타정보 = value;
+
+            // 섹션 매칭
+            for (const [section, keywords] of Object.entries(sectionKeys)) {
+                if (keywords.includes(key)) {
+                    currentSection = keywords;
+
+                    if (keywords === "식사 장소") {
+                        mealSection["식사 장소"]["음식점 이름"] = value; continue;
+                    } else if (keywords === "食場所") {
+                        mealSection["食場所"]["レストラン名"] = value; continue;
+                    } else if (keywords === "餐地点") {
+                        mealSection["餐地点"]["餐厅名称"] = value; continue;
+                    } else if (keywords === "Location") {
+                        mealSection["Location"]["Restaurant Name"] = value; continue;
+                    } 
+                
+                    if (keywords === "명소") {
+                        mealSection["명소"]["명소 이름"] = value; continue;
+                    } else if (keywords === "観光名所") {
+                        mealSection["観光名所"]["名所名"] = value; continue;
+                    } else if (keywords === "景点") {
+                        mealSection["景点"]["景点名称"] = value; continue;
+                    } else if (keywords === "Attraction") {
+                        mealSection["Attraction"]["Attraction Name"] = value; continue;
+                    } 
+                    
+                    if (keywords === "카페") {
+                        mealSection["카페"]["카페 이름"] = value; continue;
+                    } else if (keywords === "カフェ") {
+                        mealSection["カフェ"]["カフェ名"] = value; continue;
+                    } else if (keywords === "咖啡馆") {
+                        mealSection["咖啡馆"]["咖啡馆名称"] = value; continue;
+                    } else if (keywords === "Cafe") {
+                        mealSection["Cafe"]["Cafe Name"] = value; continue;
+                    } 
+                    
+                    if (keywords === "쇼핑몰") {
+                        mealSection["쇼핑몰"]["쇼핑몰 이름"] = value; continue;
+                    } else if (keywords === "ショッピングモール") {
+                        mealSection["ショッピングモール"]["ショッピングモール名"] = value; continue;
+                    } else if (keywords === "购物中心") {
+                        mealSection["购物中心"]["购物中心名称"] = value; continue;
+                    } else if (keywords === "Shopping Mall") {
+                        mealSection["Shopping Mall"]["Shopping Mall Name"] = value; continue;
+                    }
                 }
-            } 
-        } 
-    });
-
-    return result;
-}
-
-function parseItineraryToJson2(text) {
-    const lines = text.split("\n");
-    const result = [];
-    let currentDay = null;
-    let currentMeal = null;
-    let currentSection = null;
-
-    lines.forEach(line => {
-        const trimmedLine = line.trim();
-
-        if (!trimmedLine) return; // 빈 줄 무시
-
-        const isDayHeader = trimmedLine.startsWith("###");
-        const isMealHeader = trimmedLine.match(/- \*\*(아침|점심|저녁)\*\*/);
-        const isKeyValuePair = trimmedLine.startsWith("-");
-
-        // Day header 처리
-        if (isDayHeader) {
-            const dayMatch = trimmedLine.match(/^### (\d+)일차/);
-            if (dayMatch) {
-                currentDay = {
-                    day: parseInt(dayMatch[1]),
-                    meals: {}
-                };
-                result.push(currentDay);
             }
-            return;
-        }
 
-        // Meal header 처리
-        if (isMealHeader) {
-            const mealMatch = trimmedLine.match(/- \*\*(.*?)\*\*/);
-            if (mealMatch) {
-                currentMeal = mealMatch[1];
-                if (currentDay && !currentDay.meals[currentMeal]) {
-                    currentDay.meals[currentMeal] = {
-                        식사장소: {
-                            장소: null,
-                            주소: null,
-                            영업시간: null,
-                            음식점특징: null,
-                            기타정보: null
-                        },
-                        명소: {
-                            명소이름: null,
-                            영업시간: null,
-                            명소특징: null,
-                            명소위치: null,
-                            기타정보: null
-                        }
-                    };
-                }
-                currentSection = null;
-            }
-            return;
-        }
-
-        // Key-Value 처리
-        if (isKeyValuePair) {
-            const keyValueMatch = trimmedLine.match(/- \*\*(.*?)\*\*: (.*)/);
-            if (keyValueMatch && currentDay && currentMeal) {
-                const [, key, value] = keyValueMatch;
-                const mealSection = currentDay.meals[currentMeal];
-
-                // 식사 장소와 명소 구분
-                if (key.includes("식사 장소")) {
-                    mealSection.식사장소.장소 = value;
-                    currentSection = "식사장소";
-                } else if (key === "명소") {
-                    mealSection.명소.명소이름 = value;
-                    currentSection = "명소";
-                } else if (currentSection) {
-                    if (currentSection === "식사장소") {
-                        if (key === "주소") mealSection.식사장소.주소 = value;
-                        if (key === "영업 시간") mealSection.식사장소.영업시간 = value;
-                        if (key === "음식점 특징") mealSection.식사장소.음식점특징 = value;
-                        if (key === "기타 정보") mealSection.식사장소.기타정보 = value;
-                    } else if (currentSection === "명소") {
-                        if (key === "영업 시간") mealSection.명소.영업시간 = value;
-                        if (key === "명소 특징") mealSection.명소.명소특징 = value;
-                        if (key === "명소 위치") mealSection.명소.명소위치 = value;
-                        if (key === "기타 정보") mealSection.명소.기타정보 = value;
+            // 필드 매칭
+            if (currentSection) {
+                for (const fieldMapping of fieldMappings) {
+                    if (fieldMapping[currentSection] && fieldMapping[currentSection][key]) {
+                        mealSection[currentSection][fieldMapping[currentSection][key]] = value;
+                        break;
                     }
                 }
             }
