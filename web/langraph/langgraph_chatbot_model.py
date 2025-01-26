@@ -2,12 +2,18 @@ from chain_model.extraction_day_chain import day_chain
 from chain_model.extraction_loacation_chain import location_chain
 from chain_model.extraction_schedule_or_place_chain import sch_or_place_chain
 from chain_model.place_search_chain import place_search_chain
+from chain_model.place_search_chain_chi import place_search_chain_chi
+from chain_model.place_search_chain_eng import place_search_chain_eng
+from chain_model.place_search_chain_ja import place_search_chain_ja
 from chain_model.schedule_chain import schedule_chain
 from chain_model.discrimination_language import discrimination_language
 from chain_model.translation_question import translation_question
 from chain_model.error_handle_chain import error_handle_chain
 from chain_model.is_schedule_error import schedule_error_chain
 from chain_model.schedule_change_chain import schedule_change_chain
+from chain_model.schedule_chain_chi import schedule_chain_chi
+from chain_model.schedule_chain_eng import schedule_chain_eng
+from chain_model.schedule_chain_ja import schedule_chain_ja
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -41,7 +47,7 @@ from pydantic import PrivateAttr
 
 
 
-def run_model(question):
+def run_model(question, chat_history=None):
 
     def load_documents(filepath: str) -> List[dict]:
         with open(filepath, "r", encoding="utf-8") as f:
@@ -218,6 +224,38 @@ def run_model(question):
         top_k=25
     )
 
+    retriever_naver_gangnam_search = HybridBM25FaissRetriever(
+        bm25=bm25_gangnam,
+        faiss_index=faiss_index_gangnam,
+        documents=documents_gangnam,
+        metadata_list=metadata_list_gangnam,
+        top_k=3
+    )
+
+    retriever_naver_jongro_search = HybridBM25FaissRetriever(
+        bm25=bm25_jongro,
+        faiss_index=faiss_index_jongro,
+        documents=documents_jongro,
+        metadata_list=metadata_list_jongro,
+        top_k=3
+    )
+
+    retriever_naver_yongsan_search = HybridBM25FaissRetriever(
+        bm25=bm25_yongsan,
+        faiss_index=faiss_index_yongsan,
+        documents=documents_yongsan,
+        metadata_list=metadata_list_yongsan,
+        top_k=3
+    )
+
+    retriever_naver_Junggu_search = HybridBM25FaissRetriever(
+        bm25=bm25_junggu,
+        faiss_index=faiss_index_junggu,
+        documents=documents_junggu,
+        metadata_list=metadata_list_junggu,
+        top_k=3
+    )
+
     embeddings = OpenAIEmbeddings()
 
     # BASE_DIR은 현재 파일이 위치한 디렉토리를 기준으로 설정
@@ -270,10 +308,25 @@ def run_model(question):
         day_error: Annotated[int, "day_error"]  # 여행 일 수 에러
         language_error: Annotated[int, "language_error"]  # 언어 에러
         error_or_normal: Annotated[str, "error_or_normal"]  # 스케줄 에러
+        pre_chat: Annotated[str, "pre_chat"]  # chat_history
         
 
-
+    chat_history_json = chat_history
     ####-----노드 함수--------#####
+
+    def json_to_string(state):
+        try:
+            # 입력이 None인 경우 빈 문자열 반환
+            if chat_history_json is None:
+                return { "pre_chat" : "" }
+            # 이미 문자열인 경우 그대로 반환
+            if isinstance(chat_history_json, str):
+                return {"pre_chat":chat_history_json}
+            # JSON 데이터를 문자열로 변환
+            return {"pre_chat" : json.dumps(chat_history_json, ensure_ascii=False, indent=4)}
+        except (TypeError, ValueError) as e:
+            return f"Error: {e}"
+
 
     def initialize_error_status(state):
         return{
@@ -430,6 +483,26 @@ def run_model(question):
                 "context_naver_jongro": retrieved_docs_jongro,
                 "context_naver_Junggu": retrieved_docs_junggu,
                 "context_naver_yongsan": retrieved_docs_yongsan}
+    
+
+    def retrieve_document_naver_search(state: GraphState) -> GraphState:
+        # 질문을 상태에서 가져옵니다.
+        latest_question = state["translated_question"]
+        
+        retrieved_docs_yongsan = []
+        retrieved_docs_jongro = []
+        retrieved_docs_gangman = []
+        retrieved_docs_junggu = []
+
+        retrieved_docs_yongsan = retriever_naver_yongsan_search.invoke(latest_question)
+        retrieved_docs_jongro = retriever_naver_jongro_search.invoke(latest_question)
+        retrieved_docs_gangman = retriever_naver_gangnam_search.invoke(latest_question)
+        retrieved_docs_junggu = retriever_naver_Junggu_search.invoke(latest_question)
+
+        return {"context_naver_gangnam": retrieved_docs_gangman,
+                "context_naver_jongro": retrieved_docs_jongro,
+                "context_naver_Junggu": retrieved_docs_junggu,
+                "context_naver_yongsan": retrieved_docs_yongsan}
 
     #------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -496,7 +569,16 @@ def run_model(question):
         jongro = '종로구'
         gangman = '강남구'
         junggu = '중구'
-    
+
+        if language == '한국어':
+            chain = schedule_chain()
+        elif language == '중국어':
+            chain = schedule_chain_chi()
+        elif language == '영어':
+            chain = schedule_chain_eng()
+        elif language == '일본어':
+            chain = schedule_chain_ja()
+
         for i in range(1, day+1):
             if yongsan in location:
                 place_yongsan = state["context_naver_yongsan"]
@@ -569,13 +651,12 @@ def run_model(question):
             ]
             )
 
-            chain = schedule_chain()
             # 체인을 호출하여 답변을 생성합니다.
             response = chain.invoke(
                 {
                     "question": latest_question,
                     "context": place_list_text,
-                    "chat_history": messages_to_history(state["messages"]),
+                    "chat_history": state["pre_chat"],
                     "day" : i,
                     "language" : language,
                     "additional" : additional_text
@@ -671,7 +752,7 @@ def run_model(question):
             {
                 "question": latest_question,
                 "context": place_list_text,
-                "chat_history": messages_to_history(state["messages"]),
+                "chat_history": state["pre_chat"],
                 "language" : language
             }
         )
@@ -696,25 +777,52 @@ def run_model(question):
         place_jongro =[]
         place_gangman =[]
         place_junggu =[]
+        additional_list=[]
 
 
         place_yongsan = state["context_naver_yongsan"]
-        place_yongsan = place_yongsan[:4]
         place_list.extend(place_yongsan)
+        if language == '영어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in place_yongsan]) 
+        elif language == '한국어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in place_yongsan]) 
+        elif language == '일본어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in place_yongsan]) 
+        elif language == '중국어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in place_yongsan]) 
 
         place_jongro = state["context_naver_jongro"]
-        place_jongro = place_jongro[:4]
         place_list.extend(place_jongro)
-
+        if language == '영어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in place_jongro]) 
+        elif language == '한국어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in place_jongro]) 
+        elif language == '일본어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in place_jongro]) 
+        elif language == '중국어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in place_jongro]) 
 
         place_gangman = state["context_naver_gangnam"]
-        place_gangman = place_gangman[:4]
         place_list.extend(place_gangman)
-
+        if language == '영어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in place_gangman]) 
+        elif language == '한국어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in place_gangman]) 
+        elif language == '일본어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in place_gangman]) 
+        elif language == '중국어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in place_gangman]) 
 
         place_junggu = state["context_naver_Junggu"]
-        place_junggu = place_junggu[:4]
         place_list.extend(place_junggu)
+        if language == '영어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in place_junggu]) 
+        elif language == '한국어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in place_junggu]) 
+        elif language == '일본어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in place_junggu]) 
+        elif language == '중국어':
+            additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in place_junggu]) 
 
         place_opendata_junggu = state["context_opendata_yongsan"]
         place_opendata_junggu = place_opendata_junggu[:3]
@@ -738,15 +846,33 @@ def run_model(question):
             for doc in place_list
         ]
         )
+        
+        additional_text = "\n".join(
+        [
+            f"<additional>{doc}</additional>"
+            for doc in additional_list
+        ]
+        )
 
         # 체인을 호출하여 답변을 생성합니다.
+        if language == '한국어':
+            chain_place_search = place_search_chain()
+        elif language == '중국어':
+            chain_place_search = place_search_chain_chi()
+        elif language == '영어':
+            chain_place_search = place_search_chain_eng()
+        elif language == '일본어':
+            chain_place_search = place_search_chain_ja()
         chain_place_search = place_search_chain()
+
         response = chain_place_search.invoke(
             {
                 "question": latest_question,
                 "context": place_list_text,
-                "chat_history": messages_to_history(state["messages"]),
-                "language" : language
+                "chat_history": state['pre_chat'],
+                "language" : language,
+                "additional" : additional_text
+
             }
         )
 
@@ -780,10 +906,13 @@ def run_model(question):
     workflow.add_node("initialize_error_status", initialize_error_status)
     workflow.add_node("language_error_node", language_error_node)
     workflow.add_node("llm_Schedule_change_answer", llm_Schedule_change_answer)
+    workflow.add_node("json_to_string", json_to_string)
+    workflow.add_node("retrieve_document_naver_search", retrieve_document_naver_search)
 
 
 
     workflow.set_entry_point("initialize_error_status")
+    workflow.set_entry_point("json_to_string")
     workflow.add_edge("initialize_error_status", "translate_question") 
 
     workflow.add_edge("translate_question", "language_check") 
@@ -809,7 +938,7 @@ def run_model(question):
         is_place,
         {
             "일정": "day_locatoin_check",  #일정
-            "장소검색": "llm_place_answer", # 장소검색
+            "장소검색": "retrieve_document_naver_search", # 장소검색
             "일정변경" : "llm_Schedule_change_answer" 
         },
     )
@@ -820,6 +949,8 @@ def run_model(question):
     workflow.add_edge("location_check", "error_check") 
     workflow.add_edge("Schedule_day_check", "error_check") 
 
+    workflow.add_edge("retrieve_document_naver_search", "llm_place_answer") 
+
     workflow.add_conditional_edges(
         "error_check",  
         is_error,
@@ -829,10 +960,6 @@ def run_model(question):
         },
     )
 
-
-    # workflow.add_edge("llm_Schedule_answer", "initialize_error_status")  # 답변 -> 종료
-    # workflow.add_edge("llm_place_answer", "initialize_error_status")  # 답변 -> 종료
-    # workflow.add_edge("error_handling", "initialize_error_status")  # 답변 -> 종료
     workflow.add_edge("llm_Schedule_answer", END)  # 답변 -> 종료
     workflow.add_edge("llm_place_answer", END)  # 답변 -> 종료
     workflow.add_edge("error_handling", END)  # 답변 -> 종료

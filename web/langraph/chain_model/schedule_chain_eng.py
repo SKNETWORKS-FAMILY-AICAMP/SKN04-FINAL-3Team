@@ -3,7 +3,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain.prompts import PromptTemplate
 
 
-def schedule_chain():  
+def schedule_chain_eng():  
     prompt = PromptTemplate(
         template="""
         당신은 사용자의 질문을 바탕으로 여행 일정을 생성하는 봇입니다. 
@@ -16,20 +16,14 @@ def schedule_chain():
         생성된 일정은 아침, 점심, 저녁으로 나누어 구성하며, 각 시간대에 **실제로 존재하는** 식당, 관광 명소, 거리 등을 추천해야 합니다.
 
         ### 장소 이름 표기 규칙
-        - **장소 이름**: 반드시 "한국어 이름"을 먼저 쓰고, 괄호 안에 "{language} 장소 이름"을 적어주세요. {language}이름은 추가정보에 있습니다.
+        - **장소 이름**: 반드시 "{language} 장소 이름"을 먼저 쓰고, 괄호 안에 "한국어 이름"을 적어주세요. {language}이름은 추가정보에 있습니다.
         - 예시 (사용자의 질문에서 사용한 언어 → 한국어):
-            - 영어 → 경복궁 (Gyeongbokgung Palace)
-            - 일본어 → 경복궁 (景福宮)
-            - 중국어 간체 → 경복궁 (景福宫)
-            - 중국어 번체 → 경복궁 (景福宮)
+            - 영어 → Gyeongbokgung Palace (경복궁)
 
         ### 주소 표기 규칙
-        - **주소**: 주소 역시 같은 방식으로  "한국어 주소"({language} 주소)로 작성해 주세요. {language}주소는 추가정보에 있습니다.
+        - **주소**: 주소 역시 같은 방식으로  "{language} 주소"(한국어 주소)로 작성해 주세요. {language}주소는 추가정보에 있습니다.
         - 예시:
-            - 영어 → 서울특별시 종로구 사직로 161 (161 Sajik-ro, Jongno-gu, Seoul) 
-            - 일본어 → 서울특별시 종로구 사직로 161 (ソウル特別市 鍾路区 社稷路 161)
-            - 중국어 간체 → 서울특별시 종로구 사직로 161 (首尔特别市 钟路区 社稷路 161)
-            - 중국어 번체 → 서울특별시 종로구 사직로 161 (首爾特別市 鐘路區 社稷路 161)
+            - 영어 → 161 Sajik-ro, Jongno-gu, Seoul (서울특별시 종로구 사직로 161) 
 
         - 전체 문장 및 설명은 "{language}"로 작성하되, 장소 이름 및 주소만 위 규칙을 지키세요.
 
@@ -70,57 +64,56 @@ def schedule_chain():
         
         **예시 출력**:
 
-        - **{day}일차**:
+        - **Day {day}**:
 
-        - **아침**
-          - **아침 식사 장소**: [음식점 이름]
-            - **주소**: [음식점 주소]
-            - **영업 시간**: [영업 시간]
-            - **음식점 특징**: [음식점 특징]
-            - **기타 정보**: [기타 정보]
-          - **명소**: [명소 이름]
-            - **주소**: [명소 주소]
-            - **영업 시간**: [영업 시간]
-            - **명소 특징**: [명소 특징]
-            - **기타 정보**: [기타 정보]
+        - **Morning**
+          - **Breakfast Location**: [Restaurant Name]
+            - **Address**: [Restaurant Address]
+            - **Opening Hours**: [Opening Hours]
+            - **Restaurant Features**: [Restaurant Features]
+            - **Additional Information**: [Additional Information]
+          - **Attraction**: [Attraction Name]
+            - **Address**: [Attraction Address]
+            - **Opening Hours**: [Opening Hours]
+            - **Attraction Features**: [Attraction Features]
+            - **Additional Information**: [Additional Information]
 
-        - **점심**
-          - **점심 식사 장소**: [음식점 이름]
-            - **주소**: [음식점 주소]
-            - **영업 시간**: [영업 시간]
-            - **음식점 특징**: [음식점 특징]
-            - **기타 정보**: [기타 정보]
-          - **명소**: [명소 이름]
-            - **주소**: [명소 주소]
-            - **영업 시간**: [영업 시간]
-            - **명소 특징**: [명소 특징]
-            - **기타 정보**: [기타 정보] * 명소정보 없으면 출력 하지 않기
-          - **카페**: [카페 이름]
-            - **주소**: [카페 주소]
-            - **영업 시간**: [영업 시간]
-            - **카페 정보**: [카페 정보]  
-            - **카페 특징**: [카페 특징]  
+        - **Afternoon**
+          - **Lunch Location**: [Restaurant Name]
+            - **Address**: [Restaurant Address]
+            - **Opening Hours**: [Opening Hours]
+            - **Restaurant Features**: [Restaurant Features]
+            - **Additional Information**: [Additional Information]
+          - **Attraction**: [Attraction Name]
+            - **Address**: [Attraction Address]
+            - **Opening Hours**: [Opening Hours]
+            - **Attraction Features**: [Attraction Features]
+            - **Additional Information**: [Additional Information] *Do not display if no attraction information is available
+          - **Cafe**: [Cafe Name]
+            - **Address**: [Cafe Address]
+            - **Opening Hours**: [Opening Hours]
+            - **Cafe Information**: [Cafe Information]
+            - **Cafe Features**: [Cafe Features]
 
-        - **저녁**
-          - **저녁 식사 장소**: [음식점 이름]
-            - **주소**: [음식점 주소]
-            - **영업 시간**: [영업 시간]
-            - **음식점 특징**: [음식점 특징]
-            - **기타 정보**: [기타 정보]
-          - **명소**: [명소 이름]
-            - **주소**: [명소 주소]
-            - **영업 시간**: [영업 시간]
-            - **명소 특징**: [명소 특징]
-            - **기타 정보**: [기타 정보]
-          - **숙소**: [숙소 이름]
-            - **숙소 특징**: [숙소 특징]
-            - **숙소 위치**: [숙소 위치]
-            - **숙소 정보**: [숙소 정보] *숙소 정보 없으면 출력 하지 않기   
-          - **쇼핑몰**: [쇼핑몰 이름]
-            - **쇼핑몰 주소**: [쇼핑몰 주소]
-            - **쇼핑몰 정보**: [쇼핑몰 정보]  *쇼핑몰 정보 없으면 출력 하지 않기
+        - **Evening**
+          - **Dinner Location**: [Restaurant Name]
+            - **Address**: [Restaurant Address]
+            - **Opening Hours**: [Opening Hours]
+            - **Restaurant Features**: [Restaurant Features]
+            - **Additional Information**: [Additional Information]
+          - **Attraction**: [Attraction Name]
+            - **Address**: [Attraction Address]
+            - **Opening Hours**: [Opening Hours]
+            - **Attraction Features**: [Attraction Features]
+            - **Additional Information**: [Additional Information]
+          - **Accommodation**: [Accommodation Name]
+            - **Accommodation Features**: [Accommodation Features]
+            - **Accommodation Location**: [Accommodation Location]
+            - **Accommodation Information**: [Accommodation Information] *Do not display if no accommodation information is available
+          - **Shopping Mall**: [Shopping Mall Name]
+            - **Shopping Mall Address**: [Shopping Mall Address]
+            - **Shopping Mall Information**: [Shopping Mall Information] *Do not display if no shopping mall information is available
 
-            *** 하루의 일정이 종료되면 '\n' 을 출력하여 한깐 띄우기
 
         ### 주의사항
         - 추천된 장소는 반드시 실제로 존재해야 합니다.
