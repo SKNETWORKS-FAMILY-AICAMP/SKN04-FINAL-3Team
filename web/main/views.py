@@ -394,6 +394,32 @@ def save_chat(request):
 
 
 @csrf_exempt
+def get_chat(request):
+    if request.method == "GET":
+        try:
+            chat_id = request.GET.get("chat_id", None)  # 요청에서 chat_id를 가져옴
+            user = get_authenticated_user(request)  # 현재 인증된 사용자 가져오기
+
+            if not chat_id:
+                return JsonResponse({"success": False, "error": "chat_id is required."})
+
+            # chat_id와 사용자 정보를 기반으로 Chatting 객체 가져오기
+            chatting_instance = get_object_or_404(Chatting, chatting_id=chat_id, profile=user)
+
+            # chat 내용 반환
+            return JsonResponse({
+                "success": True,
+                "chatting_id": chatting_instance.chatting_id,
+                "content": chatting_instance.content,
+            })
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid request method."})
+
+
+@csrf_exempt
 def init_chat(request):
     if request.method == "POST":
         try:
