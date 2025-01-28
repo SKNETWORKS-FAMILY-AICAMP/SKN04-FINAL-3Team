@@ -144,6 +144,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "web.wsgi.application"
 
+# local용
+
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql',
@@ -154,6 +156,8 @@ WSGI_APPLICATION = "web.wsgi.application"
 #         'PORT': '5432',                # 기본값
 #     }
 # }
+
+# aws rds용
 
 DATABASES = {
     'default': {
