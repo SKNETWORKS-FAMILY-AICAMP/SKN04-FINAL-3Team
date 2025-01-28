@@ -957,12 +957,13 @@ def run_gpt_view(request):
         try:
             data = json.loads(request.body)
             user_input = data.get("question")
+            chat_history = data.get("chat_history")
 
             if not user_input:
                 return JsonResponse({"error": "Invalid input"}, status=400)
 
             # Generator 반환
-            answer = run_model(user_input)
+            answer = run_model(user_input, chat_history)
 
             if not hasattr(answer, "__iter__"):  # Generator 확인
                 raise ValueError("run_model did not return a generator.")
