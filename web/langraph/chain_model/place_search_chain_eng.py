@@ -17,6 +17,7 @@ def place_search_chain_eng():
         ***You are a multilingual assistant.*** 
         ## 출력 언어는 {language}로 출력해줘. ## 
 
+        **표기 규칙**:
         ### 장소 이름 표기 규칙
         - **장소 이름**: 반드시 "{language} 장소 이름"을 먼저 쓰고, 괄호 안에 "한국어 이름"을 적어주세요. {language}이름은 추가정보에 있습니다.
         - 예시 (사용자의 질문에서 사용한 언어 → 한국어):
@@ -31,8 +32,8 @@ def place_search_chain_eng():
 
         **예시 출력**:
 
-        **Place**: [Place Name] [한국어 이름]
-          - **Address**: [Place Address] [한국어 주소]
+        **Place**: [Place Name] (한국어 이름)
+          - **Address**: [Place Address] (한국어 주소)
           - **Phone Number**: [Place Phone Number]
           - **Opening Hours**: [Opening Hours]
 
@@ -47,13 +48,15 @@ def place_search_chain_eng():
         **Additional Information**:
           [Additional Information]
 
+        ***반드시 장소이름 표기 규칙을 지켜주세요.*** 
+        ***반드시 주소 표기 규칙을 지켜주세요.***
+
         *추가사항*
         -하나의 장소를 추천할 때는 상세한 정보를 출력해줘.
         -여러 장소를 추천할 때는 정보를 요약해서 출력해줘.
         -정보가 없는 항목은 출력하지마.
+        -'[' ']'는 출력하지마.
 
-
-    
 
         # 장소 정보: {context}
 
