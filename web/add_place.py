@@ -54,7 +54,7 @@ places = [
 # 중복 방지 로직
 new_places = []
 for data in places:
-    if not BookmarkPlace.objects.filter(place_id=data["place_id"]).exists():
+    if not BookmarkPlace.objects.filter(bookmarkplace_id=data["bookmarkplace_id"]).exists():
         new_places.append(BookmarkPlace(**data))
 
 # 새로운 데이터만 bulk_create
