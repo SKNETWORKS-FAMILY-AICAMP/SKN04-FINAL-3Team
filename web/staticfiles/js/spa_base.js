@@ -452,6 +452,7 @@ document.addEventListener("spaContentLoaded", async function () {
 
         if (plannerTitle) {
             plannerTitle.addEventListener("dblclick", function () {
+                console.log("123123");
                 changeTitle.value = plannerTitle.textContent;
                 changeTitle.style.display = "block"; // 입력창 표시
                 plannerTitle.style.display = "none"; // 기존 텍스트 숨김
@@ -876,7 +877,7 @@ document.addEventListener("spaContentLoaded", async function () {
                                             // 장소 정보 표시
                                             if (data) {
                                                 const panelTitle = document.getElementById("panel-title");                                                        
-                                                panelTitle.innerHTML = `${row.name}`;
+                                                panelTitle.textContent = row.name;
                                                 const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
                                                 const dayButtonContainer = document.getElementById("day-button-container");
                                                 if (dayButtonContainer) {
@@ -1016,9 +1017,10 @@ document.addEventListener("spaContentLoaded", async function () {
                                             mapPanelContent.innerHTML = "";
 
                                             // 일정 정보 표시
-                                            if (data) {;
+                                            if (data) {
                                                 const panelTitle = document.getElementById("panel-title");
-                                                panelTitle.innerHTML = `${row.name}`;
+                                                panelTitle.textContent = row.name;
+                                                console.log("panelTitle:", panelTitle.textContent);
                                                 const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
                                                 getBookmarkListBtn.classList.remove("place");
                                                 getBookmarkListBtn.classList.add("schedule");
@@ -1409,41 +1411,94 @@ document.addEventListener("spaContentLoaded", async function () {
         if (isLoading) return; // 로딩 중일 때 메시지 전송 방지
 
         const message = inputBar.value.trim(); // 사용자가 입력한 메시지
+        const urlParams = new URLSearchParams(window.location.search);
+        const chatId = urlParams.get("chat_id");
+        let chatHistory = "";
         if (message === "") return;
 
         saveChatToDB(`<나>${message}`);
+        try {
+            const response = await fetch(`/app/partials/planner/get_chat/?chat_id=${chatId}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken(),
+                },
+            });
 
-        // 1. 로딩 상태로 설정
-        isLoading = true;
-        inputBar.disabled = true; // 입력창 비활성화
+            const data = await response.json();
+            if (response.ok && data.success) {
+                chatHistory = data.content;
+                
+                // 로딩 상태로 설정
+                isLoading = true;
+                inputBar.disabled = true; // 입력창 비활성화
 
-        // 사용자의 메시지를 채팅창에 추가
-        const userMessage = document.createElement("div");
-        userMessage.className = "bubble right-bubble";
-        userMessage.innerHTML = message.replace(/\n/g, "<br>");
-        chatMessages.appendChild(userMessage);                
+                // 사용자의 메시지를 채팅창에 추가
+                const userMessage = document.createElement("div");
+                userMessage.className = "bubble right-bubble";
+                userMessage.innerHTML = message.replace(/\n/g, "<br>");
+                chatMessages.appendChild(userMessage);                
 
-        inputBar.value = ""; // 입력창 초기화
+                inputBar.value = ""; // 입력창 초기화
 
-        const loadingBubble = document.createElement("div");
-        loadingBubble.classList.add("bubble", "left-bubble", "loading-bubble");
-        loadingBubble.innerHTML = `
-            <div class="loader">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        `;
-        chatMessages.appendChild(loadingBubble);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+                const loadingBubble = document.createElement("div");
+                loadingBubble.classList.add("bubble", "left-bubble", "loading-bubble");
+                loadingBubble.innerHTML = `
+                    <div class="loader">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                `;
+                chatMessages.appendChild(loadingBubble);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        if (activeAbortController) {
-            activeAbortController.abort();
+                if (activeAbortController) {
+                    activeAbortController.abort();
+                }
+                // 새로운 AbortController 생성
+                activeAbortController = new AbortController();
+                const { signal } = activeAbortController;
+                chatHistory = parse_chat_history(chatHistory);
+                fetchGPTResponse(message, signal, chatHistory);
+            } else {
+                console.error(`/app/partials/planner/get_chat/ 실패 chatId=${chatId}, response=${response}`);
+            }
+        } catch {
+            console.error("/app/partials/planner/get_chat/ failed");
         }
-        // 새로운 AbortController 생성
-        activeAbortController = new AbortController();
-        const { signal } = activeAbortController;
-        fetchGPTResponse(message, signal);
+    }
+
+    function parse_chat_history(chatHistory) {
+        const tokens = chatHistory.split(/(<나>|<봇>)/);
+
+        const result = [];
+        let currentRole = null;
+
+        for (let chunk of tokens) {
+            // 앞뒤 공백 제거
+            chunk = chunk.trim();
+
+            // 비어있으면 무시
+            if (!chunk) {
+            continue;
+            }
+
+            if (chunk === '<나>') {
+            currentRole = 'user';
+            } else if (chunk === '<봇>') {
+            currentRole = 'assistant';
+            } else {
+            // chunk가 실제 대화 내용
+            if (currentRole === null) {
+                // 처음부터 <나>나 <봇>이 없이 문자열이 시작됐다면 user로 간주
+                currentRole = 'user';
+            }
+            result.push({ role: currentRole, content: chunk });
+            }
+        }
+        return result;
     }
 
     function updateChatBubble(botMessage, chunk) {
@@ -1505,7 +1560,8 @@ document.addEventListener("spaContentLoaded", async function () {
                 const target = event.target;
                 const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
                 const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
-                
+                const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+
                 if (botBubble.className.includes("left-bubble")) {
                     // 서식을 유지한 상태로 출력
                     const panelTitle = document.getElementById("panel-title");
@@ -1514,21 +1570,24 @@ document.addEventListener("spaContentLoaded", async function () {
                         .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
-                    const jsonData1 = parseItineraryToJson_KR(formattedMessage);
+                    const jsonData1 = parseScheduleJson_KR(formattedMessage);
                     const jsonData2 = parseItineraryToJson_JP(formattedMessage);
                     const jsonData3 = parseItineraryToJson_CN(formattedMessage);
                     const jsonData4 = parseItineraryToJson_US(formattedMessage);
-                    const jsonData =
-                        (jsonData1 && jsonData1.length > 0 && jsonData1) ||
-                        (jsonData2 && jsonData2.length > 0 && jsonData2) ||
-                        (jsonData3 && jsonData3.length > 0 && jsonData3) ||
-                        (jsonData4 && jsonData4.length > 0 && jsonData4);
-                    if (jsonData.length > 0) {
-                        generateDayButtons(jsonData);
-                        generateDynamicPlanContent(jsonData);
-
-                        const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
-                        getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonData));
+                    const jsonData5 = parsePlaceJson_KR(formattedMessage);
+                    const jsonData6 = parsePlaceJson_JP(formattedMessage);
+                    const jsonData7 = parsePlaceJson_CN(formattedMessage);
+                    const jsonData8 = parsePlaceJson_US(formattedMessage);
+                    const jsonScheduleData = (jsonData1 || jsonData2 || jsonData3 || jsonData4);
+                    const jsonPlaceData = (jsonData5 || jsonData6 || jsonData7 || jsonData8);
+                    if (jsonScheduleData.length !== 0) {
+                        generateDayButtons(jsonScheduleData);
+                        generateDynamicPlanContent(jsonScheduleData);
+                        getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonScheduleData));
+                    }
+                    if (jsonPlaceData.length !== 0) {
+                        generatePlaceContent(jsonPlaceData);
+                        getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonPlaceData));
                     }
                 }
             });
@@ -1544,10 +1603,7 @@ document.addEventListener("spaContentLoaded", async function () {
             }
 
             // 마지막 남은 버퍼 처리
-            if (buffer.trim()) {
-                const urlParams = new URLSearchParams(window.location.search);
-                const chatId = urlParams.get("chat_id");
-                console.log("VRCHAT:", chatId);
+            if (buffer.trim()) {                    
                 updateChatBubble(botBubble, buffer + "\n");
             }
 
@@ -1741,6 +1797,7 @@ function parseAndDisplayChatContent(chatContent) {
                 const target = event.target;
                 const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
                 const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
+                const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
                 if (bubble.className.includes("left-bubble")) {
                     const panelTitle = document.getElementById("panel-title");
                     panelTitle.textContent = "";
@@ -1750,21 +1807,24 @@ function parseAndDisplayChatContent(chatContent) {
                         .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
-                    const jsonData1 = parseItineraryToJson_KR(formattedMessage);
+                    const jsonData1 = parseScheduleJson_KR(formattedMessage);
                     const jsonData2 = parseItineraryToJson_JP(formattedMessage);
                     const jsonData3 = parseItineraryToJson_CN(formattedMessage);
                     const jsonData4 = parseItineraryToJson_US(formattedMessage);
-                    const jsonData =
-                        (jsonData1 && jsonData1.length > 0 && jsonData1) ||
-                        (jsonData2 && jsonData2.length > 0 && jsonData2) ||
-                        (jsonData3 && jsonData3.length > 0 && jsonData3) ||
-                        (jsonData4 && jsonData4.length > 0 && jsonData4);
-                    if (jsonData.length > 0) {
-                        generateDayButtons(jsonData);
-                        generateDynamicPlanContent(jsonData);
-
-                        const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
-                        getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonData));
+                    const jsonData5 = parsePlaceJson_KR(formattedMessage);
+                    const jsonData6 = parsePlaceJson_JP(formattedMessage);
+                    const jsonData7 = parsePlaceJson_CN(formattedMessage);
+                    const jsonData8 = parsePlaceJson_US(formattedMessage);
+                    const jsonScheduleData = (jsonData1 || jsonData2 || jsonData3 || jsonData4);
+                    const jsonPlaceData = (jsonData5 || jsonData6 || jsonData7 || jsonData8);
+                    if (jsonScheduleData.length !== 0) {
+                        generateDayButtons(jsonScheduleData);
+                        generateDynamicPlanContent(jsonScheduleData);
+                        getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonScheduleData));
+                    }
+                    else if (jsonPlaceData.length !== 0) {
+                        generatePlaceContent(jsonPlaceData);
+                        getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonPlaceData));
                     }
                 }
             });
@@ -1789,7 +1849,7 @@ function parseAndDisplayChatContent(chatContent) {
     });
 }
 
-function parseItineraryToJson_KR(text) {
+function parseScheduleJson_KR(text) {
     text = text.replace(/([^\n])(\s*- \*\*\d+일차\*\*:)/g, "$1\n$2");
     const lines = text.split("\n");
     const result = [];
@@ -2267,481 +2327,695 @@ function parseItineraryToJson_US(text) {
     return result;
 }
 
-function parseItineraryToJson_KR1(text) {
-    text = text.replace(/([^\n])(\s*- \*\*\d+일차\*\*:)/g, "$1\n$2");
+function parsePlaceJson_KR(text) {
+    // 결과를 담을 객체
+    const result = {
+        "장소": "",
+        "주소": "",
+        "전화 번호": "",
+        "영업 시간": [],    // 여러 줄이 있을 수 있으니 배열로 구성
+        "정보": "",
+        "메뉴": [],         // 여러 메뉴가 있을 수 있으니 배열로 구성
+        "장점": "",
+        "SNS": "",
+        "기타": ""
+    };
+  
+    // 줄 단위로 분할
     const lines = text.split("\n");
-    const result = [];
-    let currentDay = null;
-    let currentMeal = null;
+  
+    // 현재 어떤 섹션을 파싱 중인지 추적
     let currentSection = null;
-
-    lines.forEach(line => {
-        const trimmedLine = line.trim();
-        // console.log("t:", trimmedLine);
-        if (!trimmedLine) return; // 빈 줄 무시
-
-        // dayMatch 처리
-        const dayMatch = trimmedLine.match(/^\- \*\*(\d+)일차\*\*/);
-        if (dayMatch) {
-            currentDay = {
-                day: parseInt(dayMatch[1]),
-                meals: {}
-            };
-            result.push(currentDay);
+  
+    lines.forEach((rawLine) => {
+        const line = rawLine.trim();
+        if (!line) {
+            return; // 빈 줄이면 무시
+        }
+    
+        // 1) **장소:**
+        const placeMatch = line.match(/^\*\*장소:\** (.*)/);
+        if (placeMatch) {
+            result["장소"] = placeMatch[1].trim();
+            currentSection = "장소"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
+            return;
+        }
+    
+        // 2) **주소**:
+        const addressMatch = line.match(/^\-\s*\*\*주소\**: (.*)/);
+        if (addressMatch) {
+            result["주소"] = addressMatch[1].trim();
+            currentSection = "주소";
+            return;
+        }
+    
+        // 3) **전화 번호**:
+        const phoneMatch = line.match(/^\-\s*\*\*전화 번호\**: (.*)/);
+        if (phoneMatch) {
+            result["전화 번호"] = phoneMatch[1].trim();
+            currentSection = "전화 번호";
+            return;
+        }
+    
+        // 4) **영업 시간**: (여러 줄에 걸쳐 있을 수 있음)
+        const timeMatch = line.match(/^\-\s*\*\*영업 시간\**: (.*)/);
+        if (timeMatch) {
+            // 첫 줄에도 내용이 있으면 배열에 넣는다
+            const firstContent = timeMatch[1].trim();
+            if (firstContent) {
+            result["영업 시간"].push(firstContent);
+            }
+            currentSection = "영업 시간";
+            return;
+        }
+    
+        // 5) **정보**: 
+        const infoMatch = line.match(/^\*\*정보\**: ?(.*)/);
+        if (infoMatch) {
+            result["정보"] = infoMatch[1].trim(); // 첫 줄
+            currentSection = "정보";
+            return;
+        }
+    
+        // 6) **메뉴**:
+        const menuMatch = line.match(/^\*\*메뉴\**: ?(.*)/);
+        if (menuMatch) {
+            // 메뉴에 바로 내용이 있을 수도 있지만 보통은 없고, 
+            // 어쨌든 currentSection="메뉴"로 설정
+            currentSection = "메뉴";
+            return;
+        }
+    
+        // 7) **장점**:
+        const advantageMatch = line.match(/^\*\*장점\**: ?(.*)/);
+        if (advantageMatch) {
+            result["장점"] = advantageMatch[1].trim();
+            currentSection = "장점";
+            return;
         }
 
-        const mealMatch = trimmedLine.match(/^\- \*\*(아침|점심|저녁)\*\*/);
-        if (mealMatch) {
-            currentMeal = mealMatch[1];
-            if (currentDay && !currentDay.meals[currentMeal]) {
-                currentDay.meals[currentMeal] = {
-                    "식사 장소": {
-                        "음식점 이름": null,
-                        "음식점 주소": null,
-                        "영업 시간": null,
-                        "음식점 특징": null,
-                        "기타 정보": null,
-                    },
-                    "명소": {
-                        "명소 이름": null,
-                        "명소 주소": null,
-                        "영업 시간": null,
-                        "명소 특징": null,
-                        "기타 정보": null,
-                    },
-                    "카페": {
-                        "카페 이름": null,
-                        "카페 주소": null,
-                        "영업 시간": null,
-                        "카페 정보": null,
-                        "카페 특징": null,
-                    },
-                    "숙소": {
-                        "숙소 이름": null,
-                        "숙소 특징": null,
-                        "숙소 위치": null,
-                        "숙소 정보": null,
-                    },
-                    "쇼핑몰": {
-                        "쇼핑몰 이름": null,
-                        "쇼핑몰 주소": null,
-                        "쇼핑몰 정보": null,
-                    },
-                };
-            }
-            currentSection = null;
-        } 
-
-        // Key-Value 처리
-        const keyValueMatch = trimmedLine.match(/- \*\*(.*?)\*\*: (.*)/);
-        if (keyValueMatch && currentDay && currentMeal) {
-            const [, key, value] = keyValueMatch;
-            const mealSection = currentDay.meals[currentMeal];
-            
-            if (key.includes("식사 장소")) {
-                mealSection["식사 장소"]["음식점 이름"] = value;
-                currentSection = "식사 장소";
-            } else if (key === "명소") {
-                mealSection["명소"]["명소 이름"] = value;
-                currentSection = "명소";
-            } else if (key === "카페") {
-                mealSection["카페"]["카페 이름"] = value;
-                currentSection = "카페";
-            } else if (key === "숙소") {
-                mealSection["숙소"]["숙소 이름"] = value;
-                currentSection = "숙소";
-            } else if (key === "쇼핑몰") {
-                mealSection["쇼핑몰"]["쇼핑몰 이름"] = value;
-                currentSection = "쇼핑몰";
-            } 
-
-            if (currentSection) {
-                if (currentSection === "식사 장소") {
-                    if (key === "주소") mealSection["식사 장소"]["음식점 주소"] = value;
-                    if (key === "영업 시간") mealSection["식사 장소"]["영업 시간"] = value;
-                    if (key === "음식점 특징") mealSection["식사 장소"]["음식점 특징"] = value;
-                    if (key === "기타 정보") mealSection["식사 장소"]["기타 정보"] = value;
-                } else if (currentSection === "명소") {
-                    if (key === "주소") mealSection["명소"]["명소 주소"] = value;
-                    if (key === "영업 시간") mealSection["명소"]["영업 시간"] = value;
-                    if (key === "명소 특징") mealSection["명소"]["명소 특징"] = value;
-                    if (key === "기타 정보") mealSection["명소"]["기타 정보"] = value;
-                }  else if (currentSection === "카페") {
-                    if (key === "주소") mealSection["카페"]["카페 주소"] = value;
-                    if (key === "영업 시간") mealSection["카페"]["영업 시간"] = value;
-                    if (key === "카페 정보") mealSection["카페"]["카페 정보"] = value;
-                    if (key === "카페 특징") mealSection["카페"]["카페 특징"] = value;
-                }  else if (currentSection === "숙소") {
-                    if (key === "숙소 특징") mealSection["숙소"]["숙소 특징"] = value;
-                    if (key === "숙소 위치") mealSection["숙소"]["숙소 위치"] = value;
-                    if (key === "숙소 정보") mealSection["숙소"]["숙소 정보"] = value;
-                }  else if (currentSection === "쇼핑몰") {
-                    if (key === "쇼핑몰 주소") mealSection["쇼핑몰"]["쇼핑몰 주소"] = value;
-                    if (key === "쇼핑몰 정보") mealSection["쇼핑몰"]["쇼핑몰 정보"] = value;
-                }
-            } 
-        } 
-    });
+        // 8) **SNS**:
+        const snsMatch = line.match(/^\*\*SNS\**: ?(.*)/);
+        if (snsMatch) {
+            result["SNS"] = snsMatch[1].trim();
+            currentSection = "SNS";
+            return;
+        }
     
+        // 9) **기타**:
+        const etcMatch = line.match(/^\*\*기타\**: ?(.*)/);
+        if (etcMatch) {
+            result["기타"] = etcMatch[1].trim();
+            currentSection = "기타";
+            return;
+        }
+    
+        // === 여기까지 특정 라인에서 섹션을 찾는 로직 ===
+        // === 여기서부터는 현재 섹션에 따라 내용 처리 ===
+    
+        // 현재 섹션이 "영업 시간"인 경우, 줄을 계속 배열에 추가
+        if (currentSection === "영업 시간") {
+            // 예: "- 월~금: 13:00 - 24:00" 같은 걸 파싱
+            // 맨 앞에 '- ' 이 있을 수 있으니 제거
+            const lineContent = line.replace(/^-+/, "").trim();
+            result["영업 시간"].push(lineContent);
+            
+            return;
+        }
+    
+        // 현재 섹션이 "정보"인 경우, 여러 줄이 있을 수 있으므로 이어붙이기
+        if (currentSection === "정보") {
+            // 이미 한 줄 들어갔다면 줄바꿈 붙여서 누적
+            if (result["정보"]) {
+                result["정보"] += "\n" + line;
+            } else {
+                result["정보"] = line;
+            }
+            return;
+        }
+    
+        // 현재 섹션이 "메뉴"라면, 예: "- 활고등어회 소: 45,000원"
+        if (currentSection === "메뉴") {
+            // '-'로 시작하는 패턴 추출
+            // 예: "- 활고등어회 소: 45,000원"
+            // => name: "활고등어회 소", price: "45,000원"
+            const menuItemMatch = line.match(/^\-\s*(.*?):\s*(.*)/);
+            if (menuItemMatch) {
+                const itemName = menuItemMatch[1].trim();
+                const itemPrice = menuItemMatch[2].trim();
+                result["메뉴"].push({
+                    "메뉴명": itemName,
+                    "가격": itemPrice
+                });
+            } else {
+            // 만약 "- "없이 "점심 메뉴"만 이어지는 경우 처리 or 무시
+            // 여기서는 단순히 라인을 무시하거나, 
+            // 필요한 경우 이어붙일 수도 있음
+            }
+            return;
+        }
+    
+        // "장점" 섹션인 경우도 여러 줄 붙일 수 있음
+        if (currentSection === "장점") {
+            // 이미 한 줄 있으면 줄바꿈 하여 이어 붙이기
+            if (result["장점"]) {
+                result["장점"] += "\n" + line;
+            } else {
+                result["장점"] = line;
+            }
+            return;
+        }
+    
+        // "기타" 섹션인 경우도 여러 줄 붙일 수 있음
+        if (currentSection === "기타") {
+            if (result["기타"]) {
+                result["기타"] += "\n" + line;
+            } else {
+                result["기타"] = line;
+            }
+            return;
+        }
+    });
+  
     return result;
 }
 
-function parseItineraryToJson_JP2(text) {
-    text = text.replace(/([^\n])(\s*- \*\*\d+日目\*\*:)/g, "$1\n$2");
+function parsePlaceJson_JP(text) {
+    // 결과를 담을 객체
+    const result = {
+        "場所": "",
+        "住所": "",
+        "電話番号": "",
+        "営業時間": [],    // 여러 줄이 있을 수 있으니 배열로 구성
+        "詳細": "",
+        "おすすめメニュー": [],         // 여러 메뉴가 있을 수 있으니 배열로 구성
+        "利点": "",
+        "SNS": "",
+        "その他情報": ""
+    };
+  
+    // 줄 단위로 분할
     const lines = text.split("\n");
-    const result = [];
-    let currentDay = null;
-    let currentMeal = null;
+  
+    // 현재 어떤 섹션을 파싱 중인지 추적
     let currentSection = null;
-
-    lines.forEach(line => {
-        const trimmedLine = line.trim();
-        // console.log("t:", trimmedLine);
-        if (!trimmedLine) return; // 빈 줄 무시
-
-        // dayMatch 처리
-        const dayMatch = trimmedLine.match(/^\- \*\*(\d+)日目\*\*/);
-        if (dayMatch) {
-            currentDay = {
-                day: parseInt(dayMatch[1]),
-                meals: {}
-            };
-            result.push(currentDay);
+  
+    lines.forEach((rawLine) => {
+        const line = rawLine.trim();
+        if (!line) {
+            return; // 빈 줄이면 무시
+        }
+    
+        // 1) **장소:**
+        const placeMatch = line.match(/^\*\*場所:\** (.*)/);
+        if (placeMatch) {
+            result["場所"] = placeMatch[1].trim();
+            currentSection = "場所"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
+            return;
+        }
+    
+        // 2) **주소**:
+        const addressMatch = line.match(/^\-\s*\*\*住所\**: (.*)/);
+        if (addressMatch) {
+            result["住所"] = addressMatch[1].trim();
+            currentSection = "住所";
+            return;
+        }
+    
+        // 3) **전화 번호**:
+        const phoneMatch = line.match(/^\-\s*\*\*電話番号\**: (.*)/);
+        if (phoneMatch) {
+            result["電話番号"] = phoneMatch[1].trim();
+            currentSection = "電話番号";
+            return;
+        }
+    
+        // 4) **영업 시간**: (여러 줄에 걸쳐 있을 수 있음)
+        const timeMatch = line.match(/^\-\s*\*\*営業時間\**: (.*)/);
+        if (timeMatch) {
+            // 첫 줄에도 내용이 있으면 배열에 넣는다
+            const firstContent = timeMatch[1].trim();
+            if (firstContent) {
+            result["営業時間"].push(firstContent);
+            }
+            currentSection = "営業時間";
+            return;
+        }
+    
+        // 5) **정보**: 
+        const infoMatch = line.match(/^\*\*詳細\**: ?(.*)/);
+        if (infoMatch) {
+            result["詳細"] = infoMatch[1].trim(); // 첫 줄
+            currentSection = "詳細";
+            return;
+        }
+    
+        // 6) **메뉴**:
+        const menuMatch = line.match(/^\*\*おすすめメニュー\**: ?(.*)/);
+        if (menuMatch) {
+            // 메뉴에 바로 내용이 있을 수도 있지만 보통은 없고, 
+            // 어쨌든 currentSection="메뉴"로 설정
+            currentSection = "おすすめメニュー";
+            return;
+        }
+    
+        // 7) **장점**:
+        const advantageMatch = line.match(/^\*\*利点\**: ?(.*)/);
+        if (advantageMatch) {
+            result["利点"] = advantageMatch[1].trim();
+            currentSection = "利点";
+            return;
         }
 
-        const mealMatch = trimmedLine.match(/^\- \*\*(朝|昼|夜)\*\*/);
-        if (mealMatch) {
-            currentMeal = mealMatch[1];
-            if (currentDay && !currentDay.meals[currentMeal]) {
-                currentDay.meals[currentMeal] = {
-                    "食場所": {
-                        "レストラン名": null,
-                        "レストラン住所": null,
-                        "営業時間": null,
-                        "レストランの特徴": null,
-                        "その他情報": null,
-                    },
-                    "観光名所": {
-                        "名所名": null,
-                        "名所住所": null,
-                        "営業時間": null,
-                        "名所の特徴": null,
-                        "その他情報": null,
-                    },
-                    "カフェ": {
-                        "カフェ名": null,
-                        "カフェ住所": null,
-                        "営業時間": null,
-                        "カフェ情報": null,
-                        "カフェの特徴": null,
-                    },
-                    "宿泊施設": {
-                        "宿泊施設名": null,
-                        "宿泊施設の特徴": null,
-                        "宿泊施設の位置": null,
-                        "宿泊施設情報": null,
-                    },
-                    "ショッピングモール": {
-                        "ショッピングモール名": null,
-                        "ショッピングモール住所": null,
-                        "ショッピングモール情報": null,
-                    },
-                };
-            }
-            currentSection = null;
-        } 
-
-        // Key-Value 처리
-        const keyValueMatch = trimmedLine.match(/- \*\*(.*?)\*\*: (.*)/);
-        if (keyValueMatch && currentDay && currentMeal) {
-            const [, key, value] = keyValueMatch;
-            const mealSection = currentDay.meals[currentMeal];
-
-            if (key.includes("食場所")) {
-                mealSection["食場所"]["レストラン名"] = value;
-                currentSection = "食場所";
-            } else if (key === "観光名所") {
-                mealSection["観光名所"]["名所名"] = value;
-                currentSection = "観光名所";
-            } else if (key === "カフェ") {
-                mealSection["カフェ"]["カフェ名"] = value;
-                currentSection = "カフェ";
-            } else if (key === "宿泊施設") {
-                mealSection["宿泊施設"]["宿泊施設名"] = value;
-                currentSection = "宿泊施設";
-            } else if (key === "ショッピングモール") {
-                mealSection["ショッピングモール"]["ショッピングモール名"] = value;
-                currentSection = "ショッピングモール";
-            } 
-
-            if (currentSection) {
-                if (currentSection === "食場所") {
-                    if (key === "住所") mealSection["食場所"]["レストラン住所"] = value;
-                    if (key === "営業時間") mealSection["食場所"]["営業時間"] = value;
-                    if (key === "レストランの特徴") mealSection["食場所"]["レストランの特徴"] = value;
-                    if (key === "その他情報") mealSection["食場所"]["その他情報"] = value;
-                } else if (currentSection === "観光名所") {
-                    if (key === "住所") mealSection["観光名所"]["名所住所"] = value;
-                    if (key === "営業時間") mealSection["観光名所"]["営業時間"] = value;
-                    if (key === "名所の特徴") mealSection["観光名所"]["名所の特徴"] = value;
-                    if (key === "その他情報") mealSection["観光名所"]["その他情報"] = value;
-                }  else if (currentSection === "カフェ") {
-                    if (key === "住所") mealSection["カフェ"]["カフェ住所"] = value;
-                    if (key === "営業時間") mealSection["カフェ"]["営業時間"] = value;
-                    if (key === "カフェ情報") mealSection["カフェ"]["カフェ情報"] = value;
-                    if (key === "カフェの特徴") mealSection["カフェ"]["カフェの特徴"] = value;
-                }  else if (currentSection === "宿泊施設") {
-                    if (key === "宿泊施設の特徴") mealSection["宿泊施設"]["宿泊施設の特徴"] = value;
-                    if (key === "宿泊施設の位置") mealSection["宿泊施設"]["宿泊施設の位置"] = value;
-                    if (key === "宿泊施設情報") mealSection["宿泊施設"]["宿泊施設情報"] = value;
-                }  else if (currentSection === "ショッピングモール") {
-                    if (key === "ショッピングモール住所") mealSection["ショッピングモール"]["ショッピングモール住所"] = value;
-                    if (key === "ショッピングモール情報") mealSection["ショッピングモール"]["ショッピングモール情報"] = value;
-                }
-            } 
-        } 
-    });
+        // 8) **SNS**:
+        const snsMatch = line.match(/^\*\*SNS\**: ?(.*)/);
+        if (snsMatch) {
+            result["SNS"] = snsMatch[1].trim();
+            currentSection = "SNS";
+            return;
+        }
     
+        // 9) **기타**:
+        const etcMatch = line.match(/^\*\*その他情報\**: ?(.*)/);
+        if (etcMatch) {
+            result["その他情報"] = etcMatch[1].trim();
+            currentSection = "その他情報";
+            return;
+        }
+    
+        // === 여기까지 특정 라인에서 섹션을 찾는 로직 ===
+        // === 여기서부터는 현재 섹션에 따라 내용 처리 ===
+    
+        // 현재 섹션이 "영업 시간"인 경우, 줄을 계속 배열에 추가
+        if (currentSection === "営業時間") {
+            // 예: "- 월~금: 13:00 - 24:00" 같은 걸 파싱
+            // 맨 앞에 '- ' 이 있을 수 있으니 제거
+            const lineContent = line.replace(/^-+/, "").trim();
+            result["営業時間"].push(lineContent);
+            
+            return;
+        }
+    
+        // 현재 섹션이 "정보"인 경우, 여러 줄이 있을 수 있으므로 이어붙이기
+        if (currentSection === "詳細") {
+            // 이미 한 줄 들어갔다면 줄바꿈 붙여서 누적
+            if (result["詳細"]) {
+                result["詳細"] += "\n" + line;
+            } else {
+                result["詳細"] = line;
+            }
+            return;
+        }
+    
+        // 현재 섹션이 "메뉴"라면, 예: "- 활고등어회 소: 45,000원"
+        if (currentSection === "おすすめメニュー") {
+            // '-'로 시작하는 패턴 추출
+            // 예: "- 활고등어회 소: 45,000원"
+            // => name: "활고등어회 소", price: "45,000원"
+            const menuItemMatch = line.match(/^\-\s*(.*?):\s*(.*)/);
+            if (menuItemMatch) {
+                const itemName = menuItemMatch[1].trim();
+                const itemPrice = menuItemMatch[2].trim();
+                result["おすすめメニュー"].push({
+                    "メニュー名": itemName,
+                    "値段": itemPrice
+                });
+            } else {
+            // 만약 "- "없이 "점심 메뉴"만 이어지는 경우 처리 or 무시
+            // 여기서는 단순히 라인을 무시하거나, 
+            // 필요한 경우 이어붙일 수도 있음
+            }
+            return;
+        }
+    
+        // "장점" 섹션인 경우도 여러 줄 붙일 수 있음
+        if (currentSection === "利点") {
+            // 이미 한 줄 있으면 줄바꿈 하여 이어 붙이기
+            if (result["利点"]) {
+                result["利点"] += "\n" + line;
+            } else {
+                result["利点"] = line;
+            }
+            return;
+        }
+    
+        // "기타" 섹션인 경우도 여러 줄 붙일 수 있음
+        if (currentSection === "その他情報") {
+            if (result["その他情報"]) {
+                result["その他情報"] += "\n" + line;
+            } else {
+                result["その他情報"] = line;
+            }
+            return;
+        }
+    });
+  
     return result;
 }
 
-function parseItineraryToJson_CN3(text) {
-    text = text.replace(/([^\n])(\s*- \*\*第\d+天\*\*:)/g, "$1\n$2");
+function parsePlaceJson_CN(text) {
+    // 결과를 담을 객체
+    const result = {
+        "地点": "",
+        "地址": "",
+        "电话号码": "",
+        "营业时间": [],    // 여러 줄이 있을 수 있으니 배열로 구성
+        "详情": "",
+        "推荐菜单": [],         // 여러 메뉴가 있을 수 있으니 배열로 구성
+        "优点": "",
+        "社交媒体": "",
+        "其他信息": ""
+    };
+  
+    // 줄 단위로 분할
     const lines = text.split("\n");
-    const result = [];
-    let currentDay = null;
-    let currentMeal = null;
+  
+    // 현재 어떤 섹션을 파싱 중인지 추적
     let currentSection = null;
+  
+    lines.forEach((rawLine) => {
+        const line = rawLine.trim();
+        if (!line) {
+            return; // 빈 줄이면 무시
+        }
     
-    lines.forEach(line => {
-        const trimmedLine = line.trim();
-        // console.log("t:", trimmedLine);
-        if (!trimmedLine) return; // 빈 줄 무시
-
-        // dayMatch 처리
-        const dayMatch = trimmedLine.match(/^\- \*\*第(\d+)天\*\*/);
-        if (dayMatch) {
-            console.log("dayMatch:", dayMatch[1]);
-            currentDay = {
-                day: parseInt(dayMatch[1]),
-                meals: {}
-            };
-            result.push(currentDay);
+        // 1) **장소:**
+        const placeMatch = line.match(/^\*\*地点:\** (.*)/);
+        if (placeMatch) {
+            result["地点"] = placeMatch[1].trim();
+            currentSection = "地点"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
+            return;
+        }
+    
+        // 2) **주소**:
+        const addressMatch = line.match(/^\-\s*\*\*地址\**: (.*)/);
+        if (addressMatch) {
+            result["地址"] = addressMatch[1].trim();
+            currentSection = "地址";
+            return;
+        }
+    
+        // 3) **전화 번호**:
+        const phoneMatch = line.match(/^\-\s*\*\*电话号码\**: (.*)/);
+        if (phoneMatch) {
+            result["电话号码"] = phoneMatch[1].trim();
+            currentSection = "电话号码";
+            return;
+        }
+    
+        // 4) **영업 시간**: (여러 줄에 걸쳐 있을 수 있음)
+        const timeMatch = line.match(/^\-\s*\*\*营业时间\**: (.*)/);
+        if (timeMatch) {
+            // 첫 줄에도 내용이 있으면 배열에 넣는다
+            const firstContent = timeMatch[1].trim();
+            if (firstContent) {
+            result["营业时间"].push(firstContent);
+            }
+            currentSection = "营业时间";
+            return;
+        }
+    
+        // 5) **정보**: 
+        const infoMatch = line.match(/^\*\*详情\**: ?(.*)/);
+        if (infoMatch) {
+            result["详情"] = infoMatch[1].trim(); // 첫 줄
+            currentSection = "详情";
+            return;
+        }
+    
+        // 6) **메뉴**:
+        const menuMatch = line.match(/^\*\*推荐菜单\**: ?(.*)/);
+        if (menuMatch) {
+            // 메뉴에 바로 내용이 있을 수도 있지만 보통은 없고, 
+            // 어쨌든 currentSection="메뉴"로 설정
+            currentSection = "推荐菜单";
+            return;
+        }
+    
+        // 7) **장점**:
+        const advantageMatch = line.match(/^\*\*优点\**: ?(.*)/);
+        if (advantageMatch) {
+            result["优点"] = advantageMatch[1].trim();
+            currentSection = "优点";
+            return;
         }
 
-        const mealMatch = trimmedLine.match(/^\- \*\*(早晨|中午|晚上)\*\*/);
-        if (mealMatch) {
-            console.log("mealMatch:", mealMatch[1]);
-            currentMeal = mealMatch[1];
-            if (currentDay && !currentDay.meals[currentMeal]) {
-                currentDay.meals[currentMeal] = {
-                    "餐地点": {
-                        "餐厅名称": null,
-                        "餐厅地址": null,
-                        "营业时间": null,
-                        "餐厅特点": null,
-                        "其他信息": null,
-                    },
-                    "景点": {
-                        "景点名称": null,
-                        "景点地址": null,
-                        "营业时间": null,
-                        "景点特点": null,
-                        "其他信息": null,
-                    },
-                    "咖啡馆": {
-                        "咖啡馆名称": null,
-                        "咖啡馆地址": null,
-                        "营业时间": null,
-                        "咖啡馆信息": null,
-                        "咖啡馆特点": null,
-                    },
-                    "住宿": {
-                        "住宿名称": null,
-                        "住宿特点": null,
-                        "住宿位置": null,
-                        "住宿信息": null,
-                    },
-                    "购物中心": {
-                        "购物中心名称": null,
-                        "购物中心地址": null,
-                        "购物中心信息": null,
-                    },
-                };
-            }
-            currentSection = null;
-        } 
-
-        // Key-Value 처리
-        const keyValueMatch = trimmedLine.match(/- \*\*(.*?)\*\*: (.*)/);
-        if (keyValueMatch && currentDay && currentMeal) {
-            const [, key, value] = keyValueMatch;
-            const mealSection = currentDay.meals[currentMeal];
-            
-            if (key.includes("餐地点")) {
-                mealSection["餐地点"]["餐厅名称"] = value;
-                currentSection = "餐地点";
-            } else if (key === "景点") {
-                mealSection["景点"]["景点名称"] = value;
-                currentSection = "景点";
-            } else if (key === "咖啡馆") {
-                mealSection["咖啡馆"]["咖啡馆名称"] = value;
-                currentSection = "咖啡馆";
-            } else if (key === "住宿") {
-                mealSection["住宿"]["住宿名称"] = value;
-                currentSection = "住宿";
-            } else if (key === "购物中心") {
-                mealSection["购物中心"]["购物中心名称"] = value;
-                currentSection = "购物中心";
-            } 
-
-            if (currentSection) {
-                if (currentSection === "餐地点") {
-                    if (key === "地址") mealSection["餐地点"]["餐厅地址"] = value;
-                    if (key === "营业时间") mealSection["餐地点"]["营业时间"] = value;
-                    if (key === "餐厅特点") mealSection["餐地点"]["餐厅特点"] = value;
-                    if (key === "其他信息") mealSection["餐地点"]["其他信息"] = value;
-                } else if (currentSection === "景点") {
-                    if (key === "地址") mealSection["景点"]["景点地址"] = value;
-                    if (key === "营业时间") mealSection["景点"]["营业时间"] = value;
-                    if (key === "景点特点") mealSection["景点"]["景点特点"] = value;
-                    if (key === "其他信息") mealSection["景点"]["其他信息"] = value;
-                }  else if (currentSection === "咖啡馆") {
-                    if (key === "地址") mealSection["咖啡馆"]["咖啡馆地址"] = value;
-                    if (key === "营业时间") mealSection["咖啡馆"]["营业时间"] = value;
-                    if (key === "咖啡馆信息") mealSection["咖啡馆"]["咖啡馆信息"] = value;
-                    if (key === "咖啡馆特点") mealSection["咖啡馆"]["咖啡馆特点"] = value;
-                }  else if (currentSection === "住宿") {
-                    if (key === "住宿特点") mealSection["住宿"]["住宿特点"] = value;
-                    if (key === "住宿位置") mealSection["住宿"]["住宿位置"] = value;
-                    if (key === "住宿信息") mealSection["住宿"]["住宿信息"] = value;
-                }  else if (currentSection === "购物中心") {
-                    if (key === "购物中心地址") mealSection["购物中心"]["购物中心地址"] = value;
-                    if (key === "购物中心信息") mealSection["购物中心"]["购物中心信息"] = value;
-                }
-            } 
-        } 
-    });
+        // 8) **SNS**:
+        const snsMatch = line.match(/^\*\*社交媒体\**: ?(.*)/);
+        if (snsMatch) {
+            result["社交媒体"] = snsMatch[1].trim();
+            currentSection = "社交媒体";
+            return;
+        }
     
+        // 9) **기타**:
+        const etcMatch = line.match(/^\*\*其他信息\**: ?(.*)/);
+        if (etcMatch) {
+            result["其他信息"] = etcMatch[1].trim();
+            currentSection = "其他信息";
+            return;
+        }
+    
+        // === 여기까지 특정 라인에서 섹션을 찾는 로직 ===
+        // === 여기서부터는 현재 섹션에 따라 내용 처리 ===
+    
+        // 현재 섹션이 "영업 시간"인 경우, 줄을 계속 배열에 추가
+        if (currentSection === "营业时间") {
+            // 예: "- 월~금: 13:00 - 24:00" 같은 걸 파싱
+            // 맨 앞에 '- ' 이 있을 수 있으니 제거
+            const lineContent = line.replace(/^-+/, "").trim();
+            result["营业时间"].push(lineContent);
+            
+            return;
+        }
+    
+        // 현재 섹션이 "정보"인 경우, 여러 줄이 있을 수 있으므로 이어붙이기
+        if (currentSection === "详情") {
+            // 이미 한 줄 들어갔다면 줄바꿈 붙여서 누적
+            if (result["详情"]) {
+                result["详情"] += "\n" + line;
+            } else {
+                result["详情"] = line;
+            }
+            return;
+        }
+    
+        // 현재 섹션이 "메뉴"라면, 예: "- 활고등어회 소: 45,000원"
+        if (currentSection === "推荐菜单") {
+            // '-'로 시작하는 패턴 추출
+            // 예: "- 활고등어회 소: 45,000원"
+            // => name: "활고등어회 소", price: "45,000원"
+            const menuItemMatch = line.match(/^\-\s*(.*?):\s*(.*)/);
+            if (menuItemMatch) {
+                const itemName = menuItemMatch[1].trim();
+                const itemPrice = menuItemMatch[2].trim();
+                result["推荐菜单"].push({
+                    "菜单名": itemName,
+                    "价格": itemPrice
+                });
+            } else {
+            // 만약 "- "없이 "점심 메뉴"만 이어지는 경우 처리 or 무시
+            // 여기서는 단순히 라인을 무시하거나, 
+            // 필요한 경우 이어붙일 수도 있음
+            }
+            return;
+        }
+    
+        // "장점" 섹션인 경우도 여러 줄 붙일 수 있음
+        if (currentSection === "优点") {
+            // 이미 한 줄 있으면 줄바꿈 하여 이어 붙이기
+            if (result["优点"]) {
+                result["优点"] += "\n" + line;
+            } else {
+                result["优点"] = line;
+            }
+            return;
+        }
+    
+        // "기타" 섹션인 경우도 여러 줄 붙일 수 있음
+        if (currentSection === "其他信息") {
+            if (result["其他信息"]) {
+                result["其他信息"] += "\n" + line;
+            } else {
+                result["其他信息"] = line;
+            }
+            return;
+        }
+    });
+  
     return result;
 }
 
-function parseItineraryToJson_US4(text) {
-    text = text.replace(/([^\n])(\s*- \*\*Day \d+\*\*:)/g, "$1\n$2");
+function parsePlaceJson_US(text) {
+    // 결과를 담을 객체
+    const result = {
+        "Place": "",
+        "Address": "",
+        "Phone Number": "",
+        "Opening Hours": [],    // 여러 줄이 있을 수 있으니 배열로 구성
+        "Details": "",
+        "Recommended Menu": [],         // 여러 메뉴가 있을 수 있으니 배열로 구성
+        "Advantages": "",
+        "SNS": "",
+        "Additional Information": ""
+    };
+  
+    // 줄 단위로 분할
     const lines = text.split("\n");
-    const result = [];
-    let currentDay = null;
-    let currentMeal = null;
+  
+    // 현재 어떤 섹션을 파싱 중인지 추적
     let currentSection = null;
-
-    lines.forEach(line => {
-        const trimmedLine = line.trim();
-        // console.log("t:", trimmedLine);
-        if (!trimmedLine) return; // 빈 줄 무시
-
-        // dayMatch 처리
-        const dayMatch = trimmedLine.match(/^\- \*\*Day (\d+)\*\*/);
-        if (dayMatch) {
-            currentDay = {
-                day: parseInt(dayMatch[1]),
-                meals: {}
-            };
-            result.push(currentDay);
+  
+    lines.forEach((rawLine) => {
+        const line = rawLine.trim();
+        if (!line) {
+            return; // 빈 줄이면 무시
+        }
+    
+        // 1) **장소:**
+        const placeMatch = line.match(/^\*\*Place:\** (.*)/);
+        if (placeMatch) {
+            result["Place"] = placeMatch[1].trim();
+            currentSection = "Place"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
+            return;
+        }
+    
+        // 2) **주소**:
+        const addressMatch = line.match(/^\-\s*\*\*Address\**: (.*)/);
+        if (addressMatch) {
+            result["Address"] = addressMatch[1].trim();
+            currentSection = "Address";
+            return;
+        }
+    
+        // 3) **전화 번호**:
+        const phoneMatch = line.match(/^\-\s*\*\*Phone Number\**: (.*)/);
+        if (phoneMatch) {
+            result["Phone Number"] = phoneMatch[1].trim();
+            currentSection = "Phone Number";
+            return;
+        }
+    
+        // 4) **영업 시간**: (여러 줄에 걸쳐 있을 수 있음)
+        const timeMatch = line.match(/^\-\s*\*\*Opening Hours\**: (.*)/);
+        if (timeMatch) {
+            // 첫 줄에도 내용이 있으면 배열에 넣는다
+            const firstContent = timeMatch[1].trim();
+            if (firstContent) {
+            result["Opening Hours"].push(firstContent);
+            }
+            currentSection = "Opening Hours";
+            return;
+        }
+    
+        // 5) **정보**: 
+        const infoMatch = line.match(/^\*\*Details\**: ?(.*)/);
+        if (infoMatch) {
+            result["Details"] = infoMatch[1].trim(); // 첫 줄
+            currentSection = "Details";
+            return;
+        }
+    
+        // 6) **메뉴**:
+        const menuMatch = line.match(/^\*\*Recommended Menu\**: ?(.*)/);
+        if (menuMatch) {
+            // 메뉴에 바로 내용이 있을 수도 있지만 보통은 없고, 
+            // 어쨌든 currentSection="메뉴"로 설정
+            currentSection = "Recommended Menu";
+            return;
+        }
+    
+        // 7) **장점**:
+        const advantageMatch = line.match(/^\*\*Advantages\**: ?(.*)/);
+        if (advantageMatch) {
+            result["Advantages"] = advantageMatch[1].trim();
+            currentSection = "Advantages";
+            return;
         }
 
-        const mealMatch = trimmedLine.match(/^\- \*\*(Morning|Afternoon|Evening)\*\*/);
-        if (mealMatch) {
-            currentMeal = mealMatch[1];
-            if (currentDay && !currentDay.meals[currentMeal]) {
-                currentDay.meals[currentMeal] = {
-                    "Location": {
-                        "Restaurant Name": null,
-                        "Restaurant Address": null,
-                        "Opening Hours": null,
-                        "Restaurant Features": null,
-                        "Additional Information": null,
-                    },
-                    "Attraction": {
-                        "Attraction Name": null,
-                        "Attraction Address": null,
-                        "Opening Hours": null,
-                        "Attraction Features": null,
-                        "Additional Information": null,
-                    },
-                    "Cafe": {
-                        "Cafe Name": null,
-                        "Cafe Address": null,
-                        "Opening Hours": null,
-                        "Cafe Information": null,
-                        "Cafe Features": null,
-                    },
-                    "Accommodation": {
-                        "Accommodation Name": null,
-                        "Accommodation Features": null,
-                        "Accommodation Location": null,
-                        "Accommodation Information": null,
-                    },
-                    "Shopping Mall": {
-                        "Shopping Mall Name": null,
-                        "Shopping Mall Address": null,
-                        "Shopping Mall Information": null,
-                    },
-                };
-            }
-            currentSection = null;
-        } 
-
-        // Key-Value 처리
-        const keyValueMatch = trimmedLine.match(/- \*\*(.*?)\*\*: (.*)/);
-        if (keyValueMatch && currentDay && currentMeal) {
-            const [, key, value] = keyValueMatch;
-            const mealSection = currentDay.meals[currentMeal];
-            
-            if (key.includes("Location")) {
-                mealSection["Location"]["Restaurant Name"] = value;
-                currentSection = "Location";
-            } else if (key === "Attraction") {
-                mealSection["Attraction"]["Attraction Name"] = value;
-                currentSection = "Attraction";
-            } else if (key === "Cafe") {
-                mealSection["Cafe"]["Cafe Name"] = value;
-                currentSection = "Cafe";
-            } else if (key === "Accommodation") {
-                mealSection["Accommodation"]["Accommodation Name"] = value;
-                currentSection = "Accommodation";
-            } else if (key === "Shopping Mall") {
-                mealSection["Shopping Mall"]["Shopping Mall Name"] = value;
-                currentSection = "Shopping Mall";
-            } 
-
-            if (currentSection) {
-                if (currentSection === "Location") {
-                    if (key === "Address") mealSection["Location"]["Restaurant Address"] = value;
-                    if (key === "Opening Hours") mealSection["Location"]["Opening Hours"] = value;
-                    if (key === "Restaurant Features") mealSection["Location"]["Restaurant Features"] = value;
-                    if (key === "Additional Information") mealSection["Location"]["Additional Information"] = value;
-                } else if (currentSection === "Attraction") {
-                    if (key === "Address") mealSection["Attraction"]["Attraction Address"] = value;
-                    if (key === "Opening Hours") mealSection["Attraction"]["Opening Hours"] = value;
-                    if (key === "Attraction Features") mealSection["Attraction"]["Attraction Features"] = value;
-                    if (key === "Additional Information") mealSection["Attraction"]["Additional Information"] = value;
-                }  else if (currentSection === "Cafe") {
-                    if (key === "Address") mealSection["Cafe"]["Cafe Address"] = value;
-                    if (key === "Opening Hours") mealSection["Cafe"]["Opening Hours"] = value;
-                    if (key === "Cafe Information") mealSection["Cafe"]["Cafe Information"] = value;
-                    if (key === "Cafe Features") mealSection["Cafe"]["Cafe Features"] = value;
-                }  else if (currentSection === "Accommodation") {
-                    if (key === "Accommodation Features") mealSection["Accommodation"]["Accommodation Features"] = value;
-                    if (key === "Accommodation Location") mealSection["Accommodation"]["Accommodation Location"] = value;
-                    if (key === "Accommodation Information") mealSection["Accommodation"]["Accommodation Information"] = value;
-                }  else if (currentSection === "Shopping Mall") {
-                    if (key === "Shopping Mall Address") mealSection["Shopping Mall"]["Shopping Mall Address"] = value;
-                    if (key === "Shopping Mall Information") mealSection["Shopping Mall"]["Shopping Mall Information"] = value;
-                }
-            } 
-        } 
-    });
+        // 8) **SNS**:
+        const snsMatch = line.match(/^\*\*SNS\**: ?(.*)/);
+        if (snsMatch) {
+            result["SNS"] = snsMatch[1].trim();
+            currentSection = "SNS";
+            return;
+        }
     
+        // 9) **기타**:
+        const etcMatch = line.match(/^\*\*Additional Information\**: ?(.*)/);
+        if (etcMatch) {
+            result["Additional Information"] = etcMatch[1].trim();
+            currentSection = "Additional Information";
+            return;
+        }
+    
+        // === 여기까지 특정 라인에서 섹션을 찾는 로직 ===
+        // === 여기서부터는 현재 섹션에 따라 내용 처리 ===
+    
+        // 현재 섹션이 "영업 시간"인 경우, 줄을 계속 배열에 추가
+        if (currentSection === "Opening Hours") {
+            // 예: "- 월~금: 13:00 - 24:00" 같은 걸 파싱
+            // 맨 앞에 '- ' 이 있을 수 있으니 제거
+            const lineContent = line.replace(/^-+/, "").trim();
+            result["Opening Hours"].push(lineContent);
+            
+            return;
+        }
+    
+        // 현재 섹션이 "정보"인 경우, 여러 줄이 있을 수 있으므로 이어붙이기
+        if (currentSection === "Details") {
+            // 이미 한 줄 들어갔다면 줄바꿈 붙여서 누적
+            if (result["Details"]) {
+                result["Details"] += "\n" + line;
+            } else {
+                result["Details"] = line;
+            }
+            return;
+        }
+    
+        // 현재 섹션이 "메뉴"라면, 예: "- 활고등어회 소: 45,000원"
+        if (currentSection === "Recommended Menu") {
+            // '-'로 시작하는 패턴 추출
+            // 예: "- 활고등어회 소: 45,000원"
+            // => name: "활고등어회 소", price: "45,000원"
+            const menuItemMatch = line.match(/^\-\s*(.*?):\s*(.*)/);
+            if (menuItemMatch) {
+                const itemName = menuItemMatch[1].trim();
+                const itemPrice = menuItemMatch[2].trim();
+                result["Recommended Menu"].push({
+                    "Menu Name": itemName,
+                    "Price": itemPrice
+                });
+            } else {
+            // 만약 "- "없이 "점심 메뉴"만 이어지는 경우 처리 or 무시
+            // 여기서는 단순히 라인을 무시하거나, 
+            // 필요한 경우 이어붙일 수도 있음
+            }
+            return;
+        }
+    
+        // "장점" 섹션인 경우도 여러 줄 붙일 수 있음
+        if (currentSection === "Advantages") {
+            // 이미 한 줄 있으면 줄바꿈 하여 이어 붙이기
+            if (result["Advantages"]) {
+                result["Advantages"] += "\n" + line;
+            } else {
+                result["Advantages"] = line;
+            }
+            return;
+        }
+    
+        // "기타" 섹션인 경우도 여러 줄 붙일 수 있음
+        if (currentSection === "Additional Information") {
+            if (result["Additional Information"]) {
+                result["Additional Information"] += "\n" + line;
+            } else {
+                result["Additional Information"] = line;
+            }
+            return;
+        }
+    });
+  
     return result;
 }
 
@@ -2930,248 +3204,6 @@ function addFolderEventHandler(plusElementId, sectionSelector, placeholderText, 
                                     bookmarkScheduleItemDiv.style.display = "none";
                                     bookmarkScheduleItemDiv.innerHTML = ""; // 기존 자식 요소 제거
                                 }
-                                
-                                // const bookmarkId = this.id; // 클릭된 div의 ID 가져오기
-                                // if (!bookmarkId || bookmarkId === "plus-place" || bookmarkId === "plus-schedule") {
-                                //     return; // "새 폴더" 버튼 클릭 시 무시
-                                // }
-
-                                // try {
-                                //     // 서버에 bookmark_id로 데이터 요청
-                                //     const response = await fetch(`/app/partials/favorites/get_bookmark_items/${bookmarkId}/`, {
-                                //         method: "GET",
-                                //         headers: {
-                                //             "Content-Type": "application/json",
-                                //         },
-                                //     });
-
-                                //     if (!response.ok) {
-                                //         throw new Error(`HTTP error! status: ${response.status}`);
-                                //     }
-
-                                //     const data = await response.json();
-                                //     if (data.type === "place") {
-                                //         // 장소 즐겨찾기
-                                //         if (bookmarkPlaceItemDiv) {
-                                //             bookmarkPlaceItemDiv.style.display = "block";
-
-                                //             data.rows.forEach(row => {
-                                //                 const itemDiv = document.createElement("div");
-                                //                 itemDiv.className = "place-item";
-                                //                 itemDiv.id = row.id;
-                                //                 itemDiv.innerHTML = `
-                                //                     <p style="display: flex; align-items: center;"><strong>이름:</strong> ${row.name}</p>
-                                //                 `;
-                                //                 itemDiv.addEventListener("click", async () => {
-                                //                     //DB에서 해당 데이터 불러오기
-                                //                     document.querySelectorAll(".place-item").forEach(folder => {                                                
-                                //                         folder.style.backgroundColor = ""; // 원래 색으로 복원 (CSS 초기값)
-                                //                     });
-                                //                     document.getElementById("getBookmarkListBtn").textContent = "★";
-                                //                     itemDiv.style.backgroundColor = "#999";
-
-                                //                     const bookmarkId = this.id; // folder-item의 ID 값
-                                //                     if (!bookmarkId || bookmarkId === "plus-place" || bookmarkId === "plus-schedule") {
-                                //                         return; // "새 폴더" 버튼은 클릭 이벤트 무시
-                                //                     }
-
-                                //                     try {
-                                //                         // 서버에 bookmark_id로 데이터 요청
-                                //                         const response = await fetch(`/app/partials/favorites/bookmark-place-detail/${row.id}/`, {
-                                //                             method: "GET",
-                                //                             headers: {
-                                //                                 "Content-Type": "application/json",
-                                //                             },
-                                //                         });
-
-                                //                         if (!response.ok) {
-                                //                             throw new Error(`HTTP error! status: ${response.status}`);
-                                //                         }
-                                                        
-                                //                         // UI 업데이트: map-panel-content 또는 다른 요소에 데이터 표시
-                                //                         const data = await response.json(); // JSON 응답 파싱
-                                //                         const mapPanelContent = document.querySelector(".map-panel-content");
-                                //                         if (!mapPanelContent) {
-                                //                             console.error("map-panel-content element not found");
-                                //                             return;
-                                //                         }
-
-                                //                         // 기존 내용 제거
-                                //                         mapPanelContent.innerHTML = "";
-
-                                //                         // 장소 정보 표시
-                                //                         if (data) {
-                                //                             const panelTitle = document.getElementById("panel-title");
-                                //                             panelTitle.innerHTML = `${row.name}`;
-                                //                             const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
-                                //                             getBookmarkListBtn.classList.remove("schedule");
-                                //                             getBookmarkListBtn.classList.add("place");
-                                //                             getBookmarkListBtn.setAttribute("bookmark_id", row.bookmark);
-                                //                             const placeSection = document.createElement("div");
-                                //                             placeSection.className = "place-section";
-                                //                             placeSection.innerHTML = `
-                                //                                 <h3>장소 정보</h3>
-                                //                                 <p><strong>이름:</strong> ${data.name}</p>
-                                //                                 <p><strong>주소:</strong> ${data.address}</p>
-                                //                                 <p><strong>설명:</strong> ${data.description || "설명이 없습니다."}</p>
-                                //                             `;
-                                //                             mapPanelContent.appendChild(placeSection);
-                                //                         } else {
-                                //                             const noDataMessage = document.createElement("p");
-                                //                             noDataMessage.textContent = "해당 데이터가 없습니다.";
-                                //                             mapPanelContent.appendChild(noDataMessage);
-                                //                         }
-                                //                     } catch (error) {
-                                //                         console.error("Error fetching bookmark place data:", error);
-                                //                     }
-                                //                 });
-
-                                //                 // 삭제 버튼 추가
-                                //                 const deleteButton = document.createElement('img');
-                                //                 deleteButton.src = document.body.getAttribute('data-theme') === 'light' 
-                                //                     ? '/static/images/delete_light.png' 
-                                //                     : '/static/images/delete_dark.png';
-                                //                 deleteButton.style.cursor = 'pointer';
-                                //                 deleteButton.style.marginLeft = 'auto';
-                                //                 deleteButton.style.marginRight = '10px';
-                                //                 deleteButton.style.opacity = '0.7';
-                                //                 deleteButton.width = 25;
-                                //                 deleteButton.height = 25;
-
-                                //                 // 삭제 버튼 이벤트 추가
-                                //                 deleteButton.addEventListener('click', (event) => {
-                                //                     event.stopPropagation();
-                                //                     // UI에서 제거
-                                //                     bookmarkPlaceItemDiv.removeChild(itemDiv);
-
-                                //                     //DB에서도 해당 데이터 제거
-
-                                //                 });
-
-                                //                 deleteButton.addEventListener('mouseover', () => {
-                                //                     deleteButton.style.opacity = '1.0';
-                                //                 });
-
-                                //                 deleteButton.addEventListener('mouseleave', () => {
-                                //                     deleteButton.style.opacity = '0.7';
-                                //                 });
-
-                                //                 itemDiv.appendChild(deleteButton);
-                                //                 bookmarkPlaceItemDiv.appendChild(itemDiv);
-                                //             });
-                                //         }
-                                //     } 
-                                //     else if (data.type === "schedule") {
-                                //         // 일정 즐겨찾기
-                                //         if (bookmarkScheduleItemDiv) {
-                                //             bookmarkScheduleItemDiv.style.display = "block";
-
-                                //             data.rows.forEach(row => {
-                                //                 const itemDiv = document.createElement("div");
-                                //                 itemDiv.className = "schedule-item";
-                                //                 itemDiv.id = row.id;
-                                //                 itemDiv.innerHTML = `
-                                //                     <p style="display: flex; align-items: center;"><strong>이름:</strong> ${row.name}</p>
-                                //                 `;
-                                //                 itemDiv.addEventListener("click", async () => {
-                                //                     document.querySelectorAll(".schedule-item").forEach(folder => {                                                
-                                //                         folder.style.backgroundColor = ""; // 원래 색으로 복원 (CSS 초기값)
-                                //                     });
-
-                                //                     document.getElementById("getBookmarkListBtn").textContent = "★";
-                                //                     itemDiv.style.backgroundColor = "#999";
-
-                                //                     const bookmarkId = this.id; // folder-item의 ID 값
-                                //                     if (!bookmarkId || bookmarkId === "plus-place" || bookmarkId === "plus-schedule") {
-                                //                         return; // "새 폴더" 버튼은 클릭 이벤트 무시
-                                //                     }
-
-                                //                     try {
-                                //                         // 서버에 bookmark_id로 데이터 요청
-                                //                         const response = await fetch(`/app/partials/favorites/bookmark-schedule-detail/${row.id}/`, {
-                                //                             method: "GET",
-                                //                             headers: {
-                                //                                 "Content-Type": "application/json",
-                                //                             },
-                                //                         });
-
-                                //                         if (!response.ok) {
-                                //                             throw new Error(`HTTP error! status: ${response.status}`);
-                                //                         }
-
-                                //                         // UI 업데이트: map-panel-content 또는 다른 요소에 데이터 표시
-                                //                         const data = await response.json(); // JSON 응답 파싱
-                                //                         const mapPanelContent = document.querySelector(".map-panel-content");
-                                //                         if (!mapPanelContent) {
-                                //                             console.error("map-panel-content element not found");
-                                //                             return;
-                                //                         }
-
-                                //                         // 기존 내용 제거
-                                //                         mapPanelContent.innerHTML = "";
-
-                                //                         // 일정 정보 표시
-                                //                         if (data) {;
-                                //                             const panelTitle = document.getElementById("panel-title");
-                                //                             panelTitle.innerHTML = `${row.name}`;
-                                //                             const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
-                                //                             getBookmarkListBtn.classList.remove("place");
-                                //                             getBookmarkListBtn.classList.add("schedule");
-                                //                             getBookmarkListBtn.setAttribute("bookmark_id", row.bookmark);
-                                //                             const jsonData = JSON.parse(data.json_data);
-                                //                             generateDayButtons(jsonData);
-                                //                             generateDynamicPlanContent(jsonData);
-                                //                         } else {
-                                //                             const noDataMessage = document.createElement("p");
-                                //                             noDataMessage.textContent = "해당 데이터가 없습니다.";
-                                //                             mapPanelContent.appendChild(noDataMessage);
-                                //                         }
-                                //                     } catch (error) {
-                                //                         console.error("Error fetching bookmark place data:", error);
-                                //                     }
-                                //                 });
-
-                                //                 // 삭제 버튼 추가
-                                //                 const deleteButton = document.createElement('img');
-                                //                 deleteButton.src = document.body.getAttribute('data-theme') === 'light' 
-                                //                     ? '/static/images/delete_light.png' 
-                                //                     : '/static/images/delete_dark.png';
-                                //                 deleteButton.style.cursor = 'pointer';
-                                //                 deleteButton.style.marginLeft = 'auto';
-                                //                 deleteButton.style.marginRight = '10px';
-                                //                 deleteButton.style.opacity = '0.7';
-                                //                 deleteButton.width = 25;
-                                //                 deleteButton.height = 25;
-
-                                //                 // 삭제 버튼 이벤트 추가
-                                //                 deleteButton.addEventListener('click', (event) => {
-                                //                     event.stopPropagation();
-                                //                     // UI에서 제거  
-                                //                     itemDiv.remove();
-
-                                //                     //DB에서도 해당 데이터 제거
-
-                                //                 });
-
-                                //                 deleteButton.addEventListener('mouseover', () => {
-                                //                     deleteButton.style.opacity = '1.0';
-                                //                 });
-
-                                //                 deleteButton.addEventListener('mouseleave', () => {
-                                //                     deleteButton.style.opacity = '0.7';
-                                //                 });
-
-                                //                 itemDiv.appendChild(deleteButton);
-                                //                 bookmarkScheduleItemDiv.appendChild(itemDiv);
-                                //             });
-                                //         }
-                                //     }
-                                //     else {
-                                //         console.log("No data found");
-                                //     }
-                                // } catch (error) {
-                                //     console.error("Error fetching bookmark data:", error);
-                                // }
                             })
                             attachDeleteEvent(newItem); // 삭제 이벤트 연결
                             updateFolderListUI(folderList, plusElement);
@@ -3217,7 +3249,149 @@ async function getCoordinates(addresses) {
     return markerData;
 }
 
+async function generatePlaceContent(jsonData) {
+    removeContent();
+    const mapPanelContent = document.querySelector('.map-panel-content');
+    //터미널에 추가된 내용이 스케줄이라는 것을 체크하기 위함
+    const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
+    const panelTitle = document.getElementById("panel-title");
+    let placeName = "";
+    let placeAddress = "";
+    let placeDetails = "";
+
+    getBookmarkListBtn.classList.remove("schedule");
+    getBookmarkListBtn.classList.add("place");
+    if (!mapPanelContent) {
+        console.error('map-panel-content 요소를 찾을 수 없습니다.');
+        return;
+    }
+
+    if (panelTitle) {
+        if (countryId == "KR" && jsonData["장소"]) {
+            panelTitle.textContent = jsonData["장소"];
+        } else if (countryId == "JP" && jsonData["場所"]) {
+            panelTitle.textContent = jsonData["場所"];
+        } else if (countryId == "CN" && jsonData["地点"]) {
+            panelTitle.textContent = jsonData["地点"];
+        } else if (countryId == "US" && jsonData["Place"]) {
+            panelTitle.textContent = jsonData["Place"];
+        }
+    }
+
+    function createPlaceSection(jsonData) {
+        // <div class="place-section">
+        const section = document.createElement("div");
+        section.className = "place-section";
+
+        // <h3>장소 정보</h3>
+        const heading = document.createElement("h3");
+        if (countryId == "KR" ) {
+            heading.textContent = "장소 정보";
+        } else if (countryId == "JP") {
+            heading.textContent = "場所情報";
+        } else if (countryId == "CN") {
+            heading.textContent = "地点信息";    
+        } else if (countryId == "US") {
+            heading.textContent = "Place Info";
+        }
+        section.appendChild(heading);
+
+        // <p><strong>이름:</strong> 용산전자상가</p>
+        const nameParagraph = document.createElement("p");
+        const nameStrong = document.createElement("strong");
+        
+        if (countryId == "KR") {
+            nameStrong.textContent = "이름: "; 
+            nameParagraph.appendChild(nameStrong);   
+            nameParagraph.innerHTML += jsonData["장소"];
+            placeName = jsonData["장소"];
+        } else if (countryId == "JP") {
+            nameStrong.textContent = "名: ";
+            nameParagraph.appendChild(nameStrong);
+            nameParagraph.innerHTML += jsonData["場所"];
+            placeName = jsonData["場所"];
+        } else if (countryId == "CN") {
+            nameStrong.textContent = "名字: ";
+            nameParagraph.appendChild(nameStrong);
+            nameParagraph.innerHTML += jsonData["地点"];
+            placeName = jsonData["地点"];
+        } else if (countryId == "US") {
+            nameStrong.textContent = "Name: ";
+            nameParagraph.appendChild(nameStrong);
+            nameParagraph.innerHTML += jsonData["Place"];
+            placeName = jsonData["Place"];
+        }
+        section.appendChild(nameParagraph);
+
+        // <p><strong>주소:</strong> 서울특별시 용산구 청파로 74</p>
+        const addressParagraph = document.createElement("p");
+        const addressStrong = document.createElement("strong");
+        if (countryId == "KR") {
+            addressStrong.textContent = "주소: ";
+            addressParagraph.appendChild(addressStrong);
+            addressParagraph.innerHTML += jsonData["주소"];
+            placeAddress = jsonData["주소"];
+        } else if (countryId == "JP") {
+            addressStrong.textContent = "住所: "; 
+            addressParagraph.appendChild(addressStrong);           
+            addressParagraph.innerHTML += jsonData["住所"];
+            placeAddress = jsonData["住所"];
+        } else if (countryId == "CN") {
+            addressStrong.textContent = "地址: ";
+            addressParagraph.appendChild(addressStrong);
+            addressParagraph.innerHTML += jsonData["地址"];
+            placeAddress = jsonData["地址"];
+        } else if (countryId == "US") {
+            addressStrong.textContent = "Address: ";
+            addressParagraph.appendChild(addressStrong);
+            addressParagraph.innerHTML += jsonData["Address"];
+            placeAddress = jsonData["Address"];
+        }        
+        section.appendChild(addressParagraph);
+
+        // <p><strong>설명:</strong> 설명이 없습니다.</p>
+        const descriptionParagraph = document.createElement("p");
+        const descriptionStrong = document.createElement("strong");
+        if (countryId == "KR") {
+            descriptionStrong.textContent = "정보: ";
+            descriptionParagraph.appendChild(descriptionStrong);
+            descriptionParagraph.innerHTML += jsonData["정보"];
+            placeDetails = jsonData["정보"];
+        } else if (countryId == "JP") {
+            descriptionStrong.textContent = "詳細: ";
+            descriptionParagraph.appendChild(descriptionStrong);
+            descriptionParagraph.innerHTML += jsonData["詳細"];
+            placeDetails = jsonData["詳細"];
+        } else if (countryId == "CN") {
+            descriptionStrong.textContent = "详情: ";
+            descriptionParagraph.appendChild(descriptionStrong);
+            descriptionParagraph.innerHTML += jsonData["详情"];
+            placeDetails = jsonData["详情"];
+        } else if (countryId == "US") {
+            descriptionStrong.textContent = "Details: ";
+            descriptionParagraph.appendChild(descriptionStrong);
+            descriptionParagraph.innerHTML += jsonData["Details"];
+            placeDetails = jsonData["Details"];
+        }        
+        section.appendChild(descriptionParagraph);
+
+        return section;
+    }
+
+    // 생성된 HTML을 DOM에 추가
+    const placeSection = createPlaceSection(jsonData);
+    mapPanelContent.appendChild(placeSection);
+    let addresses = [];
+    addresses.push({
+        address: placeAddress,
+        title: placeName,
+    });
+    const globalMarkerData = await getCoordinates(addresses);
+    addMarkersToMap(globalMarkerData);
+}
+
 async function generateDynamicPlanContent(jsonData) {
+    removeContent(false);
     const mapPanelContent = document.querySelector('.map-panel-content');
     //터미널에 추가된 내용이 스케줄이라는 것을 체크하기 위함
     const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
@@ -3321,29 +3495,19 @@ async function generateDynamicPlanContent(jsonData) {
                 shoppingMallKey, shoppingMallAddressKey, shoppingMallNameKey,
             }) => {
                 if (mealData[locationKey] && mealData[locationKey][addressKey]) {
-                    console.log("1addressKey:", mealData[locationKey][addressKey]);
                     mealData[locationKey][addressKey] = extractParenthesisContent(mealData[locationKey][addressKey]);
-                    console.log("2addressKey:", mealData[locationKey][addressKey]);
                 }
                 if (mealData[attractionKey] && mealData[attractionKey][attractionAddressKey]) {
-                    console.log("1attractionAddressKey:", mealData[attractionKey][attractionAddressKey]);
                     mealData[attractionKey][attractionAddressKey] = extractParenthesisContent(mealData[attractionKey][attractionAddressKey]);
-                    console.log("2attractionAddressKey:", mealData[attractionKey][attractionAddressKey]);
                 }
                 if (mealData[cafeKey] && mealData[cafeKey][cafeAddressKey]) {
-                    console.log("1cafeAddressKey:", mealData[cafeKey][cafeAddressKey]);
                     mealData[cafeKey][cafeAddressKey] = extractParenthesisContent(mealData[cafeKey][cafeAddressKey]);
-                    console.log("2cafeAddressKey:", mealData[cafeKey][cafeAddressKey]);
                 }
                 if (mealData[accommodationKey] && mealData[accommodationKey][accommodationAddressKey]) {
-                    console.log("1accommodationAddressKey:", mealData[accommodationKey][accommodationAddressKey]);
                     mealData[accommodationKey][accommodationAddressKey] = extractParenthesisContent(mealData[accommodationKey][accommodationAddressKey]);
-                    console.log("2accommodationAddressKey:", mealData[accommodationKey][accommodationAddressKey]);
                 }
                 if (mealData[shoppingMallKey] && mealData[shoppingMallKey][shoppingMallAddressKey]) {
-                    console.log("1shoppingMallAddressKey:", mealData[shoppingMallKey][shoppingMallAddressKey]);
                     mealData[shoppingMallKey][shoppingMallAddressKey] = extractParenthesisContent(mealData[shoppingMallKey][shoppingMallAddressKey]);
-                    console.log("2shoppingMallAddressKey:", mealData[shoppingMallKey][shoppingMallAddressKey]);
                 }
 
                 if (mealData[locationKey] && mealData[locationKey][addressKey]) {
@@ -3421,11 +3585,6 @@ async function generateDynamicPlanContent(jsonData) {
                     const openhour = sectionData["영업 시간"] || sectionData["営業時間"] || 
                                 sectionData["营业时间"] || sectionData["Opening Hours"];
 
-                    // console.log("name:", name);
-                    // console.log("address:", address);
-                    // console.log("overview:", overview);
-                    // console.log("info:", info);
-                    // console.log("openhour:", openhour);
                     if (name && address) {
                         const listItem = document.createElement('p');
                         listItem.innerHTML = `<strong>${name}</strong> (${address})`;
@@ -3468,7 +3627,10 @@ async function generateDynamicPlanContent(jsonData) {
                             mealSection.removeChild(listItem);
 
                             // JSON 데이터에서 해당 항목 제거
-                            if (section === ("식사 장소" || "명소" || "카페" || "숙소" || "쇼핑몰")) {
+                            if (section === ("식사 장소" || "명소" || "카페" || "숙소" || "쇼핑몰" ||
+                                             "食場所" || "観光名所" || "カフェ" || "宿泊施設" || "ショッピングモール" ||
+                                             "餐地点" || "景点" || "咖啡馆" || "住宿" || "购物中心" ||
+                                             "Location" || "Attraction" || "Cafe" || "Accommodation" || "Shopping Mall")) {
                                 delete mealData[section];
                             }
 
@@ -3479,8 +3641,8 @@ async function generateDynamicPlanContent(jsonData) {
                             addMarkersToMap(globalMarkerData);
 
                             // 디버깅용 로그
-                            console.log("Updated globalMarkerData:", globalMarkerData);
-                            console.log("Updated JSON data:", day);
+                            // console.log("Updated globalMarkerData:", globalMarkerData);
+                            // console.log("Updated JSON data:", day);
                         });
 
                         buttonContainer.appendChild(bookmarkButton);
@@ -3583,7 +3745,6 @@ function generateDayButtons(jsonData, renderDayContentCallback) {
 }
 
 function addMarkersToMap(markerData) {
-    console.log("markerData:", markerData);
     if (!map || !isMapInitialized) {
         console.error("Map is not initialized yet!");
         return;
@@ -3602,18 +3763,25 @@ function addMarkersToMap(markerData) {
     window.currentPolylines = []; // 새로운 선 배열 초기화
 
     // 새 마커 추가
+    let markerIndex = 0; // 마커 인덱스 초기화
+    console.log("markerData:", markerData);
     markerData.forEach(data => {
+        const markerIconUrl = `/static/images/markers/marker${(markerIndex % 10) + 1}.png`;
+        console.log(markerIconUrl);
         const marker = new naver.maps.Marker({
             position: data.position,
             map: map,
             title: data.title,
             icon: {
-                url: data.icon,
-                size: new naver.maps.Size(36, 36), // 마커 크기
-                origin: new naver.maps.Point(0, 0),
+                content: `<img src="${markerIconUrl}" style="width:32px; height:36px;">`, // HTML 직접 사용
+                // url: markerIconUrl,
+                // size: new naver.maps.Size(36, 36), // 마커 크기
+                // origin: new naver.maps.Point(0, 0),
                 anchor: new naver.maps.Point(18, 36), // 마커 위치 조정
             },
         });
+
+        markerIndex++;
 
         // 마커 클릭 이벤트 (선택 사항)
         naver.maps.Event.addListener(marker, 'click', function () {
@@ -3703,9 +3871,12 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                 const bookmarklistPanel = document.querySelector('.bookmarklist-panel ul');                        
                 const title = document.querySelector(".bookmarklist-panel h2");
                 const addressTitle = document.querySelector(".bookmarklist-panel h3");
-                const changeTitle = document.getElementById("change-title")
+                const changeBookmarkTitle = document.getElementById("change-bookmarktitle")
                 const panelTitle = document.querySelector("#panel-title");
                 bookmarklistPanel.innerHTML = "";
+
+                title.style.display = "block";
+                changeBookmarkTitle.style.display = "none";
 
                 if (isPlace) {          
                     //장소 이름을 그대로 제목으로 짓기
@@ -3726,16 +3897,17 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                     // else { // 채팅 내역에서 장소를 즐겨찾기 등록하는 케이스
                     // } 
                     title.addEventListener("dblclick", function () {
-                        changeTitle.value = title.textContent;
-                        changeTitle.style.display = "block"; // 입력창 표시
+                        changeBookmarkTitle.value = title.textContent;
+                        changeBookmarkTitle.style.display = "block"; // 입력창 표시
                         title.style.display = "none"; // 기존 텍스트 숨김
-                        changeTitle.focus();
+                        console.log("title.textContent:", title.textContent);
+                        changeBookmarkTitle.focus();
                     });
 
                     // 2) Enter: 제목 저장, ESC: 취소
-                    changeTitle.addEventListener("keydown", async function (e) {
+                    changeBookmarkTitle.addEventListener("keydown", async function (e) {
                         if (event.key === "Enter") {
-                            const newTitle = changeTitle.value.trim();
+                            const newTitle = changeBookmarkTitle.value.trim();
                             
                             if (!newTitle) {
                                 alert("제목을 입력해주세요.");
@@ -3744,17 +3916,45 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                             
                             title.textContent = newTitle;
                             title.style.display = "block"; // 기존 텍스트 표시
-                            changeTitle.style.display = "none"; // 입력창 숨김
+                            changeBookmarkTitle.style.display = "none"; // 입력창 숨김
                         } 
                         else if (event.key === "Escape") {
                             title.style.display = "block"; // 기존 텍스트 표시
-                            changeTitle.style.display = "none";  // 입력창 숨김
+                            changeBookmarkTitle.style.display = "none";  // 입력창 숨김
                         }                    
                     });
                 }
                 else if (isSchedule) {
                     //일정 이름은 (일정 + 시간)으로 짓기  (예:일정250120102730)
                     // title.textContent = "";
+                    title.addEventListener("dblclick", function () {
+                        changeBookmarkTitle.value = title.textContent;
+                        changeBookmarkTitle.style.display = "block"; // 입력창 표시
+                        title.style.display = "none"; // 기존 텍스트 숨김
+                        console.log("title:", changeBookmarkTitle);
+                        changeBookmarkTitle.focus();
+                    });
+
+                    // 2) Enter: 제목 저장, ESC: 취소
+                    changeBookmarkTitle.addEventListener("keydown", async function (e) {
+                        if (event.key === "Enter") {
+                            const newTitle = changeBookmarkTitle.value.trim();
+                            
+                            if (!newTitle) {
+                                alert("제목을 입력해주세요.");
+                                return;
+                            }
+                            
+                            title.textContent = newTitle;
+                            title.style.display = "block"; // 기존 텍스트 표시
+                            changeBookmarkTitle.style.display = "none"; // 입력창 숨김
+                        } 
+                        else if (event.key === "Escape") {
+                            title.style.display = "block"; // 기존 텍스트 표시
+                            changeBookmarkTitle.style.display = "none";  // 입력창 숨김
+                        }                    
+                    });
+
                     if (panelTitle.textContent == "") {
                         // 현재 시각 포맷팅
                         const now = new Date();
@@ -4105,25 +4305,30 @@ function editPanelTitleNO() {
     panelTitle.style.display = "block";
 }
 
-function removeContent() {
+function removeContent(nopaneltitle=true) {
     const map_panel_content = document.querySelector(".map-panel-content");
     const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
     const panelTitle= document.getElementById("panel-title");
     const editPanelTitleBtn = document.getElementById("editPanelTitleBtn");
     const dayButtonContainer = document.getElementById("day-button-container");
     
-    getBookmarkListBtn.classList.remove('place');
-    getBookmarkListBtn.classList.remove('schedule');
-    getBookmarkListBtn.setAttribute("bookmark_id", null);
-    getBookmarkListBtn.setAttribute("bookmarkplace_id", null);
-    getBookmarkListBtn.setAttribute("bookmarkschedule_id", null);
-    getBookmarkListBtn.setAttribute("json_data", null);
-    getBookmarkListBtn.textContent = "☆";
-    
-    panelTitle.innerHTML = "";
-    map_panel_content.innerHTML = "";
-    editPanelTitleBtn.style.display = "none";
-    dayButtonContainer.innerHTML = "";
+    if (getBookmarkListBtn) {
+        getBookmarkListBtn.classList.remove('place');
+        getBookmarkListBtn.classList.remove('schedule');
+        getBookmarkListBtn.setAttribute("bookmark_id", null);
+        getBookmarkListBtn.setAttribute("bookmarkplace_id", null);
+        getBookmarkListBtn.setAttribute("bookmarkschedule_id", null);
+        getBookmarkListBtn.setAttribute("json_data", null);
+        getBookmarkListBtn.textContent = "☆";
+    }
+    if (panelTitle && nopaneltitle)
+        panelTitle.innerHTML = "";
+    if (map_panel_content)
+        map_panel_content.innerHTML = "";
+    if (editPanelTitleBtn)
+        editPanelTitleBtn.style.display = "none";
+    if (dayButtonContainer)
+        dayButtonContainer.innerHTML = "";
 }
 
 function toggleMapPanel() {
