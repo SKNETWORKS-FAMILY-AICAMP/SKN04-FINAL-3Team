@@ -60,7 +60,7 @@ class Settings(models.Model):
 
 class BookmarkPlace(models.Model):
     bookmarkplace_id = models.CharField(max_length=10, primary_key=True)
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=50)
     address = models.CharField(max_length=40)
     category = models.CharField(max_length=30, null=True)
     longitude = models.FloatField(null=True)
@@ -75,7 +75,7 @@ class BookmarkPlace(models.Model):
 
 class BookmarkSchedule(models.Model):
     bookmarkschedule_id = models.CharField(max_length=10, primary_key=True)
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=50)
     json_data = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
