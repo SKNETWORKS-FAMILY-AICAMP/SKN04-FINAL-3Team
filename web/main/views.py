@@ -86,9 +86,10 @@ def get_or_create_chat_id(request):
             if chat_count >= 10:
                 # 데이터가 10개 이상이면 경고 메시지와 함께 chatting 페이지로 리다이렉트
                 return JsonResponse({
-                    "success": False,
+                    "success": True,
                     "error": "채팅 내역이 꽉 찼습니다!",
-                    "redirect_url": "/app/chatting/"
+                    # "redirect_url": "/app/chatting/",
+                    # "chat_id": "",
                 })
 
             # 마지막 chat_id 가져오기
