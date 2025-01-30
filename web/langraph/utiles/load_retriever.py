@@ -8,26 +8,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-documents_gangnam = load_documents("faiss_bm25/gangnam/documents_gangnam.json")
-documents_jongro = load_documents("faiss_bm25/jongro/documents_jongro.json")
-documents_yongsan = load_documents("faiss_bm25/yongsan/documents_yongsan.json")
-documents_junggu = load_documents("faiss_bm25/junggu/documents_Junggu.json")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-bm25_gangnam = load_bm25("faiss_bm25/gangnam/bm25_gangnam.pkl")
-bm25_jongro = load_bm25("faiss_bm25/jongro/bm25_jongro.pkl")
-bm25_yongsan = load_bm25("faiss_bm25/yongsan/bm25_yongsan.pkl")
-bm25_junggu = load_bm25("faiss_bm25/junggu/bm25_Junggu.pkl")
+documents_gangnam = load_documents(os.path.join(BASE_DIR, "faiss_bm25", "gangnam", "documents_gangnam.json"))
+documents_jongro = load_documents(os.path.join(BASE_DIR, "faiss_bm25", "jongro", "documents_jongro.json"))
+documents_yongsan = load_documents(os.path.join(BASE_DIR, "faiss_bm25", "yongsan", "documents_yongsan.json"))
+documents_junggu = load_documents(os.path.join(BASE_DIR, "faiss_bm25", "junggu", "documents_Junggu.json"))
 
-faiss_index_gangnam = load_faiss_index("faiss_bm25/gangnam/faiss_gangnam.index")
-faiss_index_jongro = load_faiss_index("faiss_bm25/jongro/faiss_jongro.index")
-faiss_index_yongsan = load_faiss_index("faiss_bm25/yongsan/faiss_yongsan.index")
-faiss_index_junggu = load_faiss_index("faiss_bm25/junggu/faiss_Junggu.index")
+bm25_gangnam = load_bm25(os.path.join(BASE_DIR, "faiss_bm25", "gangnam", "bm25_gangnam.pkl"))
+bm25_jongro = load_bm25(os.path.join(BASE_DIR, "faiss_bm25", "jongro", "bm25_jongro.pkl"))
+bm25_yongsan = load_bm25(os.path.join(BASE_DIR, "faiss_bm25", "yongsan", "bm25_yongsan.pkl"))
+bm25_junggu = load_bm25(os.path.join(BASE_DIR, "faiss_bm25", "junggu", "bm25_Junggu.pkl"))
 
-metadata_list_gangnam = load_faiss_metadata("faiss_bm25/gangnam/faiss_metadata_gangnam.pkl")
-metadata_list_jongro = load_faiss_metadata("faiss_bm25/jongro/faiss_metadata_jongro.pkl")
-metadata_list_yongsan = load_faiss_metadata("faiss_bm25/yongsan/faiss_metadata_yongsan.pkl")
-metadata_list_junggu = load_faiss_metadata("faiss_bm25/junggu/faiss_metadata_Junggu.pkl")
+faiss_index_gangnam = load_faiss_index(os.path.join(BASE_DIR, "faiss_bm25", "gangnam", "faiss_gangnam.index"))
+faiss_index_jongro = load_faiss_index(os.path.join(BASE_DIR, "faiss_bm25", "jongro", "faiss_jongro.index"))
+faiss_index_yongsan = load_faiss_index(os.path.join(BASE_DIR, "faiss_bm25", "yongsan", "faiss_yongsan.index"))
+faiss_index_junggu = load_faiss_index(os.path.join(BASE_DIR, "faiss_bm25", "junggu", "faiss_Junggu.index"))
 
+metadata_list_gangnam = load_faiss_metadata(os.path.join(BASE_DIR, "faiss_bm25", "gangnam", "faiss_metadata_gangnam.pkl"))
+metadata_list_jongro = load_faiss_metadata(os.path.join(BASE_DIR, "faiss_bm25", "jongro", "faiss_metadata_jongro.pkl"))
+metadata_list_yongsan = load_faiss_metadata(os.path.join(BASE_DIR, "faiss_bm25", "yongsan", "faiss_metadata_yongsan.pkl"))
+metadata_list_junggu = load_faiss_metadata(os.path.join(BASE_DIR, "faiss_bm25", "junggu", "faiss_metadata_Junggu.pkl"))
 
 retriever_naver_gangnam = HybridBM25FaissRetriever(
     bm25=bm25_gangnam,
@@ -98,10 +99,10 @@ embeddings = OpenAIEmbeddings()
 # FAISS 인덱스 파일 경로를 리스트에 추가
 faiss_index_paths = []
 
-faiss_index_paths.append("Faiss/opendata_gangnam_all")
-faiss_index_paths.append("Faiss/opendata_jongro_all")
-faiss_index_paths.append("Faiss/opendata_junggu_all")
-faiss_index_paths.append("Faiss/opendata_yongsan_all")
+faiss_index_paths.append(os.path.join(BASE_DIR, "Faiss", "opendata_gangnam_all"))
+faiss_index_paths.append(os.path.join(BASE_DIR, "Faiss", "opendata_jongro_all"))
+faiss_index_paths.append(os.path.join(BASE_DIR, "Faiss", "opendata_junggu_all"))
+faiss_index_paths.append(os.path.join(BASE_DIR, "Faiss", "opendata_yongsan_all"))
 
 # FAISS 인덱스를 로드하고 리트리버를 생성
 retrieves = []
