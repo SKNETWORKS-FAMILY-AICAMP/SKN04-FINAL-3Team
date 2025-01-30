@@ -1558,6 +1558,59 @@ document.addEventListener("spaContentLoaded", async function () {
             } catch {
                 console.error("/app/partials/planner/get_chat/ failed");
             }
+        } else {
+            const chatContainer = document.querySelector(".chat-container");
+            if (chatContainer) {
+                const errorBubble = document.createElement("div");
+                errorBubble.className = "error-bubble";
+                errorBubble.innerHTML = "채팅 내역이 꽉 찼습니다! 이 채팅은 저장되지 않습니다.<br>기존 채팅 내역을 사용해주세요.<br>현재 채팅에는 글 초기화 버튼이 작동하지 않습니다.";
+                errorBubble.style.position = "relative";
+                errorBubble.style.padding = "10px";
+                errorBubble.style.margin = "10px 0";
+                errorBubble.style.backgroundColor = "#ffcccc";
+                errorBubble.style.color = "#900";
+                errorBubble.style.border = "1px solid #f00";
+                errorBubble.style.borderRadius = "5px";
+                errorBubble.style.fontSize = "14px";
+
+                // 이미 말풍선이 존재하면 추가하지 않음
+                if (!chatContainer.querySelector(".error-bubble")) {
+                    chatContainer.insertBefore(errorBubble, chatContainer.firstChild); // 맨 위에 추가
+                }
+            }
+            console.log("wowowowow");
+            // 로딩 상태로 설정
+            isLoading = true;
+            inputBar.disabled = true; // 입력창 비활성화
+
+            // 사용자의 메시지를 채팅창에 추가
+            const userMessage = document.createElement("div");
+            userMessage.className = "bubble right-bubble";
+            userMessage.innerHTML = message.replace(/\n/g, "<br>");
+            chatMessages.appendChild(userMessage);                
+
+            inputBar.value = ""; // 입력창 초기화
+
+            const loadingBubble = document.createElement("div");
+            loadingBubble.classList.add("bubble", "left-bubble", "loading-bubble");
+            loadingBubble.innerHTML = `
+                <div class="loader">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+            chatMessages.appendChild(loadingBubble);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            if (activeAbortController) {
+                activeAbortController.abort();
+            }
+            // 새로운 AbortController 생성
+            activeAbortController = new AbortController();
+            const { signal } = activeAbortController;
+            chatHistory = parse_chat_history(chatHistory);
+            fetchGPTResponse(message, signal, chatHistory);
         }
     }
 
@@ -1748,6 +1801,7 @@ async function saveChatToDB(chatContent) {
     localStorage.removeItem('chatMessage');
     const urlParams = new URLSearchParams(window.location.search);
     const chatId = urlParams.get("chat_id");
+    if (!chatId) return;
 
     return fetch("/app/partials/planner/save_chat/", {
         method: "POST",
@@ -1771,28 +1825,7 @@ async function saveChatToDB(chatContent) {
         if (!data.success) {
             console.error("Failed to save chat to DB:", data.error);
             if (data.error === "채팅 내역이 꽉 찼습니다!") {
-                // chat-container에 에러 메시지 말풍선 추가
-                const chatContainer = document.querySelector(".chat-container");
-                if (chatContainer) {
-                    const errorBubble = document.createElement("div");
-                    errorBubble.className = "error-bubble";
-                    errorBubble.innerHTML = "채팅 내역이 꽉 찼습니다! 이 채팅은 저장되지 않습니다.<br>기존 채팅 내역을 사용해주세요.<br>현재 채팅에는 글 초기화 버튼이 작동하지 않습니다.";
-                    errorBubble.style.position = "relative";
-                    errorBubble.style.padding = "10px";
-                    errorBubble.style.margin = "10px 0";
-                    errorBubble.style.backgroundColor = "#ffcccc";
-                    errorBubble.style.color = "#900";
-                    errorBubble.style.border = "1px solid #f00";
-                    errorBubble.style.borderRadius = "5px";
-                    errorBubble.style.fontSize = "14px";
-
-                    // 이미 말풍선이 존재하면 추가하지 않음
-                    if (!chatContainer.querySelector(".error-bubble")) {
-                        chatContainer.insertBefore(errorBubble, chatContainer.firstChild); // 맨 위에 추가
-                    }
-                } else {
-                    console.error("chat-container element not found.");
-                }
+                console.log("채팅 내역이 꽉 찼습니다!");
             }
 
             return null;

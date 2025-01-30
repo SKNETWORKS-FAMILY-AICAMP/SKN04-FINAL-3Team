@@ -206,12 +206,7 @@
                         window.location.href = `/app/planner/?chat_id=${encodeURIComponent(data.chat_id)}`;
                     } else {
                         console.error("Failed to get chat_id:", data.error || "Unknown error");
-                        switch (countryId) {
-                            case "KR": alert('chat_id를 가져오는 데 실패했습니다.'); break;
-                            case "JP": alert('chat_idの取得に失敗しました。'); break;
-                            case "CN": alert('获取 chat_id 失败 。'); break;
-                            case "US": alert('Failed to get chat_id.'); break;
-                        }
+                        window.location.href = `/app/planner/`;
                     }
                 } catch (error) {
                     console.error("Error fetching chat_id:", error);
