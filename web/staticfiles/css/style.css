@@ -9,6 +9,11 @@ body {
     overflow: hidden; /* 스크롤 방지 */
 }
 
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 4px 10px rgba(255, 75, 43, 0.3);
+}
+
 .theme-box {
     border: 2px solid #000;
 }
@@ -167,6 +172,7 @@ body {
     background-color: #222;
     border: none;
     border-radius: 50%;
+    margin-right: 3px;
     width: 27px;
     height: 27px;
     cursor: pointer;
@@ -176,6 +182,7 @@ body {
     background-color: white;
     border: none;
     border-radius: 50%;
+    margin-right: 3px;
     width: 27px;
     height: 27px;
     cursor: pointer;
@@ -586,7 +593,12 @@ body {
     display: flex;
     flex-direction: column;
     position: relative;
-    height: 100%;
+    grid-template-columns: 250px auto; /* 왼쪽 메뉴 고정, 오른쪽 콘텐츠 유동 */
+    grid-template-rows: auto;
+    min-height: 400px;
+    border-radius: 10px; /* 모던한 디자인 */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
+    height: 100vh;
     z-index: 1; 
 }
 
@@ -697,18 +709,24 @@ body {
     padding: 0 10px; /* 좌우 여백 추가 */
 }
 
-#panel-title {
-    margin: 0;
-    font-size: 16px;
-    color: #222;
-}
-
 .title-group {
     display: flex;
     gap: 5px; /* 버튼 간격 설정 */
 }
 
 #editPanelTitleBtn, #editPanelTitleOKBtn, #editPanelTitleNOBtn {
+    width: 40px;
+    aspect-ratio: 1 / 1; /* 정사각형 유지 */
+    align-items: center;
+    justify-content: center;
+    background: none; /* 배경 제거 */
+    border: none; /* 테두리 제거 */
+    box-shadow: none; /* 그림자 제거 */
+    outline: none; /* 포커스 효과 제거 */
+    padding: 0; /* 내부 여백 제거 */
+    font-size: 1.4rem; /* 기본 크기 */
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
     display: none;
 }
 
@@ -718,27 +736,58 @@ body {
 }
 
 .button-group button {
-    width: 30px;
-    height: 30px;
-    font-size: 20px;
-    background-color: white;
+    width: 40px;
+    aspect-ratio: 1 / 1; /* 정사각형 유지 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none; /* 배경 제거 */
+    border: none; /* 테두리 제거 */
+    box-shadow: none; /* 그림자 제거 */
+    outline: none; /* 포커스 효과 제거 */
+    padding: 0; /* 내부 여백 제거 */
+    font-size: 1.4rem; /* 기본 크기 */
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+[data-theme="dark"] .button-group button {
+    width: 40px;
+    aspect-ratio: 1 / 1; /* 정사각형 유지 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    background: none; /* 배경 제거 */
+    border: none; /* 테두리 제거 */
+    box-shadow: none; /* 그림자 제거 */
+    outline: none; /* 포커스 효과 제거 */
+    padding: 0; /* 내부 여백 제거 */
+    font-size: 1.4rem; /* 기본 크기 */
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.button-group button:hover {
+    background-color: none !important;
+    transform: scale(1.2);
+}
+
+[data-theme="dark"] .button-group button:hover {
+    background-color: none !important;
+    transform: scale(1.2);
+}
+
+#panel-title {
+    margin: 0;
+    font-size: 18px;
     color: #222;
-    border: none;
 }
 
 [data-theme="dark"] #panel-title {
     margin: 0;
-    font-size: 16px;
+    font-size: 18px;
     color: white;
-}
-
-[data-theme="dark"] #button-panel button{
-    width: 30px;
-    height: 30px;
-    font-size: 20px;
-    background-color: #222;
-    color: white;
-    border: none;
 }
 
 .place-section {

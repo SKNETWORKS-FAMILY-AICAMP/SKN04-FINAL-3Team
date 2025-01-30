@@ -1676,13 +1676,13 @@ document.addEventListener("spaContentLoaded", async function () {
                     }
 
                     let jsonPlaceData = [];
-                    if (Array.isArray(jsonData5) && jsonData5.length > 0) {
+                    if (!isEmptyJson(jsonData5)) {
                         jsonPlaceData = jsonData5;
-                    } else if (Array.isArray(jsonData6) && jsonData6.length > 0) {
+                    } else if (!isEmptyJson(jsonData6)) {
                         jsonPlaceData = jsonData6;
-                    } else if (Array.isArray(jsonData7) && jsonData7.length > 0) {
+                    } else if (!isEmptyJson(jsonData7)) {
                         jsonPlaceData = jsonData7;
-                    } else if (Array.isArray(jsonData8) && jsonData8.length > 0) {
+                    } else if (!isEmptyJson(jsonData8)) {
                         jsonPlaceData = jsonData8;
                     }
                     if (jsonScheduleData.length !== 0) {
@@ -1856,6 +1856,14 @@ function typeText(element, text, loadingBubble, speed = 5) {
     typeNextChar();
 }
 
+function isEmptyJson(jsonObj) {
+    return Object.values(jsonObj).every(value => 
+        value === "" || 
+        (Array.isArray(value) && value.length === 0) || 
+        (typeof value === "object" && value !== null && Object.keys(value).length === 0)
+    );
+}
+
 function parseAndDisplayChatContent(chatContent) {
     if (!chatContent) {
         console.warn("chatContent가 비어있습니다.");
@@ -1937,16 +1945,17 @@ function parseAndDisplayChatContent(chatContent) {
                     }
 
                     let jsonPlaceData = [];
-                    if (jsonData5) {
+                    if (!isEmptyJson(jsonData5)) {
                         jsonPlaceData = jsonData5;
-                    } else if (jsonData6) {
+                    } else if (!isEmptyJson(jsonData6)) {
                         jsonPlaceData = jsonData6;
-                    } else if (jsonData7) {
+                    } else if (!isEmptyJson(jsonData7)) {
                         jsonPlaceData = jsonData7;
-                    } else if (jsonData8) {
+                    } else if (!isEmptyJson(jsonData8)) {
                         jsonPlaceData = jsonData8;
                     }
                     if (jsonScheduleData.length !== 0) {
+                        
                         generateDayButtons(jsonScheduleData);
                         generateDynamicPlanContent(jsonScheduleData);
                         getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonScheduleData));
@@ -2827,7 +2836,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 1) **장소:**
-        const placeMatch = line.match(/^\*\*地点:\** (.*)/);
+        const placeMatch = line.match(/^\*\*地点\**: (.*)/);
         if (placeMatch) {
             result["地点"] = placeMatch[1].trim();
             currentSection = "地点"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용

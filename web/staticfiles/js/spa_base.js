@@ -216,7 +216,12 @@ document.addEventListener("DOMContentLoaded", function () {
     // 팝업 창 기능
     document.getElementById('cancel-delete').addEventListener('click', closePopup);
     document.getElementById('confirm-delete').addEventListener('click', function () {
-        alert('Account deleted!');
+        switch (countryId) {
+            case "KR": alert('계정이 삭제되었습니다!'); break;
+            case "JP": alert('アカウント削除！'); break;
+            case "CN": alert('账号已删除!'); break;
+            case "US": alert('Account deleted!'); break;
+        }
         closePopup();
     });
 
@@ -371,6 +376,7 @@ document.addEventListener("spaContentLoaded", async function () {
         const chatMessages = document.getElementById('chat-messages');
         const initialMessage = localStorage.getItem('chatMessage');
         const newMessage = document.createElement("div");
+        const inputBar = document.getElementById("input_bar");  
         const urlParams = new URLSearchParams(window.location.search);
         const chatId = urlParams.get("chat_id");
 
@@ -447,6 +453,10 @@ document.addEventListener("spaContentLoaded", async function () {
         }
 
         if (initialMessage) {
+            // 로딩 상태로 설정
+            isLoading = true;
+            inputBar.disabled = true; // 입력창 비활성화
+
             saveChatToDB(`<나>${initialMessage}`);
             newMessage.className = "bubble right-bubble";
             newMessage.innerHTML = initialMessage.replace(/\n/g, "<br>");
@@ -482,12 +492,17 @@ document.addEventListener("spaContentLoaded", async function () {
 
             // 2) Enter: 제목 저장, ESC: 취소
             changeTitle.addEventListener("keydown", async function (e) {
-                if (event.key === "Enter") {
+                if (e.key === "Enter") {
                     const newTitle = changeTitle.value.trim();
                     const titleText = document.getElementById("planner-title"); 
                     
                     if (!newTitle) {
-                        alert("제목을 입력해주세요.");
+                        switch (countryId) {
+                            case "KR": alert('제목을 입력해주세요.'); break;
+                            case "JP": alert('タイトルを入力してください。'); break;
+                            case "CN": alert('请输入标题'); break;
+                            case "US": alert('Please enter the title'); break;
+                        }
                         return;
                     }
 
@@ -508,7 +523,12 @@ document.addEventListener("spaContentLoaded", async function () {
                         const result = await response.json();
 
                         if (result.is_duplicate) {
-                            alert("중복된 제목입니다. 다른 제목을 입력해주세요.");
+                            switch (countryId) {
+                                case "KR": alert('중복된 제목입니다. 다른 제목을 입력해주세요.'); break;
+                                case "JP": alert('重複したタイトルです。 別のタイトルを入力してください。'); break;
+                                case "CN": alert('重复的标题 。 请输入其他标题。'); break;
+                                case "US": alert('Duplicate title, please enter a different title.'); break;
+                            }
                             return;
                         }
 
@@ -533,7 +553,7 @@ document.addEventListener("spaContentLoaded", async function () {
                     } catch (error) {
                         console.error("Error checking/updating title:", error);
                     }
-                } else if (event.key === "Escape") {
+                } else if (e.key === "Escape") {
                     plannerTitle.style.display = "block"; // 기존 텍스트 표시
                     changeTitle.style.display = "none";  // 입력창 숨김
                 }                    
@@ -546,7 +566,6 @@ document.addEventListener("spaContentLoaded", async function () {
             const chatId = urlParams.get("chat_id");
 
             if (!chatId) {
-                // alert("삭제할 chat_id를 찾을 수 없습니다.");
                 return;
             }
 
@@ -571,17 +590,32 @@ document.addEventListener("spaContentLoaded", async function () {
                 })
                 .then(data => {
                     if (data.success) {
-                        alert("채팅 내용이 초기화되었습니다.");
+                        switch (countryId) {
+                            case "KR": alert('채팅 내용이 초기화되었습니다.'); break;
+                            case "JP": alert('チャット内容が初期化されました。'); break;
+                            case "CN": alert('聊天内容已初始化 。'); break;
+                            case "US": alert('Your chat has been reset.'); break;
+                        }
                         // UI에서 내용을 비웁니다.
                         const chatMessages = document.getElementById("chat-messages");
                         if (chatMessages) chatMessages.innerHTML = "";
                     } else {
-                        alert("초기화 실패: " + (data.error || "알 수 없는 오류"));
+                        switch (countryId) {
+                            case "KR": alert("초기화 실패: " + (data.error || "알 수 없는 오류")); break;
+                            case "JP": alert("初期化失敗: " + (data.error || "不明な誤り")); break;
+                            case "CN": alert("初始化失败: " + (data.error || "未知的错误")); break;
+                            case "US": alert("Initialization failed: " + (data.error || "Unknown error")); break;
+                        }
                     }
                 })
                 .catch(error => {
                     console.error("Error resetting chat content:", error);
-                    alert("서버 오류가 발생했습니다. 다시 시도해주세요.");
+                    switch (countryId) {
+                        case "KR": alert("서버 오류가 발생했습니다. 다시 시도해주세요."); break;
+                        case "JP": alert("サーバーエラーが発生しました。 もう一度お試しください。"); break;
+                        case "CN": alert("服务器出错 。 请再试一次。"); break;
+                        case "US": alert("A server error has occurred. Please try again."); break;
+                    }
                 });
         });
     }
@@ -631,14 +665,28 @@ document.addEventListener("spaContentLoaded", async function () {
 
                     const result = await response.json();
                     if (result.success) {
-                        alert("Chat deleted successfully!");
+                        switch (countryId) {
+                            case "KR": alert('채팅이 성공적으로 삭제되었습니다!'); break;
+                            case "JP": alert('チャットが正常に削除されました！'); break;
+                            case "CN": alert('聊天被成功删除！'); break;
+                            case "US": alert('Chat deleted successfully!'); break;
+                        }
                         this.closest(".chat-item").remove(); // UI에서 삭제
                     } else {
-                        alert(`Error: ${result.error || "Failed to delete chat."}`);
+                        switch (countryId) {
+                            case "KR": alert(`에러: ${result.error || '채팅 삭제 실패'}`); break;
+                            case "JP": alert(`誤謬: ${result.error || 'チャット削除失敗'}`); break;
+                            case "CN": alert(`五柳: ${result.error || '删除聊天失败'}`); break;
+                            case "US": alert(`Error: ${result.error || 'Failed to delete chat.'}`); break;
+                        }
                     }
                 } catch (error) {
-                    console.error("Error deleting chat:", error);
-                    alert("An error occurred. Please try again.");
+                    switch (countryId) {
+                        case "KR": alert('오류가 발생했습니다. 다시 시도해 주세요.'); break;
+                        case "JP": alert('エラーが発生しました。 もう一度お試しください。'); break;
+                        case "CN": alert('发生错误 。 请再试一次。'); break;
+                        case "US": alert('Chat deleted successfully!'); break;
+                    }
                 }
             });
         });
@@ -1184,13 +1232,21 @@ document.addEventListener("spaContentLoaded", async function () {
 
                     const result = await response.json();
                     if (result.success) {
-                        // alert("Language updated successfully.");
-                    } else {
-                        alert(`Error: ${result.message}`);
+                        switch (countryId) {
+                            case "KR": alert('언어가 성공적으로 업데이트되었습니다!'); break;
+                            case "JP": alert('言語が正常に更新されました！'); break;
+                            case "CN": alert('语言更新成功！'); break;
+                            case "US": alert('Language updated successfully!'); break;
+                        }
                     }
                 } catch (error) {
                     console.error("Error updating language:", error);
-                    alert("Failed to update language. Please try again.");
+                    switch (countryId) {
+                        case "KR": alert('언어를 업데이트하지 못했습니다. 다시 시도해 주세요.'); break;
+                        case "JP": alert('言語の更新に失敗しました。 もう一度お試しください。'); break;
+                        case "CN": alert('语言更新失败 。 请再试一次。'); break;
+                        case "US": alert('Failed to update language. Please try again.'); break;
+                    }
                 }
             });
         }
@@ -1236,7 +1292,12 @@ document.addEventListener("spaContentLoaded", async function () {
                             // 성공 시 프로필 이미지 업데이트
                             profileImage.src = `/static/images/profiles/profile_${selectedId}.jpg`;                                    
                         } else {
-                            alert("Failed to update profile image: " + data.error);
+                            switch (countryId) {
+                                case "KR": alert('프로필 이미지 업데이트 실패'); break;
+                                case "JP": alert('プロフィール画像の更新に失敗'); break;
+                                case "CN": alert('更新配置文件失败'); break;
+                                case "US": alert('Failed to update profile image'); break;
+                            }
                         }
                         popup.classList.add("hidden");
                         toggleButton.classList.remove("hidden");
@@ -1318,12 +1379,16 @@ document.addEventListener("spaContentLoaded", async function () {
                             // 성공 시 UI 업데이트
                             nicknameText.textContent = newNickname;
                         } else {
-                            alert("닉네임 수정 실패: " + (data.error || "알 수 없는 오류"));
+                            switch (countryId) {
+                                case "KR": alert('닉네임 수정 실패'); break;
+                                case "JP": alert('ニックネーム修正失敗'); break;
+                                case "CN": alert('修改昵称失败'); break;
+                                case "US": alert('Failed to modify the nickname'); break;
+                            }
                         }
                     })
                     .catch((err) => {
                         console.error("서버 통신 오류:", err);
-                        alert("서버 통신 오류: " + err.message);
                     })
                     .finally(() => {
                         // 입력창 숨기고 라벨 보이기
@@ -1353,15 +1418,12 @@ document.addEventListener("spaContentLoaded", async function () {
         // (5) 로그아웃 버튼
         if (logoutBtn) {
             logoutBtn.addEventListener("click", function() {
-                alert("로그아웃 처리 로직을 구현해주세요.");
-                window.location.href = "/";
-            });
-        }
-
-        // 로그아웃 버튼 예시
-        if (logoutBtn) {
-            logoutBtn.addEventListener("click", function() {
-                alert("로그아웃 처리 로직을 구현해주세요.");
+                switch (countryId) {
+                    case "KR": alert('로그아웃 되었습니다.'); break;
+                    case "JP": alert('ログアウトされました。'); break;
+                    case "CN": alert('已注销。'); break;
+                    case "US": alert('Log out'); break;
+                }
                 window.location.href = "/";
             });
         }
@@ -1387,7 +1449,12 @@ document.addEventListener("spaContentLoaded", async function () {
         sendBtn.addEventListener("click", function (e) {
             if (isLoading) {
                 e.preventDefault(); // 로딩 중일 때 입력 방지
-                alert("현재 봇 응답이 생성 중입니다. 잠시만 기다려주세요!");
+                switch (countryId) {
+                    case "KR": alert('현재 봇 응답이 생성 중입니다. 잠시만 기다려주세요!'); break;
+                    case "JP": alert('現在、ボット応答が作成中です。 少々お待ちください！'); break;
+                    case "CN": alert('目前正在生成机器人响应。 请稍等！'); break;
+                    case "US": alert('The bot response is currently generating. Please wait!'); break;
+                }
                 return;
             }
 
@@ -1402,7 +1469,12 @@ document.addEventListener("spaContentLoaded", async function () {
         if (e.key === "Enter" && !e.shiftKey) {
             if (isLoading) {
                 e.preventDefault(); // 로딩 중일 때 입력 방지
-                alert("현재 봇 응답이 생성 중입니다. 잠시만 기다려주세요!");
+                switch (countryId) {
+                    case "KR": alert('현재 봇 응답이 생성 중입니다. 잠시만 기다려주세요!'); break;
+                    case "JP": alert('現在、ボット応答が作成中です。 少々お待ちください！'); break;
+                    case "CN": alert('目前正在生成机器人响应。 请稍等！'); break;
+                    case "US": alert('The bot response is currently generating. Please wait!'); break;
+                }
                 return;
             }
 
@@ -1551,7 +1623,6 @@ document.addEventListener("spaContentLoaded", async function () {
             const decoder = new TextDecoder("utf-8");
 
             const chatMessages = document.querySelector("#chat-messages"); 
-            let completeMessage = ""; // 전체 메시지를 저장할 변수
             let buffer = ""; // 청크를 임시로 저장할 버퍼
             let botBubble = document.createElement("div"); // 새 말풍선을 생성
             botBubble.className = "bubble left-bubble";
@@ -1561,23 +1632,18 @@ document.addEventListener("spaContentLoaded", async function () {
             chatMessages.appendChild(botBubble);
 
             botBubble.addEventListener("mouseenter", function (event) {
-                const currentBackgroundColor = window.getComputedStyle(this).backgroundColor;
                 if (botBubble.className.includes("left-bubble")) {
                     this.style.backgroundColor = "#589258"; // 기본 하이라이트 색상
                 }
             });
 
             botBubble.addEventListener("mouseleave", function (event) {
-                const target = event.target;
-                const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
                 if (botBubble.className.includes("left-bubble")) {
                     this.style.backgroundColor = ""; // 원래 배경색 복구
                 }
             });
 
             botBubble.addEventListener("click", function (event) {
-                const target = event.target;
-                const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
                 const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
                 const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
 
@@ -1589,45 +1655,47 @@ document.addEventListener("spaContentLoaded", async function () {
                         .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
-                        const jsonData1 = parseScheduleJson_KR(formattedMessage);
-                        const jsonData2 = parseItineraryToJson_JP(formattedMessage);
-                        const jsonData3 = parseItineraryToJson_CN(formattedMessage);
-                        const jsonData4 = parseItineraryToJson_US(formattedMessage);
-                        const jsonData5 = parsePlaceJson_KR(formattedMessage);
-                        const jsonData6 = parsePlaceJson_JP(formattedMessage);
-                        const jsonData7 = parsePlaceJson_CN(formattedMessage);
-                        const jsonData8 = parsePlaceJson_US(formattedMessage);
-    
-                        let jsonScheduleData = [];
-                        if (Array.isArray(jsonData1) && jsonData1.length > 0) {
-                            jsonScheduleData = jsonData1;
-                        } else if (Array.isArray(jsonData2) && jsonData2.length > 0) {
-                            jsonScheduleData = jsonData2;
-                        } else if (Array.isArray(jsonData3) && jsonData3.length > 0) {
-                            jsonScheduleData = jsonData3;
-                        } else if (Array.isArray(jsonData4) && jsonData4.length > 0) {
-                            jsonScheduleData = jsonData4;
-                        }
-    
-                        let jsonPlaceData = [];
-                        if (Array.isArray(jsonData5) && jsonData5.length > 0) {
-                            jsonPlaceData = jsonData5;
-                        } else if (Array.isArray(jsonData6) && jsonData6.length > 0) {
-                            jsonPlaceData = jsonData6;
-                        } else if (Array.isArray(jsonData7) && jsonData7.length > 0) {
-                            jsonPlaceData = jsonData7;
-                        } else if (Array.isArray(jsonData8) && jsonData8.length > 0) {
-                            jsonPlaceData = jsonData8;
-                        }
-                        if (jsonScheduleData.length !== 0) {
-                            generateDayButtons(jsonScheduleData);
-                            generateDynamicPlanContent(jsonScheduleData);
-                            getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonScheduleData));
-                        }
-                        else if (jsonPlaceData.length !== 0) {
-                            generatePlaceContent(jsonPlaceData);
-                            getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonPlaceData));
-                        }
+                    const jsonData1 = parseScheduleJson_KR(formattedMessage);
+                    const jsonData2 = parseItineraryToJson_JP(formattedMessage);
+                    const jsonData3 = parseItineraryToJson_CN(formattedMessage);
+                    const jsonData4 = parseItineraryToJson_US(formattedMessage);
+                    const jsonData5 = parsePlaceJson_KR(formattedMessage);
+                    const jsonData6 = parsePlaceJson_JP(formattedMessage);
+                    const jsonData7 = parsePlaceJson_CN(formattedMessage);
+                    const jsonData8 = parsePlaceJson_US(formattedMessage);
+
+                    let jsonScheduleData = [];
+                    if (Array.isArray(jsonData1) && jsonData1.length > 0) {
+                        jsonScheduleData = jsonData1;
+                    } else if (Array.isArray(jsonData2) && jsonData2.length > 0) {
+                        jsonScheduleData = jsonData2;
+                    } else if (Array.isArray(jsonData3) && jsonData3.length > 0) {
+                        jsonScheduleData = jsonData3;
+                    } else if (Array.isArray(jsonData4) && jsonData4.length > 0) {
+                        jsonScheduleData = jsonData4;
+                    }
+
+                    let jsonPlaceData = [];
+                    if (!isEmptyJson(jsonData5)) {
+                        jsonPlaceData = jsonData5;
+                    } else if (!isEmptyJson(jsonData6)) {
+                        jsonPlaceData = jsonData6;
+                    } else if (!isEmptyJson(jsonData7)) {
+                        jsonPlaceData = jsonData7;
+                    } else if (!isEmptyJson(jsonData8)) {
+                        jsonPlaceData = jsonData8;
+                    }
+                    if (jsonScheduleData.length !== 0) {
+                        generateDayButtons(jsonScheduleData);
+                        generateDynamicPlanContent(jsonScheduleData);
+                        getBookmarkListBtn.textContent = "☆";
+                        getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonScheduleData));
+                    }
+                    else if (jsonPlaceData.length !== 0) {
+                        generatePlaceContent(jsonPlaceData);
+                        getBookmarkListBtn.textContent = "☆";
+                        getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonPlaceData));
+                    }
                 }
             });
 
@@ -1788,6 +1856,14 @@ function typeText(element, text, loadingBubble, speed = 5) {
     typeNextChar();
 }
 
+function isEmptyJson(jsonObj) {
+    return Object.values(jsonObj).every(value => 
+        value === "" || 
+        (Array.isArray(value) && value.length === 0) || 
+        (typeof value === "object" && value !== null && Object.keys(value).length === 0)
+    );
+}
+
 function parseAndDisplayChatContent(chatContent) {
     if (!chatContent) {
         console.warn("chatContent가 비어있습니다.");
@@ -1824,8 +1900,6 @@ function parseAndDisplayChatContent(chatContent) {
             const bubble = document.createElement("div");
             bubble.classList.add("bubble");
             bubble.addEventListener("mouseenter", function (event) {
-                const target = event.target;
-                const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
                 if (bubble.className.includes("left-bubble")) {
                     this.style.backgroundColor = "#589258"; // 기본 하이라이트 색상
                 }
@@ -1833,16 +1907,12 @@ function parseAndDisplayChatContent(chatContent) {
 
             // 마우스 아웃 이벤트
             bubble.addEventListener("mouseleave", function (event) {
-                const target = event.target;
-                const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
                 if (bubble.className.includes("left-bubble")) {
                     this.style.backgroundColor = ""; // 원래 배경색 복구
                 }
             });
 
             bubble.addEventListener("click", function (event) {
-                const target = event.target;
-                const currentBackgroundColor = window.getComputedStyle(target).backgroundColor;
                 const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
                 const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
                 if (bubble.className.includes("left-bubble")) {
@@ -1875,16 +1945,17 @@ function parseAndDisplayChatContent(chatContent) {
                     }
 
                     let jsonPlaceData = [];
-                    if (jsonData5) {
+                    if (!isEmptyJson(jsonData5)) {
                         jsonPlaceData = jsonData5;
-                    } else if (jsonData6) {
+                    } else if (!isEmptyJson(jsonData6)) {
                         jsonPlaceData = jsonData6;
-                    } else if (jsonData7) {
+                    } else if (!isEmptyJson(jsonData7)) {
                         jsonPlaceData = jsonData7;
-                    } else if (jsonData8) {
+                    } else if (!isEmptyJson(jsonData8)) {
                         jsonPlaceData = jsonData8;
                     }
                     if (jsonScheduleData.length !== 0) {
+                        
                         generateDayButtons(jsonScheduleData);
                         generateDynamicPlanContent(jsonScheduleData);
                         getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonScheduleData));
@@ -2765,7 +2836,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 1) **장소:**
-        const placeMatch = line.match(/^\*\*地点:\** (.*)/);
+        const placeMatch = line.match(/^\*\*地点\**: (.*)/);
         if (placeMatch) {
             result["地点"] = placeMatch[1].trim();
             currentSection = "地点"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
@@ -3121,14 +3192,16 @@ function attachDeleteEvent(folderItem, parentList, plusButton) {
                 // parentList.removeChild(folderItem);
                 updateFolderListUI(parentList, plusButton);
                 console.log("북마크 삭제 성공:", bookmarkId);
-            } else {
-                // (D) 실패 처리
-                alert("삭제 실패: " + (data.error || "unknown error"));
             }
         })
         .catch(err => {
             console.error("서버 통신 오류:", err);
-            alert("서버 오류가 발생했습니다.");
+            switch (countryId) {
+                case "KR": alert('서버 오류가 발생했습니다.'); break;
+                case "JP": alert('サーバーエラーが発生しました。'); break;
+                case "CN": alert('服务器出错 。'); break;
+                case "US": alert('A server error has occurred.'); break;
+            }
         });
     });
 }
@@ -3275,7 +3348,12 @@ function addFolderEventHandler(plusElementId, sectionSelector, placeholderText, 
 
                             console.log("생성 성공:", data.folderId);
                         } else {
-                            alert("생성 실패: " + (data.error || "알 수 없는 오류"));
+                            switch (countryId) {
+                                case "KR": alert('북마크 생성 실패'); break;
+                                case "JP": alert('ブックマーク作成失敗'); break;
+                                case "CN": alert('书签创建失败'); break;
+                                case "US": alert('Bookmark creation failed'); break;
+                            }
                             folderList.removeChild(inputItem);
                         }
                     })
@@ -3315,6 +3393,11 @@ async function getCoordinates(addresses) {
 }
 
 async function generatePlaceContent(jsonData) {
+    if (!jsonData["장소"] && !jsonData["場所"] && !jsonData["地点"] && !jsonData["Place"] &&
+        !jsonData["주소"] && !jsonData["住所"] && !jsonData["地址"] && !jsonData["Address"] &&
+        !jsonData["정보"] && !jsonData["詳細"] && !jsonData["详情"] && !jsonData["Details"]) {
+        return;
+    }
     removeContent();
     const mapPanelContent = document.querySelector('.map-panel-content');
     //터미널에 추가된 내용이 스케줄이라는 것을 체크하기 위함
@@ -3349,6 +3432,7 @@ async function generatePlaceContent(jsonData) {
 
         // <h3>장소 정보</h3>
         const heading = document.createElement("h3");
+        console.log("countryId:", countryId);
         if (countryId == "KR" ) {
             heading.textContent = "장소 정보";
         } else if (countryId == "JP") {
@@ -3833,37 +3917,6 @@ function addMarkersToMap(markerData) {
         console.error("Map is not initialized yet!");
         return;
     }
-
-    // switch (countryId) {
-    //     case "KR":
-    //         lang = "ko";
-    //         break;
-    //     case "JP":
-    //         lang = "ja";
-    //         break;
-    //     case "CN":
-    //         lang = "zh-CN";
-    //         break;
-    //     case "US":
-    //         lang = "en";
-    //         break;
-    // }
-    // map.setOptions({
-    //     language: lang,
-    // });
-
-    // setTimeout(() => {
-    //     const center = map.getCenter(); // 현재 지도 중심 저장
-    //     const zoom = map.getZoom(); // 현재 줌 레벨 저장
-
-    //     map = new naver.maps.Map("map", { // 지도 다시 생성
-    //         center: center,
-    //         zoom: zoom,
-    //         language: lang,
-    //     });
-
-    //     console.log(`Map language force-updated to: ${lang}`);
-    // }, 500);
     
     // 기존 마커 제거
     if (window.currentMarkers) {
@@ -4030,7 +4083,12 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                             const newTitle = changeBookmarkTitle.value.trim();
                             
                             if (!newTitle) {
-                                alert("제목을 입력해주세요.");
+                                switch (countryId) {
+                                    case "KR": alert('제목을 입력해주세요.'); break;
+                                    case "JP": alert('タイトルを入力してください。'); break;
+                                    case "CN": alert('请输入标题。'); break;
+                                    case "US": alert('Please enter the title.'); break;
+                                }
                                 return;
                             }
                             
@@ -4061,7 +4119,12 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                             const newTitle = changeBookmarkTitle.value.trim();
                             
                             if (!newTitle) {
-                                alert("제목을 입력해주세요.");
+                                switch (countryId) {
+                                    case "KR": alert('제목을 입력해주세요.'); break;
+                                    case "JP": alert('タイトルを入力してください。'); break;
+                                    case "CN": alert('请输入标题。'); break;
+                                    case "US": alert('Please enter the title.'); break;
+                                }
                                 return;
                             }
                             
@@ -4096,33 +4159,33 @@ async function getBookmarkList(is_place="", name=``, address=``) {
 
                 //기존 즐겨찾기 항목 버튼들 추가
                 data.bookmarks.forEach(bookmark => {
-                        const createLi = document.createElement('li');                            
-                        const milliseconds = new Date(bookmark['created_at']).getTime();
-                        const colorValue = milliseconds % 0xFFFFFF; 
-                        const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
-                        createLi.className = "bookmark_item";
-                        createLi.id = bookmark['id'];
-                        createLi.style.cursor = "pointer";
-                        innerHtml = `
-                            <div style="background-color: ${hexColor}">
-                                <span style="font-size: 17px; color: white;">★</span>
-                            </div>
-                            <p>${bookmark['title']}</p>
-                            <button>
-                                ${bookmarkID === bookmark['id'] 
-                                    ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
-                                    : '<span style="font-size: 27px; color: white;">+</span>'
-                                }
-                            </button>
-                        `;                            
-                        createLi.innerHTML = innerHtml;
-                        
-                        createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                        createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                        createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                        createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                        createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                        bookmarklistPanel.appendChild(createLi);
+                    const createLi = document.createElement('li');                            
+                    const milliseconds = new Date(bookmark['created_at']).getTime();
+                    const colorValue = milliseconds % 0xFFFFFF; 
+                    const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
+                    createLi.className = "bookmark_item";
+                    createLi.id = bookmark['id'];
+                    createLi.style.cursor = "pointer";
+                    innerHtml = `
+                        <div style="background-color: ${hexColor}">
+                            <span style="font-size: 17px; color: white;">★</span>
+                        </div>
+                        <p>${bookmark['title']}</p>
+                        <button>
+                            ${bookmarkID === bookmark['id'] 
+                                ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
+                                : '<span style="font-size: 27px; color: white;">+</span>'
+                            }
+                        </button>
+                    `;                            
+                    createLi.innerHTML = innerHtml;
+                    
+                    createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                    createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                    createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                    createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                    createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                    bookmarklistPanel.appendChild(createLi);
                 });
                 
                 //새 즐겨찾기 항목 만드는 버튼 추가                        
@@ -4145,8 +4208,18 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                             inputElem.id = "new-folder";
                             inputElem.type = "text";
                             inputElem.placeholder = "새 폴더 이름 입력 (Enter)";
-                            inputElem.style.width = "200px";
+                            // inputElem.style.width = "200px";
+                            // inputElem.style.marginBottom = "20px";
+
+                            inputElem.style.margin = "0px auto 10px";
                             inputElem.style.marginBottom = "20px";
+                            inputElem.style.background = "transparent";
+                            inputElem.style.color = "white";
+                            inputElem.style.outline = "none";
+                            inputElem.style.border = "1px solid";
+                            inputElem.style.fontSize = "20px";
+                            inputElem.style.maxWidth = "330px";
+                            inputElem.style.minWidth = "200px";
 
                             const plusElement = document.querySelector(".bookmarklist-panel ul");
                             plusElement.insertBefore(inputElem, add_bookmark_list_btn);
@@ -4207,7 +4280,12 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                                 createLi.innerHTML = innerHtml;
                                                 document.querySelector('.bookmarklist-panel ul').insertBefore(createLi, add_bookmark_list_btn);
                                             } else {
-                                                alert("생성 실패: " + (data.error || "알 수 없는 오류"));
+                                                switch (countryId) {
+                                                    case "KR": alert('즐겨찾기 아이템 생성 실패'); break;
+                                                    case "JP": alert('お気に入りアイテムの作成に失敗'); break;
+                                                    case "CN": alert('创建收藏夹失败'); break;
+                                                    case "US": alert('Failed to create favorite item'); break;
+                                                }
                                             }
                                         })
                                         .catch((err) => {
@@ -4244,7 +4322,12 @@ async function getBookmarkList(is_place="", name=``, address=``) {
         }
     }
     else {
-        alert("즐겨찾기에 저장할 데이터가 없습니다.");
+        switch (countryId) {
+            case "KR": alert('즐겨찾기에 저장할 데이터가 없습니다.'); break;
+            case "JP": alert('お気に入りに保存するデータがありません。'); break;
+            case "CN": alert('收藏夹中没有要保存的数据 。'); break;
+            case "US": alert('There is no data to save in your favorites.'); break;
+        }
     }
 }
 
@@ -4265,7 +4348,7 @@ async function deleteBookmarklist(row) {
             }
         }
         if (row.id.includes("sc")) {
-            payload.bookmarkschedule_id = row.bookmarkschedule_id;
+            payload.bookmarkschedule_id = row.id;
             if (row.id == getBookmarkListBtn.getAttribute("bookmarkschedule_id")) {
                 removeContent();
             }
@@ -4423,13 +4506,18 @@ function editPanelTitleNO() {
 }
 
 function removeContent(nopaneltitle=true) {
+    if (window.currentMarkers) {
+        window.currentMarkers.forEach(marker => marker.setMap(null));
+    }
+    window.currentMarkers = []; // 새로운 마커 배열 초기화
+
     const map_panel_content = document.querySelector(".map-panel-content");
     const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
     const panelTitle= document.getElementById("panel-title");
     const editPanelTitleBtn = document.getElementById("editPanelTitleBtn");
     const dayButtonContainer = document.getElementById("day-button-container");
     
-    if (getBookmarkListBtn) {
+    if (getBookmarkListBtn && nopaneltitle) {
         getBookmarkListBtn.classList.remove('place');
         getBookmarkListBtn.classList.remove('schedule');
         getBookmarkListBtn.setAttribute("bookmark_id", null);
@@ -4442,7 +4530,7 @@ function removeContent(nopaneltitle=true) {
         panelTitle.innerHTML = "";
     if (map_panel_content)
         map_panel_content.innerHTML = "";
-    if (editPanelTitleBtn)
+    if (editPanelTitleBtn && nopaneltitle)
         editPanelTitleBtn.style.display = "none";
     if (dayButtonContainer)
         dayButtonContainer.innerHTML = "";
