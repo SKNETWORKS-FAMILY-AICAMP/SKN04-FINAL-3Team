@@ -11,49 +11,72 @@ window.onload = function () {
 
     // 또는 모든 데이터 삭제
     // localStorage.clear();
-
-    // console.log("LocalStorage cleared or specific key removed.");
 };
 
 // (1) 지도 초기화 함수
 function initializeMap(markerData) {
     if (isMapInitialized) return;
-
+    
     const mapScript = document.createElement('script');
-    mapScript.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${ncpClientId}`;
+    let lang = "";
+    switch (countryId) {
+        case "KR":
+            lang = "ko";
+            break;
+        case "JP":
+            lang = "ja";
+            break;
+        case "CN":
+            lang = "zh";
+            break;
+        case "US":
+            lang = "en";
+            break;
+    }
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('lang')) {
+        lang = url.searchParams.get('lang');
+        url.searchParams.set('lang', null);
+    }
+    markerData = JSON.parse(url.searchParams.get('globalMarkerData'));
+    mapScript.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${ncpClientId}&language=${lang}`;
     mapScript.onload = function () {
         map = new naver.maps.Map('map', {
             center: new naver.maps.LatLng(37.5296, 126.9644), // 용산역 좌표
             zoom: 13,
+            language: lang,
         });
         isMapInitialized = true;
 
         // 마커 추가
+        let markerIndex = 0; // 마커 인덱스 초기화
         if (markerData) {
             markerData.forEach(data => {
+                const markerIconUrl = `/static/images/markers/marker${(markerIndex % 10) + 1}.png`;
                 const marker = new naver.maps.Marker({
                     position: data.position,
                     map: map,
                     title: data.title,
+                    // title: data.names[lang],
                     icon: {
-                        url: data.icon, // 커스텀 마커 이미지 URL
-                        size: new naver.maps.Size(36, 36), // 마커 크기
-                        origin: new naver.maps.Point(0, 0),
+                        content: `<img src="${markerIconUrl}" style="width:32px; height:36px;">`, // HTML 직접 사용
+                        // url: markerIconUrl,
+                        // size: new naver.maps.Size(36, 36), // 마커 크기
+                        // origin: new naver.maps.Point(0, 0),
                         anchor: new naver.maps.Point(18, 36), // 마커 위치 조정
                     },
                 });
 
-                // 정보창 생성
-                // var infoWindow = new naver.maps.InfoWindow({
-                //     content: `<div style="width:200px;text-align:center;padding:10px;">
-                //                 <h4>가맹점 정보</h4>
-                //                 <p>여기에 가맹점 정보를 표시합니다.</p>
-                //             </div>`
-                // });
+                markerIndex++;
 
-                // 마커 클릭 이벤트 (선택 사항)
+                // 마커 클릭 이벤트
                 naver.maps.Event.addListener(marker, 'click', function () {
-                    alert(`${data.title}입니다!`);
+                    switch (countryId) {
+                        case "KR": alert(`${data.title}입니다!`); break;
+                        case "JP": alert(`${data.title}です!`); break;
+                        case "CN": alert(`是${data.title}!`); break;
+                        case "US": alert(`This place is ${data.title}!`); break;
+                    }
                     // infoWindow.open(map, marker); // 마커 클릭 시 정보창 열기
                 });
             });
@@ -85,7 +108,6 @@ function toPartialUrl(spaPath) {
 
 // 현재 활성화된 nav-btn 표시 함수
 function highlightActiveLink(spaPath) {
-    console.log("highlightActiveLink");
     document.querySelectorAll('.nav-btn').forEach(btn => {
         const url = btn.getAttribute('data-url');
         if (!url) return;  // home-btn이 data-url이 없으므로 건너뜀
@@ -452,7 +474,6 @@ document.addEventListener("spaContentLoaded", async function () {
 
         if (plannerTitle) {
             plannerTitle.addEventListener("dblclick", function () {
-                console.log("123123");
                 changeTitle.value = plannerTitle.textContent;
                 changeTitle.style.display = "block"; // 입력창 표시
                 plannerTitle.style.display = "none"; // 기존 텍스트 숨김
@@ -523,7 +544,6 @@ document.addEventListener("spaContentLoaded", async function () {
             // URL에서 chat_id 추출
             const urlParams = new URLSearchParams(window.location.search);
             const chatId = urlParams.get("chat_id");
-            console.log("ChatID:", chatId);
 
             if (!chatId) {
                 // alert("삭제할 chat_id를 찾을 수 없습니다.");
@@ -947,8 +967,6 @@ document.addEventListener("spaContentLoaded", async function () {
                                         bookmarkPlaceItemDiv.removeChild(itemDiv);
 
                                         //DB에서도 해당 데이터 제거
-                                        console.log("bookmarkplace_id:", row.bookmark); //bm_00001
-                                        console.log("data:", row.id); 
                                         deleteBookmarklist(row);
                                     });
 
@@ -1020,14 +1038,12 @@ document.addEventListener("spaContentLoaded", async function () {
                                             if (data) {
                                                 const panelTitle = document.getElementById("panel-title");
                                                 panelTitle.textContent = row.name;
-                                                console.log("panelTitle:", panelTitle.textContent);
                                                 const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
                                                 getBookmarkListBtn.classList.remove("place");
                                                 getBookmarkListBtn.classList.add("schedule");
                                                 getBookmarkListBtn.setAttribute("bookmark_id", row.bookmark);
                                                 getBookmarkListBtn.setAttribute("bookmarkschedule_id", row.id);
                                                 const jsonData = data.json_data;
-                                                console.log("werewr:", jsonData);
                                                 if (typeof json_data === "string") {
                                                     jsonData = JSON.parse(data.json_data);
                                                 }    
@@ -1411,62 +1427,65 @@ document.addEventListener("spaContentLoaded", async function () {
         if (isLoading) return; // 로딩 중일 때 메시지 전송 방지
 
         const message = inputBar.value.trim(); // 사용자가 입력한 메시지
-        const urlParams = new URLSearchParams(window.location.search);
-        const chatId = urlParams.get("chat_id");
+        
         let chatHistory = "";
         if (message === "") return;
 
-        saveChatToDB(`<나>${message}`);
-        try {
-            const response = await fetch(`/app/partials/planner/get_chat/?chat_id=${chatId}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": getCSRFToken(),
-                },
-            });
-
-            const data = await response.json();
-            if (response.ok && data.success) {
-                chatHistory = data.content;
-                
-                // 로딩 상태로 설정
-                isLoading = true;
-                inputBar.disabled = true; // 입력창 비활성화
-
-                // 사용자의 메시지를 채팅창에 추가
-                const userMessage = document.createElement("div");
-                userMessage.className = "bubble right-bubble";
-                userMessage.innerHTML = message.replace(/\n/g, "<br>");
-                chatMessages.appendChild(userMessage);                
-
-                inputBar.value = ""; // 입력창 초기화
-
-                const loadingBubble = document.createElement("div");
-                loadingBubble.classList.add("bubble", "left-bubble", "loading-bubble");
-                loadingBubble.innerHTML = `
-                    <div class="loader">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                `;
-                chatMessages.appendChild(loadingBubble);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                if (activeAbortController) {
-                    activeAbortController.abort();
+        const result = await saveChatToDB(`<나>${message}`);
+        if (result) {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const chatId = urlParams.get("chat_id");    
+                const response = await fetch(`/app/partials/planner/get_chat/?chat_id=${chatId}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCSRFToken(),
+                    },
+                });
+    
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    chatHistory = data.content;
+                    
+                    // 로딩 상태로 설정
+                    isLoading = true;
+                    inputBar.disabled = true; // 입력창 비활성화
+    
+                    // 사용자의 메시지를 채팅창에 추가
+                    const userMessage = document.createElement("div");
+                    userMessage.className = "bubble right-bubble";
+                    userMessage.innerHTML = message.replace(/\n/g, "<br>");
+                    chatMessages.appendChild(userMessage);                
+    
+                    inputBar.value = ""; // 입력창 초기화
+    
+                    const loadingBubble = document.createElement("div");
+                    loadingBubble.classList.add("bubble", "left-bubble", "loading-bubble");
+                    loadingBubble.innerHTML = `
+                        <div class="loader">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    `;
+                    chatMessages.appendChild(loadingBubble);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+                    if (activeAbortController) {
+                        activeAbortController.abort();
+                    }
+                    // 새로운 AbortController 생성
+                    activeAbortController = new AbortController();
+                    const { signal } = activeAbortController;
+                    chatHistory = parse_chat_history(chatHistory);
+                    fetchGPTResponse(message, signal, chatHistory);
+                } else {
+                    console.error(`/app/partials/planner/get_chat/ 실패 chatId=${chatId}, response=${response}`);
                 }
-                // 새로운 AbortController 생성
-                activeAbortController = new AbortController();
-                const { signal } = activeAbortController;
-                chatHistory = parse_chat_history(chatHistory);
-                fetchGPTResponse(message, signal, chatHistory);
-            } else {
-                console.error(`/app/partials/planner/get_chat/ 실패 chatId=${chatId}, response=${response}`);
+            } catch {
+                console.error("/app/partials/planner/get_chat/ failed");
             }
-        } catch {
-            console.error("/app/partials/planner/get_chat/ failed");
         }
     }
 
@@ -1570,25 +1589,45 @@ document.addEventListener("spaContentLoaded", async function () {
                         .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
-                    const jsonData1 = parseScheduleJson_KR(formattedMessage);
-                    const jsonData2 = parseItineraryToJson_JP(formattedMessage);
-                    const jsonData3 = parseItineraryToJson_CN(formattedMessage);
-                    const jsonData4 = parseItineraryToJson_US(formattedMessage);
-                    const jsonData5 = parsePlaceJson_KR(formattedMessage);
-                    const jsonData6 = parsePlaceJson_JP(formattedMessage);
-                    const jsonData7 = parsePlaceJson_CN(formattedMessage);
-                    const jsonData8 = parsePlaceJson_US(formattedMessage);
-                    const jsonScheduleData = (jsonData1 || jsonData2 || jsonData3 || jsonData4);
-                    const jsonPlaceData = (jsonData5 || jsonData6 || jsonData7 || jsonData8);
-                    if (jsonScheduleData.length !== 0) {
-                        generateDayButtons(jsonScheduleData);
-                        generateDynamicPlanContent(jsonScheduleData);
-                        getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonScheduleData));
-                    }
-                    if (jsonPlaceData.length !== 0) {
-                        generatePlaceContent(jsonPlaceData);
-                        getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonPlaceData));
-                    }
+                        const jsonData1 = parseScheduleJson_KR(formattedMessage);
+                        const jsonData2 = parseItineraryToJson_JP(formattedMessage);
+                        const jsonData3 = parseItineraryToJson_CN(formattedMessage);
+                        const jsonData4 = parseItineraryToJson_US(formattedMessage);
+                        const jsonData5 = parsePlaceJson_KR(formattedMessage);
+                        const jsonData6 = parsePlaceJson_JP(formattedMessage);
+                        const jsonData7 = parsePlaceJson_CN(formattedMessage);
+                        const jsonData8 = parsePlaceJson_US(formattedMessage);
+    
+                        let jsonScheduleData = [];
+                        if (Array.isArray(jsonData1) && jsonData1.length > 0) {
+                            jsonScheduleData = jsonData1;
+                        } else if (Array.isArray(jsonData2) && jsonData2.length > 0) {
+                            jsonScheduleData = jsonData2;
+                        } else if (Array.isArray(jsonData3) && jsonData3.length > 0) {
+                            jsonScheduleData = jsonData3;
+                        } else if (Array.isArray(jsonData4) && jsonData4.length > 0) {
+                            jsonScheduleData = jsonData4;
+                        }
+    
+                        let jsonPlaceData = [];
+                        if (Array.isArray(jsonData5) && jsonData5.length > 0) {
+                            jsonPlaceData = jsonData5;
+                        } else if (Array.isArray(jsonData6) && jsonData6.length > 0) {
+                            jsonPlaceData = jsonData6;
+                        } else if (Array.isArray(jsonData7) && jsonData7.length > 0) {
+                            jsonPlaceData = jsonData7;
+                        } else if (Array.isArray(jsonData8) && jsonData8.length > 0) {
+                            jsonPlaceData = jsonData8;
+                        }
+                        if (jsonScheduleData.length !== 0) {
+                            generateDayButtons(jsonScheduleData);
+                            generateDynamicPlanContent(jsonScheduleData);
+                            getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonScheduleData));
+                        }
+                        else if (jsonPlaceData.length !== 0) {
+                            generatePlaceContent(jsonPlaceData);
+                            getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonPlaceData));
+                        }
                 }
             });
 
@@ -1636,13 +1675,13 @@ document.addEventListener("spaContentLoaded", async function () {
     }
 });
 
-function saveChatToDB(chatContent) {
+async function saveChatToDB(chatContent) {
     // 현재 URL에서 chat_id 추출
     localStorage.removeItem('chatMessage');
     const urlParams = new URLSearchParams(window.location.search);
     const chatId = urlParams.get("chat_id");
 
-    fetch("/app/partials/planner/save_chat/", {
+    return fetch("/app/partials/planner/save_chat/", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -1657,6 +1696,7 @@ function saveChatToDB(chatContent) {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
+
         return response.json();
     })
     .then(data => {
@@ -1686,6 +1726,8 @@ function saveChatToDB(chatContent) {
                     console.error("chat-container element not found.");
                 }
             }
+
+            return null;
         } 
         else {
             if (data.chatting_id) {
@@ -1695,6 +1737,8 @@ function saveChatToDB(chatContent) {
                 newUrl.searchParams.set("chat_id", data.chatting_id); 
                 window.history.replaceState(null, "", newUrl.toString());
                 lastLoadedPath = newUrl.toString();
+                
+                return data.chatting_id;
             }
             if (data.new_chat_id) {
                 console.log("chat id:", data.chatting_id, "New Chat ID:", data.message || "Success", chatContent);
@@ -1704,11 +1748,14 @@ function saveChatToDB(chatContent) {
                 newUrl.searchParams.set("chat_id", newChatId);
                 window.history.replaceState(null, "", newUrl.toString());
                 lastLoadedPath = newUrl.toString();
+
+                return newChatId;
             }
         }
     })
     .catch(error => {
         console.error("Error saving chat to DB:", error);
+        return null;
     });
 }
 
@@ -1815,8 +1862,28 @@ function parseAndDisplayChatContent(chatContent) {
                     const jsonData6 = parsePlaceJson_JP(formattedMessage);
                     const jsonData7 = parsePlaceJson_CN(formattedMessage);
                     const jsonData8 = parsePlaceJson_US(formattedMessage);
-                    const jsonScheduleData = (jsonData1 || jsonData2 || jsonData3 || jsonData4);
-                    const jsonPlaceData = (jsonData5 || jsonData6 || jsonData7 || jsonData8);
+
+                    let jsonScheduleData = [];
+                    if (Array.isArray(jsonData1) && jsonData1.length > 0) {
+                        jsonScheduleData = jsonData1;
+                    } else if (Array.isArray(jsonData2) && jsonData2.length > 0) {
+                        jsonScheduleData = jsonData2;
+                    } else if (Array.isArray(jsonData3) && jsonData3.length > 0) {
+                        jsonScheduleData = jsonData3;
+                    } else if (Array.isArray(jsonData4) && jsonData4.length > 0) {
+                        jsonScheduleData = jsonData4;
+                    }
+
+                    let jsonPlaceData = [];
+                    if (jsonData5) {
+                        jsonPlaceData = jsonData5;
+                    } else if (jsonData6) {
+                        jsonPlaceData = jsonData6;
+                    } else if (jsonData7) {
+                        jsonPlaceData = jsonData7;
+                    } else if (jsonData8) {
+                        jsonPlaceData = jsonData8;
+                    }
                     if (jsonScheduleData.length !== 0) {
                         generateDayButtons(jsonScheduleData);
                         generateDynamicPlanContent(jsonScheduleData);
@@ -2103,7 +2170,6 @@ function parseItineraryToJson_CN(text) {
         // dayMatch 처리
         const dayMatch = trimmedLine.match(/^\- \*\*第(\d+)天\*\*/);
         if (dayMatch) {
-            console.log("dayMatch:", dayMatch[1]);
             currentDay = {
                 day: parseInt(dayMatch[1]),
                 meals: {}
@@ -2113,7 +2179,6 @@ function parseItineraryToJson_CN(text) {
 
         const mealMatch = trimmedLine.match(/^\- \*\*(早晨|中午|晚上)\*\*/);
         if (mealMatch) {
-            console.log("mealMatch:", mealMatch[1]);
             currentMeal = mealMatch[1];
             if (currentDay && !currentDay.meals[currentMeal]) {
                 currentDay.meals[currentMeal] = {
@@ -3265,15 +3330,14 @@ async function generatePlaceContent(jsonData) {
         console.error('map-panel-content 요소를 찾을 수 없습니다.');
         return;
     }
-
     if (panelTitle) {
-        if (countryId == "KR" && jsonData["장소"]) {
+        if (jsonData["장소"]) {
             panelTitle.textContent = jsonData["장소"];
-        } else if (countryId == "JP" && jsonData["場所"]) {
+        } else if (jsonData["場所"]) {
             panelTitle.textContent = jsonData["場所"];
-        } else if (countryId == "CN" && jsonData["地点"]) {
+        } else if (jsonData["地点"]) {
             panelTitle.textContent = jsonData["地点"];
-        } else if (countryId == "US" && jsonData["Place"]) {
+        } else if (jsonData["Place"]) {
             panelTitle.textContent = jsonData["Place"];
         }
     }
@@ -3300,24 +3364,27 @@ async function generatePlaceContent(jsonData) {
         const nameParagraph = document.createElement("p");
         const nameStrong = document.createElement("strong");
         
+        nameParagraph.appendChild(nameStrong);
         if (countryId == "KR") {
             nameStrong.textContent = "이름: "; 
-            nameParagraph.appendChild(nameStrong);   
-            nameParagraph.innerHTML += jsonData["장소"];
-            placeName = jsonData["장소"];
         } else if (countryId == "JP") {
             nameStrong.textContent = "名: ";
-            nameParagraph.appendChild(nameStrong);
-            nameParagraph.innerHTML += jsonData["場所"];
-            placeName = jsonData["場所"];
         } else if (countryId == "CN") {
             nameStrong.textContent = "名字: ";
-            nameParagraph.appendChild(nameStrong);
-            nameParagraph.innerHTML += jsonData["地点"];
-            placeName = jsonData["地点"];
         } else if (countryId == "US") {
             nameStrong.textContent = "Name: ";
-            nameParagraph.appendChild(nameStrong);
+        }
+
+        if (jsonData["장소"]) {
+            nameParagraph.innerHTML += jsonData["장소"];
+            placeName = jsonData["장소"];
+        } else if (jsonData["場所"]) {
+            nameParagraph.innerHTML += jsonData["場所"];
+            placeName = jsonData["場所"];
+        } else if (jsonData["地点"]) {
+            nameParagraph.innerHTML += jsonData["地点"];
+            placeName = jsonData["地点"];
+        } else if (jsonData["Place"]) {
             nameParagraph.innerHTML += jsonData["Place"];
             placeName = jsonData["Place"];
         }
@@ -3326,24 +3393,28 @@ async function generatePlaceContent(jsonData) {
         // <p><strong>주소:</strong> 서울특별시 용산구 청파로 74</p>
         const addressParagraph = document.createElement("p");
         const addressStrong = document.createElement("strong");
+
+        addressParagraph.appendChild(addressStrong);
         if (countryId == "KR") {
             addressStrong.textContent = "주소: ";
-            addressParagraph.appendChild(addressStrong);
-            addressParagraph.innerHTML += jsonData["주소"];
-            placeAddress = jsonData["주소"];
         } else if (countryId == "JP") {
             addressStrong.textContent = "住所: "; 
-            addressParagraph.appendChild(addressStrong);           
-            addressParagraph.innerHTML += jsonData["住所"];
-            placeAddress = jsonData["住所"];
         } else if (countryId == "CN") {
             addressStrong.textContent = "地址: ";
-            addressParagraph.appendChild(addressStrong);
+        } else if (countryId == "US") {
+            addressStrong.textContent = "Address: ";            
+        }        
+
+        if (jsonData["주소"]) {
+            addressParagraph.innerHTML += jsonData["주소"];
+            placeAddress = jsonData["주소"];
+        } else if (jsonData["住所"]) {
+            addressParagraph.innerHTML += jsonData["住所"];
+            placeAddress = jsonData["住所"];
+        } else if (jsonData["地址"]) {
             addressParagraph.innerHTML += jsonData["地址"];
             placeAddress = jsonData["地址"];
-        } else if (countryId == "US") {
-            addressStrong.textContent = "Address: ";
-            addressParagraph.appendChild(addressStrong);
+        } else if (jsonData["Address"]) {
             addressParagraph.innerHTML += jsonData["Address"];
             placeAddress = jsonData["Address"];
         }        
@@ -3352,27 +3423,31 @@ async function generatePlaceContent(jsonData) {
         // <p><strong>설명:</strong> 설명이 없습니다.</p>
         const descriptionParagraph = document.createElement("p");
         const descriptionStrong = document.createElement("strong");
+
+        descriptionParagraph.appendChild(descriptionStrong);
         if (countryId == "KR") {
             descriptionStrong.textContent = "정보: ";
-            descriptionParagraph.appendChild(descriptionStrong);
-            descriptionParagraph.innerHTML += jsonData["정보"];
-            placeDetails = jsonData["정보"];
         } else if (countryId == "JP") {
             descriptionStrong.textContent = "詳細: ";
-            descriptionParagraph.appendChild(descriptionStrong);
-            descriptionParagraph.innerHTML += jsonData["詳細"];
-            placeDetails = jsonData["詳細"];
         } else if (countryId == "CN") {
             descriptionStrong.textContent = "详情: ";
-            descriptionParagraph.appendChild(descriptionStrong);
-            descriptionParagraph.innerHTML += jsonData["详情"];
-            placeDetails = jsonData["详情"];
         } else if (countryId == "US") {
             descriptionStrong.textContent = "Details: ";
-            descriptionParagraph.appendChild(descriptionStrong);
+        }        
+
+        if (jsonData["정보"]) {
+            descriptionParagraph.innerHTML += jsonData["정보"];
+            placeDetails = jsonData["정보"];
+        } else if (jsonData["詳細"]) {
+            descriptionParagraph.innerHTML += jsonData["詳細"];
+            placeDetails = jsonData["詳細"];
+        } else if (jsonData["详情"]) {
+            descriptionParagraph.innerHTML += jsonData["详情"];
+            placeDetails = jsonData["详情"];
+        } else if (jsonData["Details"]) {
             descriptionParagraph.innerHTML += jsonData["Details"];
             placeDetails = jsonData["Details"];
-        }        
+        }
         section.appendChild(descriptionParagraph);
 
         return section;
@@ -3709,7 +3784,16 @@ function generateDayButtons(jsonData, renderDayContentCallback) {
     let firstButton = null;
     jsonData.forEach((day, index) => {
         const dayButton = document.createElement('button');
-        dayButton.textContent = `${day.day}일차`;
+        switch (countryId) {
+            case "KR":
+                dayButton.textContent = `${day.day}일차`; break;
+            case "JP":
+                dayButton.textContent = `${day.day}日目`; break;
+            case "CN":
+                dayButton.textContent = `第${day.day}天`; break;
+            case "US":
+                dayButton.textContent = `Day${day.day}`; break;
+        }
         dayButton.style.padding = '8px 16px';
         dayButton.style.border = 'none';
         dayButton.style.borderRadius = '20px';
@@ -3749,6 +3833,37 @@ function addMarkersToMap(markerData) {
         console.error("Map is not initialized yet!");
         return;
     }
+
+    // switch (countryId) {
+    //     case "KR":
+    //         lang = "ko";
+    //         break;
+    //     case "JP":
+    //         lang = "ja";
+    //         break;
+    //     case "CN":
+    //         lang = "zh-CN";
+    //         break;
+    //     case "US":
+    //         lang = "en";
+    //         break;
+    // }
+    // map.setOptions({
+    //     language: lang,
+    // });
+
+    // setTimeout(() => {
+    //     const center = map.getCenter(); // 현재 지도 중심 저장
+    //     const zoom = map.getZoom(); // 현재 줌 레벨 저장
+
+    //     map = new naver.maps.Map("map", { // 지도 다시 생성
+    //         center: center,
+    //         zoom: zoom,
+    //         language: lang,
+    //     });
+
+    //     console.log(`Map language force-updated to: ${lang}`);
+    // }, 500);
     
     // 기존 마커 제거
     if (window.currentMarkers) {
@@ -3762,16 +3877,17 @@ function addMarkersToMap(markerData) {
     }
     window.currentPolylines = []; // 새로운 선 배열 초기화
 
+    window.markerData = markerData;
+
     // 새 마커 추가
     let markerIndex = 0; // 마커 인덱스 초기화
-    console.log("markerData:", markerData);
     markerData.forEach(data => {
         const markerIconUrl = `/static/images/markers/marker${(markerIndex % 10) + 1}.png`;
-        console.log(markerIconUrl);
         const marker = new naver.maps.Marker({
             position: data.position,
             map: map,
             title: data.title,
+            // title: data.names[lang],
             icon: {
                 content: `<img src="${markerIconUrl}" style="width:32px; height:36px;">`, // HTML 직접 사용
                 // url: markerIconUrl,
@@ -3783,10 +3899,15 @@ function addMarkersToMap(markerData) {
 
         markerIndex++;
 
-        // 마커 클릭 이벤트 (선택 사항)
+        // 마커 클릭 이벤트
         naver.maps.Event.addListener(marker, 'click', function () {
-            alert(`${data.title}입니다!`);
-            //infoWindow.open(map, marker); // 마커 클릭 시 정보창 열기
+            switch (countryId) {
+                case "KR": alert(`${data.title}입니다!`); break;
+                case "JP": alert(`${data.title}です!`); break;
+                case "CN": alert(`是${data.title}!`); break;
+                case "US": alert(`This place is ${data.title}!`); break;
+            }
+            // infoWindow.open(map, marker); // 마커 클릭 시 정보창 열기
         });
 
         // 현재 마커를 전역 배열에 저장
@@ -3808,7 +3929,7 @@ function addMarkersToMap(markerData) {
             window.currentPolylines.push(polyline);
         }
     }
-
+    
     // 지도 범위를 업데이트
     if (markerData.length > 0) {
         const bounds = new naver.maps.LatLngBounds();
@@ -3900,7 +4021,6 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                         changeBookmarkTitle.value = title.textContent;
                         changeBookmarkTitle.style.display = "block"; // 입력창 표시
                         title.style.display = "none"; // 기존 텍스트 숨김
-                        console.log("title.textContent:", title.textContent);
                         changeBookmarkTitle.focus();
                     });
 
@@ -4085,7 +4205,6 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                                     </button>
                                                 `;                            
                                                 createLi.innerHTML = innerHtml;
-                                                console.log("whia:", document.querySelector('.bookmarklist-panel ul'));
                                                 document.querySelector('.bookmarklist-panel ul').insertBefore(createLi, add_bookmark_list_btn);
                                             } else {
                                                 alert("생성 실패: " + (data.error || "알 수 없는 오류"));
@@ -4277,8 +4396,6 @@ async function editPanelTitleOK() {
         if (result.success) {
             console.log("일정 즐겨찾기 항목 제목 업데이트 완료");
             scheduleItems.forEach(item => {
-                // console.log("p1:", item.querySelector('p').innerText.split("이름:")[1].trim());
-                // console.log("p2:", oldName.trim());
                 if (item.querySelector('p').innerText.split("이름:")[1].trim() === oldName.trim()) {
                     item.querySelector('p').innerText = "이름:" + editTitle.value.trim();
                 }
@@ -4346,12 +4463,10 @@ function toggleMapPanel() {
         // 터미널 확장
         mapPanel.style.height = `${maxHeight}px`;
         toggleUIBtn.textContent = "⮟";
-        console.log("UI restored");
     } else {
         // 터미널 축소
         mapPanel.style.height = `${minHeight}px`;
         toggleUIBtn.textContent = "⮝";
-        console.log("UI hidden");
     }
 
     // 버튼 컨테이너 위치 업데이트
@@ -4397,6 +4512,8 @@ function updateLanguage(selectedCountryId) {
     const label_bookmarks = document.querySelector("#label_bookmarks");
     const label_settings = document.querySelector("#label_settings");
     const label_profile = document.querySelector("#label_profile");
+
+    const dayButtonContainer = document.querySelectorAll("#day-button-container button");
 
     // 각 country_id에 따른 텍스트 맵핑
     const translations_for_settings_page = [
@@ -4498,4 +4615,23 @@ function updateLanguage(selectedCountryId) {
     label_bookmarks.textContent = translations_for_spa_page[3][selectedCountryId] || "Bookmarks";
     label_settings.textContent = translations_for_spa_page[4][selectedCountryId] || "Settings";
     label_profile.textContent = translations_for_spa_page[5][selectedCountryId] || "Profile";
+
+    countryId = selectedCountryId;
+
+    dayButtonContainer.forEach(button => {
+        switch (countryId) {            
+            case "KR": 
+                button.textContent = button.textContent.replace("日目", "").replace("第", "").replace("天", "").replace("Day", "") + "일차"; 
+                break;
+            case "JP": 
+                button.textContent = button.textContent.replace("일차", "").replace("第", "").replace("天", "").replace("Day", "") + "日目"; 
+                break;
+            case "CN": 
+                button.textContent = "第" + button.textContent.replace("일차", "").replace("日目", "").replace("Day", "") + "天"; 
+                break;
+            case "US": 
+                button.textContent = "Day" + button.textContent.replace("일차", "").replace("日目", "").replace("第", "").replace("天", "");
+                break;
+        }
+    });
 }

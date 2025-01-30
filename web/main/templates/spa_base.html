@@ -119,7 +119,7 @@
         const isLoggedIn = {{ user.is_authenticated|yesno:"true,false" }};
         const ncpClientId = "{{ ncp_client_id|default:'' }}";
         const ncpClientSecret = "{{ ncp_client_secret|default:'' }}";
-        const countryId = "{{ settings.country_id|default:'US' }}";
+        let countryId = "{{ settings.country_id|default:'US' }}";
     </script>
     <script src="{% static 'js/spa_base.js' %}" defer></script>
 </body>
