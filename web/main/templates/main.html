@@ -89,12 +89,24 @@
             <!-- 텍스트 입력란 -->
             <textarea 
                 class="input-box" 
-                placeholder="일정을 만들거나 장소를 검색해 보세요"
+                placeholder="{% if settings.country_id == 'US' %}Search for a place or create a schedule{% 
+                                elif settings.country_id == 'KR' %}일정을 만들거나 장소를 검색해 보세요{% 
+                                elif settings.country_id == 'JP' %}スケジュールを作成するか、場所を検索してください{% 
+                                elif settings.country_id == 'CN' %}创建日程或搜索地点{% 
+                                else %}Search for a place or create a schedule{% endif %}"
                 rows="2"
                 maxlength="2000"
             ></textarea>
             <!-- 검은색 버튼 -->
             <button class="send-button" onclick="goToEnterPage()">🔍</button>
+        </div>
+        <!-- 추가된 문구 -->
+        <div class="research-helper">
+            {% if settings.country_id == "US" %}Search example: Can you make a schedule for 2 nights and 3 days in Yongsan-gu, \nJung-gu, Jongno-gu, and Gangnam-gu?
+            {% elif settings.country_id == "KR" %}검색 예제: 용산구/중구/종로구/강남구의 2박 3일동안 일정을 만들어줘.
+            {% elif settings.country_id == "JP" %}検索例: 龍山区/中区/鍾路区/江南区の2泊3日の日程を作ってくれる？
+            {% elif settings.country_id == "CN" %}搜索示例: 龙山区/中区/钟路区/江南区能帮我安排3天2夜的日程吗？
+            {% endif %}            
         </div>
     </div>
 
@@ -111,6 +123,7 @@
             const popup = document.getElementById('profilePopup');
             const navicon = document.getElementById('nav-icon');
             const profileLink = document.getElementById('profileLink');
+            updateLanguage(countryId);
 
             if (navicon) {
                 navicon.addEventListener('click', function(e) {
@@ -243,6 +256,8 @@
         function updateLanguage(selectedCountryId) {
             const profilePopups = document.querySelectorAll("#profilePopup li a");
             const profileLink = document.querySelector("#profileLink");
+            const researchHelper = document.querySelector(".research-helper");
+            const inputBox = document.querySelector(".input-box");
 
             const translations_for_sign_in = {
                 US: "Sign In",
@@ -278,6 +293,20 @@
                 },
             ];
 
+            const translations_for_search_helper = {
+                US: "Search example: Can you make a schedule for 2 nights and 3 days in Yongsan-gu, \n Jung-gu, Jongno-gu, and Gangnam-gu?",
+                KR: "검색 예제: 용산구/중구/종로구/강남구의 2박 3일동안 일정을 만들어줘.",
+                JP: "検索例: 龍山区/中区/鍾路区/江南区の2泊3日の日程を作ってくれる？",
+                CN: "搜索示例: 龙山区/中区/钟路区/江南区能帮我安排3天2夜的日程吗？",
+            }
+
+            const translations_for_placeholder = {
+                US: "Search for a place or create a schedule",
+                KR: "일정을 만들거나 장소를 검색해 보세요",
+                JP: "スケジュールを作成するか、場所を検索してください",
+                CN: "创建日程或搜索地点",
+            }
+
             // 새로 선택된 언어에 따른 텍스트로 업데이트
             if (name) {
                 profileLink.textContent = name;
@@ -288,6 +317,12 @@
             profilePopups.forEach((popup, index) => {
                 popup.textContent = translations_for_popups[index][selectedCountryId];
             });
+
+            console.log("researchHelper:", researchHelper);
+            researchHelper.textContent = translations_for_search_helper[selectedCountryId];
+            researchHelper.style.marginTop = "20px";
+                        
+            inputBox.placeholder = translations_for_placeholder[selectedCountryId];
         }
     </script>
 </body>
