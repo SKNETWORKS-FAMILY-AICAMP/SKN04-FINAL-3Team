@@ -3423,6 +3423,7 @@ async function generatePlaceContent(jsonData) {
 
         // <h3>장소 정보</h3>
         const heading = document.createElement("h3");
+        console.log("countryId:", countryId);
         if (countryId == "KR" ) {
             heading.textContent = "장소 정보";
         } else if (countryId == "JP") {
@@ -4496,6 +4497,11 @@ function editPanelTitleNO() {
 }
 
 function removeContent(nopaneltitle=true) {
+    if (window.currentMarkers) {
+        window.currentMarkers.forEach(marker => marker.setMap(null));
+    }
+    window.currentMarkers = []; // 새로운 마커 배열 초기화
+
     const map_panel_content = document.querySelector(".map-panel-content");
     const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
     const panelTitle= document.getElementById("panel-title");

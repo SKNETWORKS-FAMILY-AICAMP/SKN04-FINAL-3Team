@@ -129,6 +129,7 @@
             const genderMap = { male: 1, female: 2, other: 0 };
             const genderValue = document.querySelector('input[name="sex"]:checked').value;
             const gender = genderMap[genderValue] ?? 0;
+            let countryId = "{{ country.country_name }}";
 
             const formData = {
                 username: usernameField.value,
@@ -151,10 +152,10 @@
                 .then(data => {
                     if (data.success) {
                         switch (countryId) {
-                            case "KR": alert('성공적으로 가입되었습니다! 로그인해 주세요.'); break;
-                            case "JP": alert('登録に成功しました！ ログインしてください。'); break;
-                            case "CN": alert('您成功注册了 ！ 请登录。'); break;
-                            case "US": alert('You have successfully signed up! Please sign in.'); break;
+                            case "한국어": alert('성공적으로 가입되었습니다! 로그인해 주세요.'); break;
+                            case "日本語": alert('登録に成功しました！ ログインしてください。'); break;
+                            case "简体字": alert('您成功注册了 ！ 请登录。'); break;
+                            case "English": alert('You have successfully signed up! Please sign in.'); break;
                         }
                         window.location.href = "{% url 'login' %}";
                     } else {
