@@ -13,8 +13,6 @@ prompt_error_handle = PromptTemplate(
         - Sorry. The language you entered is not supported. For languages, 'Korean', 'English', 'Japanese', and 'Chinese' are supported.
                     If this problem repeats even if you speak a supported language, please contact us: ggoonngg1122345@gmail.com
 
-        # 출력 언어 : '{question}' 언어
-
         **지역 에러**
 
         - 질문에서 지역을 추출하지 못했습니다. 
@@ -25,12 +23,14 @@ prompt_error_handle = PromptTemplate(
         **일자 에러**
 
         - 질문에서 여행 기간를 추출하지 못했습니다. 
-           질문에 '종로구에 3일동안 여행 할거야' 같이 여행 기간을 넣어서 구체적으로 질문 해보세요! 상황이 반복되면 문의 바랍니다. Email : ggoonngg1122345@gmail.com
+           질문에 '3일동안 여행 할거야' 같이 여행 기간을 넣어서 구체적으로 질문 해보세요! 상황이 반복되면 문의 바랍니다. Email : ggoonngg1122345@gmail.com
 
         # 출력 언어 : {language}
 
         **추가 사항**
             - 여러 에러가 발생하면, 발생된 에러의 문구를 잘 다듬어서 합쳐서 출력해줘.
+            - 지역 에러, 일자 에러는 {language} 언어로 출력해줘.
+            - 언어 판별 에러는 '한국어', '영어, '일본어', '중국어' 로 각각 출력해줘.
 
         # 지역 에러 상태: {state_location}
 
