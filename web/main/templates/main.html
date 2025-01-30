@@ -104,6 +104,7 @@
         // 템플릿 필터 yesno:"true,false"를 사용해 JS에서 쓸 수 있도록 변환
         const isLoggedIn = {{ user.is_authenticated|yesno:"true,false" }};
         const name = `{{ user.username }}`;
+        let countryId = "{{ settings.country_id|default:'US' }}";
 
         // (B) "My Profile" 클릭 시 처리
         document.addEventListener('DOMContentLoaded', function() {
@@ -160,7 +161,12 @@
             const userInput = inputBox.value.trim();
 
             if (userInput === "") {
-                alert("내용을 입력해주세요!");
+                switch (countryId) {
+                    case "KR": alert('내용을 입력해주세요.'); break;
+                    case "JP": alert('内容を入力してください。'); break;
+                    case "CN": alert('请输入内容。'); break;
+                    case "US": alert('Please enter the contents.'); break;
+                }
                 return;
             }
 
@@ -187,11 +193,15 @@
                         window.location.href = `/app/planner/?chat_id=${encodeURIComponent(data.chat_id)}`;
                     } else {
                         console.error("Failed to get chat_id:", data.error || "Unknown error");
-                        alert("chat_id를 가져오는 데 실패했습니다.");
+                        switch (countryId) {
+                            case "KR": alert('chat_id를 가져오는 데 실패했습니다.'); break;
+                            case "JP": alert('chat_idの取得に失敗しました。'); break;
+                            case "CN": alert('获取 chat_id 失败 。'); break;
+                            case "US": alert('Failed to get chat_id.'); break;
+                        }
                     }
                 } catch (error) {
                     console.error("Error fetching chat_id:", error);
-                    alert("chat_id를 가져오는 도중 오류가 발생했습니다.");
                 }
             } else {
                 // 비로그인 사용자일 경우

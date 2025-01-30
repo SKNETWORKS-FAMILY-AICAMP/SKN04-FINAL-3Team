@@ -150,7 +150,12 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert("Sign up successful! Please sign in.");
+                        switch (countryId) {
+                            case "KR": alert('성공적으로 가입되었습니다! 로그인해 주세요.'); break;
+                            case "JP": alert('登録に成功しました！ ログインしてください。'); break;
+                            case "CN": alert('您成功注册了 ！ 请登录。'); break;
+                            case "US": alert('You have successfully signed up! Please sign in.'); break;
+                        }
                         window.location.href = "{% url 'login' %}";
                     } else {
                         alertDiv.textContent = data.error || "Sign up failed!";
