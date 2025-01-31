@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/signup.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head> 
+<body>
+    <div class="signup-container-wrapper">
+        <div class="signup-container">
+            <h2 id="label_SignUp">Sign Up</h2>
+            <form id="signup-form" onsubmit="submitSignup(event)">
+                <div class="form-group">
+                    <label for="username">ID</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your ID" maxlength="20" required>
+                </div>
+                <div class="form-group">
+                    <label for="password" id="label_password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" maxlength="20" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password" id="label_confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" maxlength="20" required>
+                </div>
+                <!-- <div class="form-group">
+                    <label for="nickname">Nickname</label>
+                    <input type="text" id="nickname" name="nickname" placeholder="Enter your nickname" maxlength="10" required>
+                </div> -->
+                <div class="form-group">
+                    <label for="birthday" id="label_birthday">Birthday</label>
+                    <input type="text" id="birthday" name="birthday" placeholder="YYYY-MM-DD" required>
+                </div>
+                <div class="form-group">
+                    <label for="nationality" id="label_nationality">Nationality</label>
+                    <select id="nationality" name="nationality" required>
+                        <option value="" disabled selected>-------------------------------------------------------------------------------------</option>
+                        {% for country in countries %}
+                            <option value="{{ country.country_id }}">{{ country.country_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>   
+                <div class="form-group">
+                    <label for="sex" id="label_gender">Gender</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="sex" value="male" required><div id="label_male">Male</div></input>
+                        </label>
+                        <label>
+                            <input type="radio" name="sex" value="female"><div id="label_female">Female</div></input>
+                        </label>
+                        <label>
+                            <input type="radio" name="sex" value="other"><div id="label_other">Other</div></input>
+                        </label>
+                    </div>
+                </div>           
+                <div class="alert" style="width: 100%; margin-bottom: 15px; padding-left: 5px; color: red;"></div>
+                <div class="form-group">
+                    <button type="submit" id="label_signup">Sign Up</button>
+                </div>
+            </form>
+            <p><span id="label_account">Already have an account?</span> <a href="../login" id="label_login">Log In</a></p>
+
+            <!-- 언어 선택 -->
+            <div class="language-select">
+                <label id="label_language" for="language"></label>
+                <select id="language" onchange="updateLanguage(this.value)">
+                    {% for country in countries %}
+                        <option value="{{ country.language }}">{{ country.language }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script>
+        // flatpickr 기본 설정
+        const birthdayPicker = flatpickr("#birthday", {
+            dateFormat: "Y-m-d",
+            maxDate: "today",
+        });
+    
+        // 언어 매핑
+        const languageMap = {
+            US: "default", // 영어
+            KR: "ko",      // 한국어
+            JP: "ja",      // 일본어
+            CN: "zh",      // 중국어
+            ES: "es",      // 스페인어 (예시로 추가)
+        };
+    
+        // 언어 변경 이벤트 처리
+        document.getElementById("language").addEventListener("change", function () {
+            const selectedLanguage = this.value; // 선택된 언어 코드
+            const locale = languageMap[selectedLanguage] || "default";
+            birthdayPicker.set("locale", locale); // flatpickr 언어 설정
+        });
+
+        function submitSignup(event) {
+            event.preventDefault();
+
+            const usernameField = document.getElementById("username");
+            const passwordField = document.getElementById("password");
+            const confirmPasswordField = document.getElementById("confirm-password");
+            const alertDiv = document.querySelector(".alert");
+
+            // 비밀번호와 비밀번호 확인 검증
+            if (passwordField.value !== confirmPasswordField.value) {
+                alertDiv.textContent = "Passwords do not match!";
+                alertDiv.style.visibility = "visible";
+                passwordField.focus();
+                passwordField.style.border = "2px solid red";
+                confirmPasswordField.style.border = "2px solid red";
+                return;
+            } else {
+                alertDiv.style.visibility = "hidden";
+                passwordField.style.border = "";
+                confirmPasswordField.style.border = "";
+            }
+
+            // 라디오 버튼 값 변환 (male -> 1, female -> 2, other -> 0)
+            const genderMap = { male: 1, female: 2, other: 0 };
+            const genderValue = document.querySelector('input[name="sex"]:checked').value;
+            const gender = genderMap[genderValue] ?? 0;
+            let countryId = "{{ country.country_name }}";
+
+            const formData = {
+                username: usernameField.value,
+                password: passwordField.value,
+                confirm_password: confirmPasswordField.value,
+                nationality: document.getElementById("nationality").value,
+                birthday: document.getElementById("birthday").value,
+                gender: gender,
+            };
+
+            fetch("{% url 'signup_process' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+                body: JSON.stringify(formData),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        switch (countryId) {
+                            case "한국어": alert('성공적으로 가입되었습니다! 로그인해 주세요.'); break;
+                            case "日本語": alert('登録に成功しました！ ログインしてください。'); break;
+                            case "简体字": alert('您成功注册了 ！ 请登录。'); break;
+                            case "English": alert('You have successfully signed up! Please sign in.'); break;
+                        }
+                        window.location.href = "{% url 'login' %}";
+                    } else {
+                        alertDiv.textContent = data.error || "Sign up failed!";
+                        alertDiv.style.visibility = "visible";
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== "") {
+                const cookies = document.cookie.split(";");
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === name + "=") {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function updateLanguage(selectedCountryId) {
+            const username = document.querySelector("#username");
+            const password = document.querySelector("#password");
+            const confirmPassword = document.querySelector("#confirm-password");
+
+            const label_password = document.querySelector("#label_password");
+            const label_confirm_password = document.querySelector("#label_confirm_password");
+            const label_birthday = document.querySelector("#label_birthday");
+            const label_nationality = document.querySelector("#label_nationality");
+
+            const label_gender = document.querySelector("#label_gender");
+            const label_male = document.querySelector("#label_male");
+            const label_female = document.querySelector("#label_female");
+            const label_other = document.querySelector("#label_other");
+
+            const label_account = document.querySelector("#label_account");
+            const label_SignUp = document.querySelector("#label_SignUp");
+            const label_signup = document.querySelector("#label_signup");
+            const label_login = document.querySelector("#label_login");
+
+            const translations_for_signup = [
+                {
+                    English: "Sign Up",
+                    한국어: "회원가입",
+                    日本語: "会員登録",
+                    汉文: "加入会员",
+                },
+                {
+                    English: "Password",
+                    한국어: "비밀번호",
+                    日本語: "パスワード",
+                    汉文: "密码",
+                },
+                {
+                    English: "Confirm Password",
+                    한국어: "또는",
+                    日本語: "パスワード 確認",
+                    汉文: "验证密码",
+                },
+                {
+                    English: "Birthday",
+                    한국어: "생년월일",
+                    日本語: "生年月日",
+                    汉文: "出生日期",
+                },
+                {
+                    English: "Nationality",
+                    한국어: "국적",
+                    日本語: "国籍",
+                    汉文: "国籍",
+                },
+                {
+                    English: "Gender",
+                    한국어: "성별",
+                    日本語: "性別",
+                    汉文: "性别",
+                },
+                {
+                    English: "Male",
+                    한국어: "남성",
+                    日本語: "男",
+                    汉文: "男性",
+                },
+                {
+                    English: "Female",
+                    한국어: "여성",
+                    日本語: "女",
+                    汉文: "女性",
+                },  
+                {
+                    English: "Other",
+                    한국어: "기타",
+                    日本語: "その他",
+                    汉文: "等等",
+                },
+                {
+                    English: "Already have an account?",
+                    한국어: "계정이 있습니까?",
+                    日本語: "すでにアカウントをお持ちですか?",
+                    汉文: "已经有帐户？",
+                },                
+                {
+                    English: "Log In",
+                    한국어: "로그인",
+                    日本語: "ログイン",
+                    汉文: "登录",
+                },                
+            ];
+            const translations_for_placeholder = [
+                {
+                    English: "Enter your ID",
+                    한국어: "아이디를 입력하세요.",
+                    日本語: "IDを入力してください",
+                    汉文: "输入您的身份证件",
+                },
+                {
+                    English: "Enter your password",
+                    한국어: "비밀번호를 입력하세요.",
+                    日本語: "パスワードを入力してください",
+                    汉文: "输入您的密码",
+                },
+                {
+                    English: "Confirm your password",
+                    한국어: "비밀번호를 입력하세요.",
+                    日本語: "パスワードを確認してください",
+                    汉文: "确认您的密码",
+                },                
+            ];
+
+            label_SignUp.textContent = translations_for_signup[0][selectedCountryId];
+            label_signup.textContent = translations_for_signup[0][selectedCountryId];
+            label_password.textContent = translations_for_signup[1][selectedCountryId];
+            label_confirm_password.textContent = translations_for_signup[2][selectedCountryId];
+            label_birthday.textContent = translations_for_signup[3][selectedCountryId];
+            label_nationality.textContent = translations_for_signup[4][selectedCountryId];
+            
+            label_gender.textContent = translations_for_signup[5][selectedCountryId];
+            label_male.textContent = translations_for_signup[6][selectedCountryId];
+            label_female.textContent = translations_for_signup[7][selectedCountryId];
+            label_other.textContent = translations_for_signup[8][selectedCountryId];
+
+            label_account.textContent = translations_for_signup[9][selectedCountryId];
+            label_login.firstChild.nodeValue = translations_for_signup[10][selectedCountryId];
+
+            username.placeholder = translations_for_placeholder[0][selectedCountryId];
+            password.placeholder = translations_for_placeholder[1][selectedCountryId];
+            confirmPassword.placeholder = translations_for_placeholder[2][selectedCountryId];
+        }
+    </script>
+</body>
+</html>

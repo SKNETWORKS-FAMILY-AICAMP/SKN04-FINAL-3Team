@@ -7,7 +7,12 @@
 
 <div class="container" id="chattingPanel">
     <div class="panel">
-        <h2>Chattings</h2>
+        <h2>            
+            {% if settings.country_id == "US" %}Chattings
+            {% elif settings.country_id == "KR" %}채팅
+            {% elif settings.country_id == "JP" %}おしゃべり
+            {% elif settings.country_id == "CN" %}聊天{% endif %}
+        </h2>
         <div id="chattingsSection" style="display: block; max-height: 754px;">
             <div class="chat-list">
                 {% for chat in chattings %}
@@ -23,8 +28,11 @@
                             alt="delete" class="delete-icon" data-id="{{ chat.chatting_id }}">
                     </div>
                 {% empty %}
-                    <p style="color: #797979; text-align:center;">
-                        채팅 목록이 없습니다.
+                    <p style="color: #797979; text-align:center;">                        
+                        {% if settings.country_id == "US" %}No Chat List
+                        {% elif settings.country_id == "KR" %}채팅 목록이 없습니다.
+                        {% elif settings.country_id == "JP" %}チャットリストはありません。
+                        {% elif settings.country_id == "CN" %}没有聊天列表。{% endif %}
                     </p>
                 {% endfor %}
             </div>

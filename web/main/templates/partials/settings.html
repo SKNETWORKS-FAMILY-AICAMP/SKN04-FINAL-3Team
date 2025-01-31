@@ -5,18 +5,18 @@
     </head>
     <div class="container" id="settingsPanel">
         <div class="panel">
-            <h2>Settings</h2>
+            <h2 id="label_Settings">{% if settings.country_id == "US" %}Settings{% elif settings.country_id == "KR" %}설정{% elif settings.country_id == "JP" %}設定{% elif settings.country_id == "CN" %}环境{% endif %}</h2>
 
             <!-- 테마 선택 -->
-            <div class="section">
-                <label>Theme</label>
+            <div class="section">                
+                <label id="label_theme">{% if settings.country_id == "US" %}Theme{% elif settings.country_id == "KR" %}테마{% elif settings.country_id == "JP" %}テーマ{% elif settings.country_id == "CN" %}主题{% endif %}</label>
                 <div class="theme-options">
                     <!-- Light Theme -->
                     <div class="theme-item">
                         <label>
                             <div id="light" class="theme-box {% if settings and settings.is_white_theme %}selected{% endif %}"></div>
                             <div>
-                                <span>Light</span>
+                                <span id="label_light">{% if settings.country_id == "US" %}Light{% elif settings.country_id == "KR" %}밝은 모드{% elif settings.country_id == "JP" %}明るい{% elif settings.country_id == "CN" %}光{% endif %}</span>
                                 <input type="radio" name="theme" value="light" {% if settings and settings.is_white_theme %}checked{% endif %}>
                             </div>
                         </label>
@@ -26,7 +26,7 @@
                         <label>
                             <div id="dark" class="theme-box {% if settings and not settings.is_white_theme %}selected{% endif %}"></div>
                             <div>
-                                <span>Dark</span>
+                                <span id="label_dark">{% if settings.country_id == "US" %}Dark{% elif settings.country_id == "KR" %}어두운 모드{% elif settings.country_id == "JP" %}暗い{% elif settings.country_id == "CN" %}黑暗的{% endif %}</span>
                                 <input type="radio" name="theme" value="dark" {% if settings and not settings.is_white_theme %}checked{% endif %}>
                             </div>
                             </input>
@@ -37,8 +37,8 @@
 
             <!-- 언어 선택 -->
             <div class="section">
-                <label for="language">Language</label>
-                <select id="language">
+                <label id="label_language" for="language">{% if settings.country_id == "US" %}Language{% elif settings.country_id == "KR" %}언어{% elif settings.country_id == "JP" %}言語{% elif settings.country_id == "CN" %}语言{% endif %}</label>
+                <select id="language" onchange="updateLanguage(this.value)">
                     <option value="US" {% if country_id == 'US' %}selected{% endif %}>English</option> 
                     <option value="KR" {% if country_id == 'KR' %}selected{% endif %}>한국어</option> 
                     <option value="JP" {% if country_id == 'JP' %}selected{% endif %}>日本語</option> 
@@ -48,13 +48,15 @@
 
             <!-- 연락처 -->
             <div class="section">
-                <label>Contact Us</label>
+                <label id="label_contact">{% if settings.country_id == "US" %}Contact Us{% elif settings.country_id == "KR" %}연락처{% elif settings.country_id == "JP" %}お問い合わせ{% elif settings.country_id == "CN" %}接触{% endif %}</label>                
                 <p>dinosaur@gmail.com</p>
             </div>
 
             <!-- 계정 삭제 -->
-            <div class="section">
-                <span class="delete-btn" onclick="showPopup()">Delete Account</span>
+            <div class="section">                
+                <span class="delete-btn" onclick="showPopup()">
+                    {% if settings.country_id == "US" %}Delete Account{% elif settings.country_id == "KR" %}계정 삭제{% elif settings.country_id == "JP" %}アカウントの削除{% elif settings.country_id == "CN" %}删除帐户{% endif %}
+                </span>
             </div>
 
             <div class="toggle-button" id="toggleButton"><&nbsp;</div>

@@ -88,7 +88,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     "main",
-    'langgraph',
+    'langraph',
 ]
 
 AUTH_USER_MODEL = 'main.CustomUser'
@@ -144,26 +144,32 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "web.wsgi.application"
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+# local용
 
 # DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'postgres',  # 데이터베이스 이름
+#         'USER': 'postgres',       # PostgreSQL 사용자 이름
+#         'PASSWORD': 'jasZeh-tunkix-qomhy3',   # PostgreSQL 사용자 비밀번호
+#         'HOST': '127.0.0.1',           # 또는 DB 서버 IP
+#         'PORT': '5432',                # 기본값
 #     }
 # }
+
+# aws rds용
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',  # 데이터베이스 이름
-        'USER': 'postgres',       # PostgreSQL 사용자 이름
-        'PASSWORD': '1234',   # PostgreSQL 사용자 비밀번호
-        'HOST': '127.0.0.1',           # 또는 DB 서버 IP
+        'USER': 'seoulogue',       # PostgreSQL 사용자 이름
+        'PASSWORD': 'jasZeh-tunkix-qomhy3',   # PostgreSQL 사용자 비밀번호
+        'HOST': 'database-3.c7cs2oymcsal.ap-northeast-2.rds.amazonaws.com',
         'PORT': '5432',                # 기본값
     }
 }
+
 
 
 

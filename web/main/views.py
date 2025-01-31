@@ -1,5 +1,7 @@
-from langraph.langraph import run_gpt_api
-from django.http import HttpResponseForbidden
+from langraph.chain_model.extraction_day_chain import day_chain
+from langraph.langgraph_chatbot_model import run_model
+from django.http import HttpResponseForbidden, StreamingHttpResponse
+from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -8,6 +10,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db import models
+from django.db.models import Max
 from main.models import Chatting, Bookmark, BookmarkList, Settings, Country, CustomUser, BookmarkPlace, BookmarkSchedule
 from urllib.parse import quote
 from dotenv import load_dotenv
@@ -54,13 +57,17 @@ def spa(request):
                 'ncp_client_id': ncp_client_id,
                 'ncp_client_secret': ncp_client_secret,
             }  # 기본 컨텍스트
-    context.update(get_theme_context(request.user))  # 테마 정보 추가
+    context.update(get_settings_context(request.user))  # 테마 정보 추가
+
     return render(request, 'spa_base.html', context)
 
 
 # 메인 페이지
 def main(request):
-    return render(request, 'main.html')  
+    context = {}
+    context.update(get_settings_context(request.user))
+    print(get_settings_context(request.user))
+    return render(request, 'main.html', context)
 
 
 @csrf_exempt
@@ -85,8 +92,8 @@ def get_or_create_chat_id(request):
                 })
 
             # 마지막 chat_id 가져오기
-            last_chat = Chatting.objects.filter(profile=user).order_by('-chatting_id').first()
-
+            last_chat = Chatting.objects.filter().order_by('-chatting_id').first()
+            print("las:", last_chat)
             if last_chat:
                 # 마지막 chat_id에서 숫자 추출 후 1 증가
                 last_id = int(last_chat.chatting_id.split('_')[1])
@@ -104,14 +111,14 @@ def get_or_create_chat_id(request):
         return JsonResponse({"success": False, "error": "Invalid request method."}, status=405)
 
 
-def get_theme_context(user):
+def get_settings_context(user):
     if user and user.is_authenticated:
         try:
             settings = Settings.objects.get(profile=user)
             return {"settings": settings}
         except Settings.DoesNotExist:
             pass
-    return {"settings": {"is_white_theme": True}}
+    return {"settings": {"is_white_theme": True, "country_id": "US"}}
 
 
 # # (1) login_view: GET이면 login.html 렌더링
@@ -127,9 +134,10 @@ def get_theme_context(user):
 #         return redirect('login_process')
     
 def login_view(request):
+    countries = get_nationalities()
     if request.method == "GET":
         next_url = request.GET.get("next", "/")  # next 파라미터가 없으면 메인 페이지로 리다이렉트
-        return render(request, "login.html", {"next": next_url})
+        return render(request, "login.html", {"next": next_url, 'countries': countries,})
     elif request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
@@ -250,7 +258,7 @@ def planner(request):
     user = request.user if request.user.is_authenticated else None
     
     # get_theme_context 호출 시, user가 None이어도 안전하게 처리
-    context.update(get_theme_context(user))
+    context.update(get_settings_context(user))
 
     if request.method == "POST":
         try:
@@ -335,23 +343,8 @@ def save_chat(request):
             chat_content = data.get("chat", "").strip()
             chatting_id = data.get("chat_id", None)  # 클라이언트에서 전달받은 chatting_id
             user = get_authenticated_user(request)
-            # 요청에서 데이터 파싱
-            chat_count = Chatting.objects.filter(profile=user).count()
-            print("count:", chat_count)
-            if chat_count >= 10:
-                # 데이터가 10개 이상이면 경고 메시지와 함께 chatting 페이지로 리다이렉트
-                return JsonResponse({
-                    "success": False,
-                    "error": "채팅 내역이 꽉 찼습니다!",
-                })
+            chat_count = Chatting.objects.filter(profile=user).count()                
 
-            if not user:
-                return JsonResponse({"success": False, "error": "User is not authenticated."})
-
-            if not chat_content:
-                return JsonResponse({"success": False, "error": "Chat content cannot be empty."})
-
-            print("chatting_id:", chatting_id)
             if chatting_id:
                 # chatting_id가 있는 경우: 기존 내용에 추가
                 try:
@@ -360,9 +353,8 @@ def save_chat(request):
                         chatting_instance.content += f"{chat_content}"  # 기존 내용이 없으면 바로 추가
                     else:
                         chatting_instance.content += f"\n{chat_content}"  # 기존 내용이 있으면 줄바꿈 추가
-                    print("chat_content:", chat_content)
-                    print("chatting_instance.content:", chatting_instance.content)
                     chatting_instance.save()
+
                     return JsonResponse({"success": True, "message": "Chat updated.", "chatting_id": chatting_instance.chatting_id})
                 except Chatting.DoesNotExist:
                     # chatting_id가 있지만 해당 레코드가 없는 경우 새로 생성
@@ -374,8 +366,15 @@ def save_chat(request):
                     return JsonResponse({"success": True, "message": "New chat created.", "chatting_id": chatting_instance.chatting_id})
             else:
                 # chatting_id가 없는 경우: 새로운 레코드 생성
-                last_chat = Chatting.objects.filter(profile=user).order_by('-chatting_id').first()
-
+                print("count:", chat_count)
+                if chat_count >= 10:
+                    # 데이터가 10개 이상이면 경고 메시지와 함께 chatting 페이지로 리다이렉트
+                    return JsonResponse({
+                        "success": False,
+                        "error": "채팅 내역이 꽉 찼습니다!",
+                    })
+                
+                last_chat = Chatting.objects.filter().order_by('-chatting_id').first()
                 if last_chat:
                     # 마지막 chatting_id에서 숫자 추출 후 증가
                     last_id = int(last_chat.chatting_id.split('_')[1])
@@ -387,6 +386,32 @@ def save_chat(request):
                     content=chat_content,
                 )
                 return JsonResponse({"success": True, "message": "New chat created.", "chatting_id": chatting_instance.chatting_id})
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid request method."})
+
+
+@csrf_exempt
+def get_chat(request):
+    if request.method == "GET":
+        try:
+            chat_id = request.GET.get("chat_id", None)  # 요청에서 chat_id를 가져옴
+            user = get_authenticated_user(request)  # 현재 인증된 사용자 가져오기
+
+            if not chat_id:
+                return JsonResponse({"success": False, "error": "chat_id is required."})
+
+            # chat_id와 사용자 정보를 기반으로 Chatting 객체 가져오기
+            chatting_instance = get_object_or_404(Chatting, chatting_id=chat_id, profile=user)
+
+            # chat 내용 반환
+            return JsonResponse({
+                "success": True,
+                "chatting_id": chatting_instance.chatting_id,
+                "content": chatting_instance.content,
+            })
 
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
@@ -453,7 +478,7 @@ def get_chat_content(request):
 
     try:
         chat = Chatting.objects.get(chatting_id=chat_id, profile=request.user)
-        print("chatcontent:", chat.content)
+
         return JsonResponse({"success": True, "content": chat.content})
     except Chatting.DoesNotExist:
         return JsonResponse({"success": False, "error": "해당 chat_id에 대한 채팅이 존재하지 않습니다."}, status=404)
@@ -489,7 +514,7 @@ def get_chat_count(request):
 
 @login_required
 def profile(request):
-    context = get_theme_context(request.user)  # 테마 정보 추가
+    context = get_settings_context(request.user)  # 테마 정보 추가
     profile_user = request.user
     image_range = range(1, 11)  # 1부터 10까지의 숫자
     context.update({
@@ -642,15 +667,58 @@ def update_language(request):
 
 @login_required
 def favorites_places(request):
-    context = get_theme_context(request.user)  # 테마 정보 추가
+    context = get_settings_context(request.user)  # 테마 정보 추가
     user = request.user
-    places = Bookmark.objects.filter(profile=user, is_place=True)
-    schedules = Bookmark.objects.filter(profile=user, is_place=False)
+    places = Bookmark.objects.filter(profile=user, is_place=True).order_by('created_at')
+    schedules = Bookmark.objects.filter(profile=user, is_place=False).order_by('created_at')
     context.update({
         "places": places,
         "schedules": schedules,
     })  # 추가 정보 업데이트
     return render(request, "partials/favorites_places.html", context)
+
+
+@csrf_exempt
+@login_required
+def update_bookmark_title(request):
+    """DB에 일정 즐겨찾기 개별 항목의 제목 업데이트"""
+    if request.method == "POST":
+        data = json.loads(request.body)
+        bookmarkschedule_id = data.get("bookmarkschedule_id")
+        name = data.get("name")
+
+        print("name:", name)
+
+        if not bookmarkschedule_id:
+            return JsonResponse({"success": False, "error": "Invalid data"})
+
+        try:
+            chat = BookmarkSchedule.objects.get(bookmarkschedule_id=bookmarkschedule_id)
+            chat.name = name
+            chat.save()
+            return JsonResponse({"success": True})
+        except Chatting.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Chat not found"})
+
+    return JsonResponse({"success": False, "error": "Invalid request method"})
+
+
+def check_duplicate_bookmark_title(request):
+    """
+    채팅 제목 중복 확인 API
+    """
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            title = data.get("title", "").strip()
+
+            if Chatting.objects.filter(title=title, profile=request.user).exists():
+                return JsonResponse({"is_duplicate": True})
+            return JsonResponse({"is_duplicate": False})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
 @csrf_exempt
@@ -728,9 +796,127 @@ def delete_favorite(request):
     return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
 
 
+@csrf_exempt
+@login_required
+def delete_bookmarklist(request):
+    """
+    즐겨찾기(폴더) 삭제용 예시. 
+    POST 바디: {"bookmark_id": ...}
+    """
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            bookmark_id = data.get("bookmark_id")
+            bookmarkplace_id = data.get("bookmarkplace_id")
+            bookmarkschedule_id = data.get("bookmarkschedule_id")
+            if bookmarkplace_id:
+                bookmarklist = BookmarkList.objects.get(bookmark_id=bookmark_id, bookmarkplace_id=bookmarkplace_id)
+                bookmarklist.delete()
+            elif bookmarkschedule_id:
+                bookmarklist = BookmarkList.objects.get(bookmark_id=bookmark_id, bookmarkschedule_id=bookmarkschedule_id)
+                bookmarklist.delete()
+                bookmarkschedule = BookmarkSchedule.objects.get(bookmarkschedule_id=bookmarkschedule_id)
+                bookmarkschedule.delete()
+            return JsonResponse({"success": True})
+        except Bookmark.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Bookmark not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
+    return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
+
+
+def add_bookmarklist(request):
+    if request.method == "POST":
+        try:
+            # POST 데이터 가져오기
+            data = json.loads(request.body)
+            is_place = data.get("is_place")
+            name = data.get("name")
+            bookmark_id = data.get("bookmark_id")
+            bookmarkplace_id = data.get("bookmarkplace_id")
+            bookmarkschedule_id = data.get("bookmarkschedule_id")
+            json_data = data.get("json_data")
+            category = data.get("category")
+            longitude = data.get("longitude")
+            latitude = data.get("latitude")
+            overview = data.get("overview")
+            address = data.get("address")
+            
+            if is_place:
+                # 1. bookmarkplace_id 생성
+                last_place = BookmarkPlace.objects.aggregate(max_id=Max("bookmarkplace_id"))
+                last_id = last_place["max_id"]
+
+                if last_id:
+                    last_index = int(last_id.split("_")[1])  # 'sc_XXXXX'의 숫자 부분
+                    new_index = last_index + 1
+                else:
+                    new_index = 1  # 첫 데이터라면 1부터 시작
+                
+                new_place_id = f"pc_{new_index:05d}"  # pc_XXXXX 형식
+
+                # 2. bookmarkplace 데이터 가져오거나 생성
+                new_place, created = BookmarkPlace.objects.get_or_create(
+                    name=name,
+                    defaults={
+                        "bookmarkplace_id": new_place_id,
+                        "category": category,
+                        "longitude": longitude,
+                        "latitude": latitude,
+                        "address": address,
+                        "overview": overview,
+                    }
+                )
+
+                # 3. bookmarklist 데이터 생성
+                new_bookmarklist = BookmarkList.objects.create(
+                    bookmark_id=bookmark_id,
+                    bookmarkplace_id=new_place.bookmarkplace_id if new_place else None,
+                    bookmarkschedule_id=bookmarkschedule_id if bookmarkschedule_id else None,
+                )
+                if created:
+                    message = "Bookmark place created and list added successfully!"
+                else:
+                    message = "Bookmark place already existed; list added successfully!"
+
+                return JsonResponse({"success": True, "message": message})
+            else:
+                # 1. bookmarkschedule_id 생성
+                last_schedule = BookmarkSchedule.objects.aggregate(max_id=Max("bookmarkschedule_id"))
+                last_id = last_schedule["max_id"]
+
+                if last_id:
+                    last_index = int(last_id.split("_")[1])  # 'sc_XXXXX'의 숫자 부분
+                    new_index = last_index + 1
+                else:
+                    new_index = 1  # 첫 데이터라면 1부터 시작
+                
+                new_schedule_id = f"sc_{new_index:05d}"  # sc_XXXXX 형식
+
+                # 2. bookmarkschedule 데이터 생성
+                new_schedule = BookmarkSchedule.objects.create(
+                    bookmarkschedule_id=new_schedule_id,
+                    name=name,
+                    json_data=json_data,
+                )
+
+                # 3. bookmarklist 데이터 생성
+                new_bookmarklist = BookmarkList.objects.create(
+                    bookmark_id=bookmark_id,
+                    bookmarkplace_id=bookmarkplace_id if bookmarkplace_id else None,
+                    bookmarkschedule_id=new_schedule_id if new_schedule_id else None,
+                )
+                return JsonResponse({"success": True, "message": "Bookmark schedule and list added successfully!"})
+            
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+    
+    return JsonResponse({"success": False, "message": "Invalid request method."})
+
+
 @login_required
 def chatting(request):
-    context = get_theme_context(request.user)  # 테마 정보 추가
+    context = get_settings_context(request.user)  # 테마 정보 추가
     user = request.user
     chattings = Chatting.objects.filter(profile=user).order_by('created_at')
     context.update({
@@ -777,96 +963,142 @@ def admin_required(view_func):
     return _wrapped_view
 
 
+def stream(answer):
+    llms = ['llm_Schedule_answer', 'llm_place_answer', 'llm_Schedule_change_answer', 'error_handling']
+    try:
+        for chunk, meta in answer:
+            if meta.get('langgraph_node') in llms:
+                yield chunk.content
+
+    except GeneratorExit:
+        print("Generator was closed (possibly due to client disconnection).")
+    except Exception as e:
+        print(f"Error while streaming generator: {e}")
+        import traceback
+        traceback.print_exc()
+
+
 def run_gpt_view(request):
     if request.method == "POST":
         try:
-            # JSON 데이터 파싱
             data = json.loads(request.body)
             user_input = data.get("question")
+            chat_history = data.get("chat_history")
 
             if not user_input:
                 return JsonResponse({"error": "Invalid input"}, status=400)
-            # run_gpt_api 호출
-            answer = run_gpt_api(user_input)
 
-            return JsonResponse({"answer": answer}, status=200)
+            # Generator 반환
+            answer = run_model(user_input, chat_history)
+
+            if not hasattr(answer, "__iter__"):  # Generator 확인
+                raise ValueError("run_model did not return a generator.")
+
+            # StreamingHttpResponse 반환
+            return StreamingHttpResponse(stream(answer), content_type="text/plain")
 
         except Exception as e:
             # 에러 로그 출력
-            print("Error in run_gpt_view:", e)
-            return JsonResponse({"answer": "에러가 발생했습니다. 다시 질문해주세요."}, status=200)
+            print(f"Error in run_gpt_view: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({"error": "Internal Server Error"}, status=500)
+
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
-@login_required
-def bookmark_detail(request, bookmark_id):
+def get_bookmark_items(request, bookmark_id):
     try:
-        # Bookmark 조회
-        bookmark = get_object_or_404(Bookmark, bookmark=bookmark_id)
-        print("bookmark_id:", bookmark.bookmark)
+        # BookmarkList에서 데이터 조회
+        rows = []
+        bookmark_type = None
+        bookmark_items = BookmarkList.objects.filter(bookmark=bookmark_id).order_by('created_at')
 
-        # BookmarkList에서 관련 Place 또는 Schedule 조회
-        bookmark_list_entry = BookmarkList.objects.filter(bookmark=bookmark).first()
+        if not bookmark_items.exists():
+            return JsonResponse({"success": True, "type": bookmark_type})
 
-        if not bookmark_list_entry:
-            return JsonResponse({"error": "No related data found in BookmarkList."}, status=404)
+        for item in bookmark_items:
+            if item.bookmarkplace:
+                bookmark_type = "place"
+                rows.append({
+                    "bookmark": item.bookmark.bookmark,
+                    "id": item.bookmarkplace.bookmarkplace_id,
+                    "name": item.bookmarkplace.name,
+                    "address": item.bookmarkplace.address,
+                    "category": item.bookmarkplace.category,
+                    "latitude": item.bookmarkplace.latitude,
+                    "longitude": item.bookmarkplace.longitude,
+                    "overview": item.bookmarkplace.overview,
+                })
+            elif item.bookmarkschedule:
+                bookmark_type = "schedule"
+                rows.append({
+                    "bookmark": item.bookmark.bookmark,
+                    "id": item.bookmarkschedule.bookmarkschedule_id,
+                    "name": item.bookmarkschedule.name,
+                    "json_data": item.bookmarkschedule.json_data,
+                })
 
-        if bookmark_list_entry.bookmarkplace:
-            # Place 데이터 반환
-            place = bookmark_list_entry.bookmarkplace
-            print("Place name:", place.name)
-            print("Place address:", place.address)
-            return JsonResponse({
-                "type": "place",
-                "name": place.name,
-                "address": place.address,
-            })
-        elif bookmark_list_entry.bookmarkschedule:
-            # Schedule 데이터 반환
-            schedule = bookmark_list_entry.bookmarkschedule
-            print("Schedule name:", schedule.name)
-            print("Schedule json_data:", schedule.json_data)
-            return JsonResponse({
-                "type": "schedule",
-                "name": schedule.name,
-                "json_data": schedule.json_data,
-            })
-        else:
-            return JsonResponse({"error": "No related Place or Schedule found."}, status=404)
-
+        return JsonResponse({"success": True, "type": bookmark_type, "rows": rows})
     except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+def bookmark_place_detail(request, bookmark_id):
+    try:
+        place = BookmarkPlace.objects.get(bookmarkplace_id=bookmark_id)
+        data = {
+            "id": place.bookmarkplace_id,
+            "name": place.name,
+            "address": place.address,
+            "latitude": place.latitude,
+            "longitude": place.longitude,
+            "category": place.category,
+            "overview": place.overview,
+        }
+        return JsonResponse(data, safe=False)
+    except BookmarkPlace.DoesNotExist:
+        # 해당 데이터가 없는 경우 404 반환
+        return JsonResponse({"error": "해당 장소를 찾을 수 없습니다."}, status=404)
+    except Exception as e:
+        # 기타 예상치 못한 오류 처리
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def get_user_bookmarks(request):
+def bookmark_schedule_detail(request, bookmark_id):
+    try:
+        schedule = BookmarkSchedule.objects.get(bookmarkschedule_id=bookmark_id)
+        data = {
+            "id": schedule.bookmarkschedule_id,
+            "name": schedule.name,
+            "json_data": schedule.json_data,
+        }
+        return JsonResponse(data, safe=False)
+    except BookmarkPlace.DoesNotExist:
+        # 해당 데이터가 없는 경우 404 반환
+        return JsonResponse({"error": "해당 장소를 찾을 수 없습니다."}, status=404)
+    except Exception as e:
+        # 기타 예상치 못한 오류 처리
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@require_GET
+def get_bookmark(request):
     if not request.user.is_authenticated:
         return JsonResponse({"success": False, "error": "User not authenticated"}, status=403)
-    
+
     user = request.user
-    bookmarks = Bookmark.objects.filter(profile=user, is_place=False)  # 일정만 가져옴
+    is_place = request.GET.get('is_place', 'true') == 'true'  # 기본값은 장소
+    bookmarks = Bookmark.objects.filter(profile=user, is_place=is_place).order_by('created_at')
 
     bookmark_list = []
     for bookmark in bookmarks:
-        places = BookmarkList.objects.filter(bookmark=bookmark).select_related('place')
-        schedules = BookmarkList.objects.filter(bookmark=bookmark).select_related('schedule')
-        if schedules:
-            for item in schedules:
-                if item.bookmarkschedule:
-                    bookmark_list.append({
-                        "title": bookmark.title,
-                        "schedule_name": item.bookmarkschedule.name,
-                        "json_data": item.bookmarkschedule.json_data,
-                    })
-        elif places:
-            for item in places:
-                if item.bookmarkplace:
-                    bookmark_list.append({
-                        "title": bookmark.title,
-                        "schedule_name": item.bookmarkplace.name,
-                        "latitude": item.bookmarkplace.latitude,
-                        "longitude": item.bookmarkplace.longitude,
-                        "category": item.bookmarkplace.category,
-                        "overview": item.bookmarkplace.overview,
-                    })
-        
+        bookmark_list.append({
+            "id": bookmark.bookmark,
+            "title": bookmark.title,
+            "created_at": bookmark.created_at,
+        })
+
     return JsonResponse({"success": True, "bookmarks": bookmark_list})
+
+

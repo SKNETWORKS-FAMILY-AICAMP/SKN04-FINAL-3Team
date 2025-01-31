@@ -60,11 +60,11 @@ class Settings(models.Model):
 
 class BookmarkPlace(models.Model):
     bookmarkplace_id = models.CharField(max_length=10, primary_key=True)
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=50)
     address = models.CharField(max_length=40)
-    category = models.CharField(max_length=30)
-    longitude = models.FloatField()
-    latitude = models.FloatField()
+    category = models.CharField(max_length=30, null=True)
+    longitude = models.FloatField(null=True)
+    latitude = models.FloatField(null=True)
     overview = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -75,7 +75,7 @@ class BookmarkPlace(models.Model):
 
 class BookmarkSchedule(models.Model):
     bookmarkschedule_id = models.CharField(max_length=10, primary_key=True)
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=50)
     json_data = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -105,6 +105,10 @@ class BookmarkList(models.Model):
     class Meta:
         db_table = 'bookmarklist'
         managed = True
+        unique_together = [
+            ('bookmark', 'bookmarkplace'),  # bookmark_id와 bookmarkplace_id 조합의 중복 방지
+            ('bookmark', 'bookmarkschedule'),  # bookmark_id와 bookmarkschedule_id 조합의 중복 방지
+        ]
 
 
 class Chatting(models.Model):
