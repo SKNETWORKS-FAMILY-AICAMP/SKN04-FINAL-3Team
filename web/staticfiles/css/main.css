@@ -72,14 +72,31 @@ body {
     background-color: #444;
 }
 
-/* 프로필 섹션 스타일 */
-.profile-section {
+.language-section {
     position: absolute;
-    top: 20px;
+    bottom: 20px;
     right: 20px;
     display: flex;
     align-items: center;
     gap: 10px;
+    width: 80px;
+    height: 25px;
+}
+
+/* 프로필 섹션 스타일 */
+.profile-section {
+    position: absolute;
+    top: 20px;
+    right: 40px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-section select {
+    width: 200px;
+    font-size: 16px;
+    padding: 5px;
 }
 
 .profile-section span {

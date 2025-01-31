@@ -9,6 +9,11 @@ body {
     overflow: hidden; /* 스크롤 방지 */
 }
 
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 4px 10px rgba(255, 75, 43, 0.3);
+}
+
 .theme-box {
     border: 2px solid #000;
 }
@@ -117,11 +122,13 @@ body {
     box-sizing: border-box;
     border: 2px solid #4caf50;
     border-radius: 5px;
-    resize: none; /* 사용자가 직접 크기 조정 불가 */
-    height: 120px; /* 고정된 높이 (6줄) */
-    min-height: 112px;
-    overflow-y: auto; /* 스크롤바 표시 */
+    resize: none; 
+    height: 95px;
+    min-height: 95px;
+    overflow-y: auto;
     transition: height 0.2s ease-in-out;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
 }
 
 /* 스크롤바 스타일 */
@@ -145,16 +152,44 @@ body {
 
 /* 입력창 컨테이너 */
 .input-container {
+    position: relative;
     margin: 10px;
-    border: 1px solid #ddd;
+    border: 0px solid #ddd;
     overflow: hidden;
+    height: 160px;
 }
 
 [data-theme="dark"] .input-container {
+    position: relative;
     margin: 10px;
     background-color: #222;
-    border: 1px solid #444;
+    border: 0px solid #444;
     overflow: hidden;
+    height: 160px;
+}
+
+.send-button {
+    background-color: #222;
+    border: none;
+    border-radius: 50%;
+    margin-right: 3px;
+    width: 27px;
+    height: 27px;
+    cursor: pointer;
+}
+
+[data-theme="dark"] .send-button {
+    background-color: white;
+    border: none;
+    border-radius: 50%;
+    margin-right: 3px;
+    width: 27px;
+    height: 27px;
+    cursor: pointer;
+}
+
+.send-button:hover {
+    background-color: #45a049;
 }
 
 .container {
@@ -285,17 +320,17 @@ body {
 
 /* 메시지 목록 컨테이너 (유동적 크기) */
 #chat-messages {
-    flex-grow: 1; /* 채팅창이 유동적으로 늘어나도록 */
-    overflow-y: auto; /* 메시지가 많아지면 스크롤 */
+    flex-grow: 1; 
+    overflow-y: auto; 
     display: flex;
     flex-direction: column;
-    gap: 5px; /* 메시지 간격 */
+    gap: 5px; 
     width: 100%; 
-    height: calc(100% - 190px); /* 원하는 고정 높이 설정 */
+    height: calc(100% - 220px);
     border: 1px solid #ddd;
     box-sizing: border-box;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    background-color: white; /* 채팅창 배경 */
+    background-color: white; 
 }
 
 /* 스크롤바 커스터마이징 */
@@ -404,8 +439,8 @@ body {
 
 /* 아래로 이동 버튼 */
 .scroll-to-bottom {
-    position: absolute;      /* 위치를 자유롭게 조정할 수 있도록 absolute/fixed */
-    bottom: 100px;          /* 화면 아래에서 100px 떨어짐 (입력창 위로) */
+    position: absolute;      
+    bottom: 130px;          
     width: 40px;
     height: 40px;
     background-color: rgb(0, 0, 0);
@@ -423,8 +458,8 @@ body {
 }
 
 [data-theme="dark"] .scroll-to-bottom {
-    position: absolute;      /* 위치를 자유롭게 조정할 수 있도록 absolute/fixed */
-    bottom: 100px;          /* 화면 아래에서 100px 떨어짐 (입력창 위로) */
+    position: absolute;      
+    bottom: 130px;          
     width: 40px;
     height: 40px;
     background-color: rgb(255, 255, 255); 
@@ -558,7 +593,12 @@ body {
     display: flex;
     flex-direction: column;
     position: relative;
-    height: 100%;
+    grid-template-columns: 250px auto; /* 왼쪽 메뉴 고정, 오른쪽 콘텐츠 유동 */
+    grid-template-rows: auto;
+    min-height: 400px;
+    border-radius: 10px; /* 모던한 디자인 */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
+    height: 100vh;
     z-index: 1; 
 }
 
@@ -571,17 +611,19 @@ body {
 }
 
 #map-panel {
+    display: flex;
+    flex-direction: column;
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 50%; /* 기본 높이 */
+    height: 50%;
     background-color: white;
     box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
     overflow-y: auto;
     z-index: 1;
-    overflow: hidden; /* 슬라이드 중 내용이 보이지 않게 */
+    overflow: hidden; 
 }
 
 [data-theme="dark"] #map-panel {
@@ -608,7 +650,8 @@ body {
 }
 
 .map-panel-content {
-    padding: 10px;
+    flex: 1; 
+    overflow-y: auto; 
 }
 
 #day-button-container {
@@ -660,36 +703,224 @@ body {
 
 #button-panel {
     display: flex;
-    justify-content: flex-end;
-    align-items: flex-end;
+    justify-content: space-between; /* 양쪽 정렬 */
+    align-items: center; /* 수직 정렬 */
     height: 30px;
+    padding: 0 10px; /* 좌우 여백 추가 */
 }
 
-#button-panel button{
-    width: 30px;
-    height: 30px;
-    font-size: 20px;
-    background-color: white;
-    color: #222;
-    border: none;
+.title-group {
+    display: flex;
+    gap: 5px; /* 버튼 간격 설정 */
 }
 
-[data-theme="dark"] #button-panel button{
-    width: 30px;
-    height: 30px;
-    font-size: 20px;
-    background-color: #222;
+#editPanelTitleBtn, #editPanelTitleOKBtn, #editPanelTitleNOBtn {
+    width: 40px;
+    aspect-ratio: 1 / 1; /* 정사각형 유지 */
+    align-items: center;
+    justify-content: center;
+    background: none; /* 배경 제거 */
+    border: none; /* 테두리 제거 */
+    box-shadow: none; /* 그림자 제거 */
+    outline: none; /* 포커스 효과 제거 */
+    padding: 0; /* 내부 여백 제거 */
+    font-size: 1.4rem; /* 기본 크기 */
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+    display: none;
+}
+
+.button-group {
+    display: flex;
+    gap: 5px; /* 버튼 간격 설정 */
+}
+
+.button-group button {
+    width: 40px;
+    aspect-ratio: 1 / 1; /* 정사각형 유지 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none; /* 배경 제거 */
+    border: none; /* 테두리 제거 */
+    box-shadow: none; /* 그림자 제거 */
+    outline: none; /* 포커스 효과 제거 */
+    padding: 0; /* 내부 여백 제거 */
+    font-size: 1.4rem; /* 기본 크기 */
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+[data-theme="dark"] .button-group button {
+    width: 40px;
+    aspect-ratio: 1 / 1; /* 정사각형 유지 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: white;
-    border: none;
+    background: none; /* 배경 제거 */
+    border: none; /* 테두리 제거 */
+    box-shadow: none; /* 그림자 제거 */
+    outline: none; /* 포커스 효과 제거 */
+    padding: 0; /* 내부 여백 제거 */
+    font-size: 1.4rem; /* 기본 크기 */
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
 }
 
-.item-section {
+.button-group button:hover {
+    background-color: none !important;
+    transform: scale(1.2);
+}
+
+[data-theme="dark"] .button-group button:hover {
+    background-color: none !important;
+    transform: scale(1.2);
+}
+
+#panel-title {
+    margin: 0;
+    font-size: 18px;
+    color: #222;
+}
+
+[data-theme="dark"] #panel-title {
+    margin: 0;
+    font-size: 18px;
+    color: white;
+}
+
+.place-section {
     border: 2px solid black;
     border-radius: 25px;
 }
 
-[data-theme="dark"] .item-section {
+[data-theme="dark"] .place-section {
     border: 2px solid white;
     border-radius: 25px;
 }
 
+.button-container button{
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    color: #222;
+    background-color: white;
+}
+
+[data-theme="dark"] .button-container button{
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    color: white;
+    background-color: #222;
+}
+
+#bookmarklist-div {
+    border-radius: 20px 20px 0 0;
+    position: absolute;
+    bottom: -700px; /* 시작 위치: 아래에 숨김 */
+    left: 80px;
+    width: 400px;
+    height: 700px; /* 파란 부분의 높이와 동일하게 설정 */
+    background-color: rgba(0, 0, 0, 0.95); /* 반투명 배경 */
+    transition: bottom 0.5s ease-in-out; /* 부드러운 애니메이션 */
+    z-index: 100; /* 다른 요소 위로 */
+}
+
+#bookmarklist-div.active {
+    bottom: 0; /* 최종 위치: 위로 올라옴 */
+}
+
+#closeBookmarkListBtn {
+    background-color: transparent;
+    border: none; 
+    color: white; 
+    font-weight: bold; 
+    font-size: 20px;
+}
+
+.bookmark_item {
+    display: flex; 
+    align-items: center; 
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+.bookmark_item p{
+    margin: 0; 
+    font-size: 16px; 
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.bookmark_item div, .bookmark_item button{
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 10px; 
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+.bookmark_item button{
+    margin-left: auto;
+    background: none; 
+    border: none; 
+    cursor: pointer;
+    margin-right: 25px;
+}
+
+.button_active div{
+    background-color: white; 
+    cursor: pointer;
+}
+
+.button_active span{
+    font-size: 27px; 
+    color: #222; 
+    cursor: pointer;
+}
+
+.button_active p{
+    cursor: pointer;
+    color: white;
+}
+
+.button_inactive{
+    cursor: initial;
+}
+
+.button_inactive div{
+    background-color: #666; 
+    cursor: initial;
+}
+
+.button_inactive span{
+    font-size: 27px; 
+    color: #222; 
+    cursor: initial;
+}
+
+.button_inactive p{
+    cursor: initial;
+    color: #666;
+}
+
+.bookmarklist-panel .folder-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    height: 30px;
+}
+
+.bookmarklist-panel h2, h6 {
+    color: white;
+}
+
+.bookmarklist-panel li p {
+    color: white;
+}
