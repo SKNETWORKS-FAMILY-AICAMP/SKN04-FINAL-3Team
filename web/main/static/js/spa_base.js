@@ -3409,7 +3409,7 @@ async function getCoordinates(addresses) {
     const markerData = [];
     const promises = addresses.map(async ({ address, title }) => {
         if (!address) return; // address가 없는 경우 건너뜀
-
+        
         const coordinates = await fetchCoordinates(address);
         if (coordinates) {
             const [lat, lng] = coordinates;
@@ -3420,8 +3420,14 @@ async function getCoordinates(addresses) {
             });
         }
     });
-
+    
     await Promise.all(promises); // 모든 비동기 작업이 완료될 때까지 대기
+    
+    markerData.sort((a, b) => {
+        return addresses.findIndex(item => item.title === a.title) - 
+               addresses.findIndex(item => item.title === b.title);
+    });
+    
     return markerData;
 }
 
@@ -3668,6 +3674,11 @@ async function generateDynamicPlanContent(jsonData) {
         },
     ];
 
+    const indexes = [
+        "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩",
+        "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳",
+    ]
+
     function extractParenthesisContent(str) {
         const match = str.match(/\((.*?)\)/); // 정규식을 사용하여 첫 번째 괄호 안의 내용 추출
         return match ? match[1] : str; // 매칭된 값이 있으면 반환, 없으면 null 반환
@@ -3675,6 +3686,7 @@ async function generateDynamicPlanContent(jsonData) {
     
     async function renderDayContent(day) {
         // JSON 데이터에서 주소 정보 추출
+        let index = 0;
         const addresses = [];
         Object.keys(day.meals).forEach(mealType => {
             const mealData = day.meals[mealType];
@@ -3779,7 +3791,8 @@ async function generateDynamicPlanContent(jsonData) {
 
                     if (name && address) {
                         const listItem = document.createElement('p');
-                        listItem.innerHTML = `<strong>${name}</strong> (${address})`;
+                        console.log("sec:", section, ",ind:", index, "inds:", indexes[index]);
+                        listItem.innerHTML = `${indexes[index]} <strong>${name}</strong> (${address})`;
 
                         const buttonContainer = document.createElement('div');
                         buttonContainer.className = "button-container";
@@ -3841,6 +3854,7 @@ async function generateDynamicPlanContent(jsonData) {
                         buttonContainer.appendChild(deleteButton);
                         listItem.appendChild(buttonContainer);
                         mealSection.appendChild(listItem);
+                        index++;
                     }
                 }
             });
@@ -3860,7 +3874,7 @@ async function generateDynamicPlanContent(jsonData) {
     // 버튼 생성 및 이벤트 바인딩
     generateDayButtons(jsonData, (day) => {
         markerData = []; // 새로운 일차 선택 시 기존 마커 데이터 초기화
-        console.log("Day object passed to renderDayContent:", day);
+        // console.log("Day object passed to renderDayContent:", day);
         renderDayContent(day); // 선택된 일차의 데이터 렌더링
     });
 }
@@ -4432,29 +4446,31 @@ function addToBookmark(li, span, isPlace, name, address) {
         })
     }
 
-    span.textContent = "✔";
-    span.style.fontSize = "17px";
-    span.style.color = "#5454ea";
+    if (span.textContent == "+") {
+        span.textContent = "✔";
+        span.style.fontSize = "17px";
+        span.style.color = "#5454ea";
 
-    fetch("/app/partials/favorites/add_bookmarklist/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCSRFToken(), // Django CSRF 토큰 필요
-        },
-        body: body,
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log("Bookmark list added successfully!");
-        } else {
-            console.error("Error:", data.error || data.message);
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-    });
+        fetch("/app/partials/favorites/add_bookmarklist/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCSRFToken(), // Django CSRF 토큰 필요
+            },
+            body: body,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log("Bookmark list added successfully!");
+            } else {
+                console.error("Error:", data.error || data.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+    }    
 }
 
 function editPanelTitle() {
