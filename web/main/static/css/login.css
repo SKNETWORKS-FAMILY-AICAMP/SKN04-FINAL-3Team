@@ -32,6 +32,7 @@ body {
     text-align: center;
     margin-bottom: 50px;
     color: #333;
+    line-height: 1.2;
 }
 
 .form-group {
@@ -42,6 +43,7 @@ body {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
+    line-height: 1.2;
 }
 
 .form-group input {
@@ -61,6 +63,7 @@ body {
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
+    line-height: 1.2;
 }
 
 .login-button:hover {
@@ -98,18 +101,12 @@ body {
 }
 
 .signup-button {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
+    color: #007bff;
     text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: background-color 0.3s;
-}
+} 
 
 .signup-button:hover {
-    background-color: #0056b3;
+    text-decoration: underline;
 }
 
 /* 언어 선택 드롭다운 */

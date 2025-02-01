@@ -1,4 +1,4 @@
-from prompts.prompt_sch_or_place_search import prompt_sch_or_place_search
+from langraph.prompts.prompt_sch_or_place_search import prompt_sch_or_place_search
 
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser

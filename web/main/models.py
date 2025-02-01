@@ -61,7 +61,7 @@ class Settings(models.Model):
 class BookmarkPlace(models.Model):
     bookmarkplace_id = models.CharField(max_length=10, primary_key=True)
     name = models.CharField(max_length=50)
-    address = models.CharField(max_length=40)
+    address = models.CharField(max_length=80)
     category = models.CharField(max_length=30, null=True)
     longitude = models.FloatField(null=True)
     latitude = models.FloatField(null=True)

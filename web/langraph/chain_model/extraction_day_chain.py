@@ -1,4 +1,4 @@
-from prompts.prompt_day import prompt_day
+from langraph.prompts.prompt_day import prompt_day
 
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser

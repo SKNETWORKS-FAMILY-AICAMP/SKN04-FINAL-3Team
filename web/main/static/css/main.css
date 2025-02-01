@@ -205,3 +205,13 @@ body {
     text-align: center;
 }
 
+.research-helper {
+    color: black;
+    font-size: 18px; 
+    text-align: center; 
+    font-weight: bold;
+    margin-top: 20px;
+    width: fit-content;
+    margin: 0 auto;
+    white-space: pre-line;
+}

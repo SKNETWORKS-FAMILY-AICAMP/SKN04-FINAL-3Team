@@ -1,4 +1,4 @@
-from prompts.prompt_translation_question import prompt_translation_question
+from langraph.prompts.prompt_translation_question import prompt_translation_question
 
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
