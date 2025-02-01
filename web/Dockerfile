@@ -2,12 +2,16 @@
 FROM python:3.11
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    libmariadb-dev \
-    libmariadb-dev-compat \
-    gcc \
+RUN apt-get update && apt-get install -y default-jdk \
     pkg-config \
     && apt-get clean
+
+ENV JAVA_HOME /usr/lib/jvm/default-java
+ENV PATH $JAVA_HOME/bin:$PATH
+
+# 환경 변수 설정
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Set working directory
 WORKDIR /app

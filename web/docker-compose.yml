@@ -5,9 +5,9 @@ services:
       context: .
       dockerfile: dockerfile
     volumes:
-      - .:/app
+      # - static_volume:/app/main/static
       - static_volume:/app/staticfiles
-      - media_volume:/app/media
+      - .:/code
     env_file:  # .env 파일 연결
       - .env
     ports:
@@ -19,11 +19,13 @@ services:
     image: nginx:latest
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - static_volume:/app/staticfiles  # 정적 파일 공유
-      - /etc/letsencrypt:/etc/letsencrypt  # Let's Encrypt 인증서 경로만 마운트
+      - ./main/static:/static
+      # - static_volume:/app/main/static
+      - static_volume:/app/staticfiles
+      # - /etc/letsencrypt:/etc/letsencrypt  # Let's Encrypt 인증서 경로만 마운트
     ports:
       - "80:80"
-      - "443:443"  # HTTPS 포트 추가
+      # - "443:443"  # HTTPS 포트 추가
     depends_on:
       - app
     networks:
