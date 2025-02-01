@@ -36,7 +36,11 @@
                       required
                     />
                 </div>
-                <div class="form-group" style="width:100%;padding:5px;"></div>
+                {% if error %}
+                <p style="color:red; height:20px;">{{ error }}</p>
+                {% endif %}
+                
+                <!-- <div class="form-group" style="width:100%;padding:5px;"></div> -->
                 <button type="submit" class="login-button">Sign in</button>
             </form>
 
@@ -55,9 +59,7 @@
                 </p>
             </div>
 
-            {% if error %}
-              <p style="color:red;">{{ error }}</p>
-            {% endif %}
+            
         
             <!-- 언어 선택 -->
             <div class="language-select">
