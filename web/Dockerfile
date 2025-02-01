@@ -1,29 +1,33 @@
-# 베이스 이미지
+# Base image
 FROM python:3.11
 
-RUN apt-get update && apt-get install -y default-jdk
-ENV JAVA_HOME /usr/lib/jvm/default-java
-ENV PATH $JAVA_HOME/bin:$PATH
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libmariadb-dev \
+    libmariadb-dev-compat \
+    gcc \
+    pkg-config \
+    && apt-get clean
 
-# 환경 변수 설정
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# 작업 디렉토리 생성
+# Set working directory
 WORKDIR /app
 
-# 의존성 파일 복사 및 설치
+# Copy requirements first to leverage Docker layer caching
 COPY requirements.txt /app/
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+# Install Python dependencies
+RUN apt-get update && apt-get install -y libpq-dev  # 필요한 경우 PostgreSQL 관련 패키지 설치
+RUN pip install --no-cache-dir -r requirements.txt
 
-# 애플리케이션 소스 복사
+# Copy application files
 COPY . /app/
+COPY .env /app/
 
-# 포트 개방
+# Collect static files
+RUN python manage.py collectstatic --noinput
+
+# Expose port
 EXPOSE 8000
 
-# 명령어 설정
-CMD ["gunicorn", "web.wsgi:application", "--bind", "0.0.0.0:8000"]
-
+# Command to run the application
+CMD ["gunicorn", "web.wsgi:application", "--bind", "0.0.0.0:8000", "--workers=2", "--timeout","90"]
 
