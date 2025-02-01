@@ -1,4 +1,4 @@
-from prompts.prompt_location import prompt_location
+from langraph.prompts.prompt_location import prompt_location
 
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser

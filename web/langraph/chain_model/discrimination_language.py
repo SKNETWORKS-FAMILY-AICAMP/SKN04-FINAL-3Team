@@ -1,4 +1,4 @@
-from prompts.prompt_discrimination_language import prompt_discrimination_language
+from langraph.prompts.prompt_discrimination_language import prompt_discrimination_language
 
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
