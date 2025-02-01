@@ -910,7 +910,7 @@ document.addEventListener("spaContentLoaded", async function () {
                                         document.querySelectorAll(".place-item").forEach(folder => {                                                
                                             folder.style.backgroundColor = ""; // 원래 색으로 복원 (CSS 초기값)
                                         });
-                                        document.getElementById("getBookmarkListBtn").textContent = "★";
+                                        document.getElementById("getBookmarkListBtn").textContent = "☆";
                                         itemDiv.style.backgroundColor = "#999";
 
                                         const bookmarkId = this.id; // folder-item의 ID 값
@@ -1072,7 +1072,7 @@ document.addEventListener("spaContentLoaded", async function () {
                                             folder.style.backgroundColor = ""; // 원래 색으로 복원 (CSS 초기값)
                                         });
 
-                                        document.getElementById("getBookmarkListBtn").textContent = "★";
+                                        document.getElementById("getBookmarkListBtn").textContent = "☆";
                                         itemDiv.style.backgroundColor = "#999";
 
                                         const bookmarkId = this.id; // folder-item의 ID 값
@@ -4152,7 +4152,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
 
                     // 2) Enter: 제목 저장, ESC: 취소
                     changeBookmarkTitle.addEventListener("keydown", async function (e) {
-                        if (event.key === "Enter") {
+                        if (e.key === "Enter") {
                             const newTitle = changeBookmarkTitle.value.trim();
                             
                             if (!newTitle) {
@@ -4169,10 +4169,44 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                             title.style.display = "block"; // 기존 텍스트 표시
                             changeBookmarkTitle.style.display = "none"; // 입력창 숨김
                         } 
-                        else if (event.key === "Escape") {
+                        else if (e.key === "Escape") {
                             title.style.display = "block"; // 기존 텍스트 표시
                             changeBookmarkTitle.style.display = "none";  // 입력창 숨김
                         }                    
+                    });
+
+                    //기존 즐겨찾기 항목 버튼들 추가
+                    data.bookmarks.forEach(bookmark => {
+                        const createLi = document.createElement('li');                            
+                        const milliseconds = new Date(bookmark['created_at']).getTime();
+                        const colorValue = milliseconds % 0xFFFFFF; 
+                        const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
+                        createLi.className = "bookmark_item";
+                        createLi.id = bookmark['id'];
+                        createLi.style.cursor = "pointer";
+                        console.log("1:", bookmark['title'], ",", bookmark['name']);
+                        console.log("2:", bookmark['name'].includes(panelTitle.textContent.trim()));
+                        innerHtml = `
+                            <div style="background-color: ${hexColor}">
+                                <span style="font-size: 17px; color: white;">☆</span>
+                            </div>
+                            <p>${bookmark['title']}</p>
+                            <button>
+                                ${bookmark['name'] && bookmark['name'].includes(panelTitle.textContent.trim()) 
+                                    ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
+                                    : '<span style="font-size: 27px; color: white;">+</span>'
+                                }
+                            </button>
+                        `;      
+                        // ${bookmarkID === bookmark['id']}
+                        createLi.innerHTML = innerHtml;
+                        
+                        createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        bookmarklistPanel.appendChild(createLi);
                     });
                 }
                 else if (isSchedule) {
@@ -4228,38 +4262,38 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                     else {
                         title.textContent = panelTitle.textContent;
                     }
-                } 
 
-                //기존 즐겨찾기 항목 버튼들 추가
-                data.bookmarks.forEach(bookmark => {
-                    const createLi = document.createElement('li');                            
-                    const milliseconds = new Date(bookmark['created_at']).getTime();
-                    const colorValue = milliseconds % 0xFFFFFF; 
-                    const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
-                    createLi.className = "bookmark_item";
-                    createLi.id = bookmark['id'];
-                    createLi.style.cursor = "pointer";
-                    innerHtml = `
-                        <div style="background-color: ${hexColor}">
-                            <span style="font-size: 17px; color: white;">★</span>
-                        </div>
-                        <p>${bookmark['title']}</p>
-                        <button>
-                            ${bookmarkID === bookmark['id'] 
-                                ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
-                                : '<span style="font-size: 27px; color: white;">+</span>'
-                            }
-                        </button>
-                    `;                            
-                    createLi.innerHTML = innerHtml;
-                    
-                    createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    bookmarklistPanel.appendChild(createLi);
-                });
+                    //기존 즐겨찾기 항목 버튼들 추가
+                    data.bookmarks.forEach(bookmark => {
+                        const createLi = document.createElement('li');                            
+                        const milliseconds = new Date(bookmark['created_at']).getTime();
+                        const colorValue = milliseconds % 0xFFFFFF; 
+                        const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
+                        createLi.className = "bookmark_item";
+                        createLi.id = bookmark['id'];
+                        createLi.style.cursor = "pointer";
+                        innerHtml = `
+                            <div style="background-color: ${hexColor}">
+                                <span style="font-size: 17px; color: white;">☆</span>
+                            </div>
+                            <p>${bookmark['title']}</p>
+                            <button>
+                                ${bookmarkID === bookmark['id'] 
+                                    ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
+                                    : '<span style="font-size: 27px; color: white;">+</span>'
+                                }
+                            </button>
+                        `;                            
+                        createLi.innerHTML = innerHtml;
+                        
+                        createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        bookmarklistPanel.appendChild(createLi);
+                    });
+                } 
                 
                 //새 즐겨찾기 항목 만드는 버튼 추가                        
                 const createLi = document.createElement('li');
@@ -4340,7 +4374,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                                 createLi.id = data['id'];
                                                 innerHtml = `
                                                     <div style="background-color: ${hexColor}">
-                                                        <span style="font-size: 17px; color: white;">★</span>
+                                                        <span style="font-size: 17px; color: white;">☆</span>
                                                     </div>
                                                     <p>${textValue}</p>
                                                     <button>
@@ -4368,14 +4402,6 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                 }
                             });
                         }
-
-                        // addFolderEventHandler(
-                        //     "plus-place",
-                        //     "#placesSection",
-                        //     "새 폴더 이름 입력 (Enter)",
-                        //     true,
-                        //     { light: "/static/images/folder_light.png", dark: "/static/images/folder_dark.png" }
-                        // );
                     })
                     createLi.classList.remove("button_inactive");
                     createLi.classList.add("button_active");

@@ -910,7 +910,7 @@ document.addEventListener("spaContentLoaded", async function () {
                                         document.querySelectorAll(".place-item").forEach(folder => {                                                
                                             folder.style.backgroundColor = ""; // 원래 색으로 복원 (CSS 초기값)
                                         });
-                                        document.getElementById("getBookmarkListBtn").textContent = "★";
+                                        document.getElementById("getBookmarkListBtn").textContent = "☆";
                                         itemDiv.style.backgroundColor = "#999";
 
                                         const bookmarkId = this.id; // folder-item의 ID 값
@@ -1072,7 +1072,7 @@ document.addEventListener("spaContentLoaded", async function () {
                                             folder.style.backgroundColor = ""; // 원래 색으로 복원 (CSS 초기값)
                                         });
 
-                                        document.getElementById("getBookmarkListBtn").textContent = "★";
+                                        document.getElementById("getBookmarkListBtn").textContent = "☆";
                                         itemDiv.style.backgroundColor = "#999";
 
                                         const bookmarkId = this.id; // folder-item의 ID 값
@@ -4241,7 +4241,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                     createLi.style.cursor = "pointer";
                     innerHtml = `
                         <div style="background-color: ${hexColor}">
-                            <span style="font-size: 17px; color: white;">★</span>
+                            <span style="font-size: 17px; color: white;">☆</span>
                         </div>
                         <p>${bookmark['title']}</p>
                         <button>
@@ -4340,7 +4340,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                                 createLi.id = data['id'];
                                                 innerHtml = `
                                                     <div style="background-color: ${hexColor}">
-                                                        <span style="font-size: 17px; color: white;">★</span>
+                                                        <span style="font-size: 17px; color: white;">☆</span>
                                                     </div>
                                                     <p>${textValue}</p>
                                                     <button>
