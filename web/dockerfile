@@ -19,7 +19,8 @@ WORKDIR /app
 # Copy requirements first to leverage Docker layer caching
 COPY requirements.txt /app/
 # Install Python dependencies
-RUN apt-get update && apt-get install -y libpq-dev  # 필요한 경우 PostgreSQL 관련 패키지 설치
+# RUN apt-get update && apt-get install -y libpq-dev  # 필요한 경우 PostgreSQL 관련 패키지 설치
+RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files
