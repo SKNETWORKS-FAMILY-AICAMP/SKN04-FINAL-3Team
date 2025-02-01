@@ -3791,7 +3791,6 @@ async function generateDynamicPlanContent(jsonData) {
 
                     if (name && address) {
                         const listItem = document.createElement('p');
-                        console.log("sec:", section, ",ind:", index, "inds:", indexes[index]);
                         listItem.innerHTML = `${indexes[index]} <strong>${name}</strong> (${address})`;
 
                         const buttonContainer = document.createElement('div');
