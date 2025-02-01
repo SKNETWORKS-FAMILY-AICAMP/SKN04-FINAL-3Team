@@ -232,6 +232,7 @@ def login_process(request):
     if request.method == 'POST':
         username = request.POST.get('username','').strip()
         password = request.POST.get('password','').strip()
+        countries = get_nationalities()
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
@@ -240,6 +241,7 @@ def login_process(request):
         else:
             # 로그인 실패 -> 다시 login.html
             return render(request, 'login.html', {
+                'countries': countries,
                 'error': '아이디나 비밀번호가 올바르지 않습니다.'
             })
     else:
