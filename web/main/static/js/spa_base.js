@@ -958,12 +958,34 @@ document.addEventListener("spaContentLoaded", async function () {
                                                 getBookmarkListBtn.setAttribute("json_data", null);
                                                 const placeSection = document.createElement("div");
                                                 placeSection.className = "place-section";
-                                                placeSection.innerHTML = `
-                                                    <h3>장소 정보</h3>
-                                                    <p><strong>이름:</strong> ${data.name}</p>
-                                                    <p><strong>주소:</strong> ${data.address}</p>
-                                                    <p><strong>설명:</strong> ${data.description || "설명이 없습니다."}</p>
-                                                `;
+                                                let innerhtml = "";
+                                                switch (countryId) {
+                                                    case "KR": innerhtml = `
+                                                        <h3>장소 정보</h3>
+                                                        <p><strong>이름:</strong> ${data.name}</p>
+                                                        <p><strong>주소:</strong> ${data.address}</p>
+                                                        <p><strong>설명:</strong> ${data.description || "설명이 없습니다."}</p>
+                                                    `; break;
+                                                    case "JP": innerhtml = `
+                                                        <h3>場所情報</h3>
+                                                        <p><strong>名:</strong> ${data.name}</p>
+                                                        <p><strong>住所:</strong> ${data.address}</p>
+                                                        <p><strong>細目:</strong> ${data.description || "説明がありません。"}</p>
+                                                    `; break;
+                                                    case "CN": innerhtml = `
+                                                        <h3>地点信息</h3>
+                                                        <p><strong>名字:</strong> ${data.name}</p>
+                                                        <p><strong>地址:</strong> ${data.address}</p>
+                                                        <p><strong>详细内容:</strong> ${data.description || "没有可用的描述 。"}</p>
+                                                    `; break;
+                                                    case "US": innerhtml = `
+                                                        <h3>Location information</h3>
+                                                        <p><strong>Name:</strong> ${data.name}</p>
+                                                        <p><strong>Address:</strong> ${data.address}</p>
+                                                        <p><strong>Details:</strong> ${data.description || "There is no description."}</p>
+                                                    `; break;
+                                                }
+                                                placeSection.innerHTML = innerhtml;
                                                 mapPanelContent.appendChild(placeSection);
                                                 if (data.longitude && data.latitude && data.name) {
                                                     const markerData = [];
@@ -1100,7 +1122,12 @@ document.addEventListener("spaContentLoaded", async function () {
                                                 generateDynamicPlanContent(jsonData);
                                             } else {
                                                 const noDataMessage = document.createElement("p");
-                                                noDataMessage.textContent = "해당 데이터가 없습니다.";
+                                                switch (countryId) {
+                                                    case "KR": noDataMessage.textContent = "해당 데이터가 없습니다."; break;
+                                                    case "JP": noDataMessage.textContent = "該当データがありません。"; break;
+                                                    case "CN": noDataMessage.textContent = "相应数据不存在。"; break;
+                                                    case "US": noDataMessage.textContent = "There is no data."; break;
+                                                }
                                                 mapPanelContent.appendChild(noDataMessage);
                                             }
                                         } catch (error) {
@@ -1127,8 +1154,8 @@ document.addEventListener("spaContentLoaded", async function () {
                                         itemDiv.remove();
 
                                         //DB에서도 해당 데이터 제거
-                                        console.log("bookmarkplace_id:", row.bookmark); //bm_00001
-                                        console.log("data:", row.id); 
+                                        // console.log("bookmarkplace_id:", row.bookmark); //bm_00001
+                                        // console.log("data:", row.id); 
                                         deleteBookmarklist(row);
                                     });
 
@@ -1578,7 +1605,6 @@ document.addEventListener("spaContentLoaded", async function () {
                     chatContainer.insertBefore(errorBubble, chatContainer.firstChild); // 맨 위에 추가
                 }
             }
-            console.log("wowowowow");
             // 로딩 상태로 설정
             isLoading = true;
             inputBar.disabled = true; // 입력창 비활성화
@@ -1832,7 +1858,7 @@ async function saveChatToDB(chatContent) {
         } 
         else {
             if (data.chatting_id) {
-                console.log("chat id:", data.chatting_id, "Chat saved successfully:", data.message || "Success", chatContent);
+                // console.log("chat id:", data.chatting_id, "Chat saved successfully:", data.message || "Success", chatContent);
                 // 기존의 chat_id가 있었다면 URL을 업데이트
                 const newUrl = new URL(window.location.href);
                 newUrl.searchParams.set("chat_id", data.chatting_id); 
@@ -1842,7 +1868,7 @@ async function saveChatToDB(chatContent) {
                 return data.chatting_id;
             }
             if (data.new_chat_id) {
-                console.log("chat id:", data.chatting_id, "New Chat ID:", data.message || "Success", chatContent);
+                // console.log("chat id:", data.chatting_id, "New Chat ID:", data.message || "Success", chatContent);
                 // 새 chat_id가 생성되었다면 URL을 업데이트
                 const newChatId = data.new_chat_id;
                 const newUrl = new URL(window.location.href);
@@ -3471,7 +3497,6 @@ async function generatePlaceContent(jsonData) {
 
         // <h3>장소 정보</h3>
         const heading = document.createElement("h3");
-        console.log("countryId:", countryId);
         if (countryId == "KR" ) {
             heading.textContent = "장소 정보";
         } else if (countryId == "JP") {
@@ -4155,7 +4180,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                         changeBookmarkTitle.value = title.textContent;
                         changeBookmarkTitle.style.display = "block"; // 입력창 표시
                         title.style.display = "none"; // 기존 텍스트 숨김
-                        console.log("title:", changeBookmarkTitle);
+                        // console.log("title:", changeBookmarkTitle);
                         changeBookmarkTitle.focus();
                     });
 
