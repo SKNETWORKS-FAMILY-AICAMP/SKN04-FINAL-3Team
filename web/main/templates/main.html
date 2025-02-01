@@ -74,6 +74,14 @@
                         {% elif settings.country_id == "CN" %}轮廓{% endif %}
                     </a>
                 </li>
+                <li>
+                    <a href="/logout/">                        
+                        {% if settings.country_id == "US" %}Logout
+                        {% elif settings.country_id == "KR" %}로그아웃
+                        {% elif settings.country_id == "JP" %}ログアウト
+                        {% elif settings.country_id == "CN" %}注销{% endif %}
+                    </a>
+                </li>
             </ul>
         </div>
         {% endif %}

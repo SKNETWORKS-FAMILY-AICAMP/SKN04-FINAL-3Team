@@ -174,6 +174,12 @@ function updateLanguage(selectedCountryId) {
             JP: "プロフィール",
             CN: "轮廓",
         },
+        {
+            US: "Logout",
+            KR: "로그아웃",
+            JP: "ログアウト",
+            CN: "注销",
+        },
     ];
 
     const translations_for_search_helper = {
