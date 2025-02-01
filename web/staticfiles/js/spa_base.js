@@ -1729,7 +1729,7 @@ document.addEventListener("spaContentLoaded", async function () {
                 if (botBubble.className.includes("left-bubble")) {
                     // 서식을 유지한 상태로 출력
                     const panelTitle = document.getElementById("panel-title");
-                    panelTitle.textContent = "";
+                    panelTitle.innerHTML = "";
                     const formattedMessage = messageContent
                         .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
@@ -1976,7 +1976,7 @@ function parseAndDisplayChatContent(chatContent) {
                 const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
                 if (bubble.className.includes("left-bubble")) {
                     const panelTitle = document.getElementById("panel-title");
-                    panelTitle.textContent = "";
+                    panelTitle.innerHTML = "";
 
                     // 서식을 유지한 상태로 출력
                     const formattedMessage = messageContent
@@ -2722,7 +2722,7 @@ function parsePlaceJson_JP(text) {
         }
     
         // 1) **장소:**
-        const placeMatch = line.match(/^\*\*場所:\*\* (.*)/);
+        const placeMatch = line.match(/^\*\*場所\*\*: (.*)/);
         console.log("line:", line, ",pl:", placeMatch);
         if (placeMatch) {
             console.log("place:", placeMatch[1].trim());
@@ -3482,13 +3482,13 @@ async function generatePlaceContent(jsonData) {
     }
     if (panelTitle) {
         if (jsonData["장소"]) {
-            panelTitle.textContent = jsonData["장소"];
+            panelTitle.innerHTML = jsonData["장소"];
         } else if (jsonData["場所"]) {
-            panelTitle.textContent = jsonData["場所"];
+            panelTitle.innerHTML = jsonData["場所"];
         } else if (jsonData["地点"]) {
-            panelTitle.textContent = jsonData["地点"];
+            panelTitle.innerHTML = jsonData["地点"];
         } else if (jsonData["Place"]) {
-            panelTitle.textContent = jsonData["Place"];
+            panelTitle.innerHTML = jsonData["Place"];
         }
     }
 
@@ -3500,13 +3500,13 @@ async function generatePlaceContent(jsonData) {
         // <h3>장소 정보</h3>
         const heading = document.createElement("h3");
         if (countryId == "KR" ) {
-            heading.textContent = "장소 정보";
+            heading.innerHTML = "장소 정보";
         } else if (countryId == "JP") {
-            heading.textContent = "場所情報";
+            heading.innerHTML = "場所情報";
         } else if (countryId == "CN") {
-            heading.textContent = "地点信息";    
+            heading.innerHTML = "地点信息";    
         } else if (countryId == "US") {
-            heading.textContent = "Place Info";
+            heading.innerHTML = "Place Info";
         }
         section.appendChild(heading);
 
@@ -3516,13 +3516,13 @@ async function generatePlaceContent(jsonData) {
         
         nameParagraph.appendChild(nameStrong);
         if (countryId == "KR") {
-            nameStrong.textContent = "이름: "; 
+            nameStrong.innerHTML = "이름: "; 
         } else if (countryId == "JP") {
-            nameStrong.textContent = "名: ";
+            nameStrong.innerHTML = "名: ";
         } else if (countryId == "CN") {
-            nameStrong.textContent = "名字: ";
+            nameStrong.innerHTML = "名字: ";
         } else if (countryId == "US") {
-            nameStrong.textContent = "Name: ";
+            nameStrong.innerHTML = "Name: ";
         }
 
         if (jsonData["장소"]) {
@@ -3546,13 +3546,13 @@ async function generatePlaceContent(jsonData) {
 
         addressParagraph.appendChild(addressStrong);
         if (countryId == "KR") {
-            addressStrong.textContent = "주소: ";
+            addressStrong.innerHTML = "주소: ";
         } else if (countryId == "JP") {
-            addressStrong.textContent = "住所: "; 
+            addressStrong.innerHTML = "住所: "; 
         } else if (countryId == "CN") {
-            addressStrong.textContent = "地址: ";
+            addressStrong.innerHTML = "地址: ";
         } else if (countryId == "US") {
-            addressStrong.textContent = "Address: ";            
+            addressStrong.innerHTML = "Address: ";            
         }        
 
         if (jsonData["주소"]) {
@@ -3576,13 +3576,13 @@ async function generatePlaceContent(jsonData) {
 
         descriptionParagraph.appendChild(descriptionStrong);
         if (countryId == "KR") {
-            descriptionStrong.textContent = "정보: ";
+            descriptionStrong.innerHTML = "정보: ";
         } else if (countryId == "JP") {
-            descriptionStrong.textContent = "詳細: ";
+            descriptionStrong.innerHTML = "詳細: ";
         } else if (countryId == "CN") {
-            descriptionStrong.textContent = "详情: ";
+            descriptionStrong.innerHTML = "详情: ";
         } else if (countryId == "US") {
-            descriptionStrong.textContent = "Details: ";
+            descriptionStrong.innerHTML = "Details: ";
         }        
 
         if (jsonData["정보"]) {
