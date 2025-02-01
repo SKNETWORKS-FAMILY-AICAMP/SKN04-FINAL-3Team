@@ -1729,7 +1729,7 @@ document.addEventListener("spaContentLoaded", async function () {
                 if (botBubble.className.includes("left-bubble")) {
                     // 서식을 유지한 상태로 출력
                     const panelTitle = document.getElementById("panel-title");
-                    panelTitle.textContent = "";
+                    panelTitle.innerHTML = "";
                     const formattedMessage = messageContent
                         .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
@@ -1976,7 +1976,7 @@ function parseAndDisplayChatContent(chatContent) {
                 const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
                 if (bubble.className.includes("left-bubble")) {
                     const panelTitle = document.getElementById("panel-title");
-                    panelTitle.textContent = "";
+                    panelTitle.innerHTML = "";
 
                     // 서식을 유지한 상태로 출력
                     const formattedMessage = messageContent
@@ -1991,7 +1991,7 @@ function parseAndDisplayChatContent(chatContent) {
                     const jsonData6 = parsePlaceJson_JP(formattedMessage);
                     const jsonData7 = parsePlaceJson_CN(formattedMessage);
                     const jsonData8 = parsePlaceJson_US(formattedMessage);
-
+                    
                     let jsonScheduleData = [];
                     if (Array.isArray(jsonData1) && jsonData1.length > 0) {
                         jsonScheduleData = jsonData1;
@@ -2549,7 +2549,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 1) **장소:**
-        const placeMatch = line.match(/^\*\*장소:\** (.*)/);
+        const placeMatch = line.match(/^\*\*장소:\*\* (.*)/);
         if (placeMatch) {
             result["장소"] = placeMatch[1].trim();
             currentSection = "장소"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
@@ -2557,7 +2557,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 2) **주소**:
-        const addressMatch = line.match(/^\-\s*\*\*주소\**: (.*)/);
+        const addressMatch = line.match(/^\-\s*\*\*주소\*\*: (.*)/);
         if (addressMatch) {
             result["주소"] = addressMatch[1].trim();
             currentSection = "주소";
@@ -2565,7 +2565,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 3) **전화 번호**:
-        const phoneMatch = line.match(/^\-\s*\*\*전화 번호\**: (.*)/);
+        const phoneMatch = line.match(/^\-\s*\*\*전화 번호\*\*: (.*)/);
         if (phoneMatch) {
             result["전화 번호"] = phoneMatch[1].trim();
             currentSection = "전화 번호";
@@ -2573,7 +2573,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 4) **영업 시간**: (여러 줄에 걸쳐 있을 수 있음)
-        const timeMatch = line.match(/^\-\s*\*\*영업 시간\**: (.*)/);
+        const timeMatch = line.match(/^\-\s*\*\*영업 시간\*\*: (.*)/);
         if (timeMatch) {
             // 첫 줄에도 내용이 있으면 배열에 넣는다
             const firstContent = timeMatch[1].trim();
@@ -2585,7 +2585,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 5) **정보**: 
-        const infoMatch = line.match(/^\*\*정보\**: ?(.*)/);
+        const infoMatch = line.match(/^\*\*정보\*\*: ?(.*)/);
         if (infoMatch) {
             result["정보"] = infoMatch[1].trim(); // 첫 줄
             currentSection = "정보";
@@ -2593,7 +2593,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 6) **메뉴**:
-        const menuMatch = line.match(/^\*\*메뉴\**: ?(.*)/);
+        const menuMatch = line.match(/^\*\*메뉴\*\*: ?(.*)/);
         if (menuMatch) {
             // 메뉴에 바로 내용이 있을 수도 있지만 보통은 없고, 
             // 어쨌든 currentSection="메뉴"로 설정
@@ -2602,7 +2602,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 7) **장점**:
-        const advantageMatch = line.match(/^\*\*장점\**: ?(.*)/);
+        const advantageMatch = line.match(/^\*\*장점\*\*: ?(.*)/);
         if (advantageMatch) {
             result["장점"] = advantageMatch[1].trim();
             currentSection = "장점";
@@ -2610,7 +2610,7 @@ function parsePlaceJson_KR(text) {
         }
 
         // 8) **SNS**:
-        const snsMatch = line.match(/^\*\*SNS\**: ?(.*)/);
+        const snsMatch = line.match(/^\*\*SNS\*\*: ?(.*)/);
         if (snsMatch) {
             result["SNS"] = snsMatch[1].trim();
             currentSection = "SNS";
@@ -2618,7 +2618,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 9) **기타**:
-        const etcMatch = line.match(/^\*\*기타\**: ?(.*)/);
+        const etcMatch = line.match(/^\*\*기타\*\*: ?(.*)/);
         if (etcMatch) {
             result["기타"] = etcMatch[1].trim();
             currentSection = "기타";
@@ -2722,15 +2722,17 @@ function parsePlaceJson_JP(text) {
         }
     
         // 1) **장소:**
-        const placeMatch = line.match(/^\*\*場所:\** (.*)/);
+        const placeMatch = line.match(/^\*\*場所\*\*: (.*)/);
+        console.log("line:", line, ",pl:", placeMatch);
         if (placeMatch) {
+            console.log("place:", placeMatch[1].trim());
             result["場所"] = placeMatch[1].trim();
             currentSection = "場所"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
             return;
         }
     
         // 2) **주소**:
-        const addressMatch = line.match(/^\-\s*\*\*住所\**: (.*)/);
+        const addressMatch = line.match(/^\-\s*\*\*住所\*\*: (.*)/);
         if (addressMatch) {
             result["住所"] = addressMatch[1].trim();
             currentSection = "住所";
@@ -2738,7 +2740,7 @@ function parsePlaceJson_JP(text) {
         }
     
         // 3) **전화 번호**:
-        const phoneMatch = line.match(/^\-\s*\*\*電話番号\**: (.*)/);
+        const phoneMatch = line.match(/^\-\s*\*\*電話番号\*\*: (.*)/);
         if (phoneMatch) {
             result["電話番号"] = phoneMatch[1].trim();
             currentSection = "電話番号";
@@ -2746,7 +2748,7 @@ function parsePlaceJson_JP(text) {
         }
     
         // 4) **영업 시간**: (여러 줄에 걸쳐 있을 수 있음)
-        const timeMatch = line.match(/^\-\s*\*\*営業時間\**: (.*)/);
+        const timeMatch = line.match(/^\-\s*\*\*営業時間\*\*: (.*)/);
         if (timeMatch) {
             // 첫 줄에도 내용이 있으면 배열에 넣는다
             const firstContent = timeMatch[1].trim();
@@ -2758,7 +2760,7 @@ function parsePlaceJson_JP(text) {
         }
     
         // 5) **정보**: 
-        const infoMatch = line.match(/^\*\*詳細\**: ?(.*)/);
+        const infoMatch = line.match(/^\*\*詳細\*\*: ?(.*)/);
         if (infoMatch) {
             result["詳細"] = infoMatch[1].trim(); // 첫 줄
             currentSection = "詳細";
@@ -2766,7 +2768,7 @@ function parsePlaceJson_JP(text) {
         }
     
         // 6) **메뉴**:
-        const menuMatch = line.match(/^\*\*おすすめメニュー\**: ?(.*)/);
+        const menuMatch = line.match(/^\*\*おすすめメニュー\*\*: ?(.*)/);
         if (menuMatch) {
             // 메뉴에 바로 내용이 있을 수도 있지만 보통은 없고, 
             // 어쨌든 currentSection="메뉴"로 설정
@@ -2775,7 +2777,7 @@ function parsePlaceJson_JP(text) {
         }
     
         // 7) **장점**:
-        const advantageMatch = line.match(/^\*\*利点\**: ?(.*)/);
+        const advantageMatch = line.match(/^\*\*利点\*\*: ?(.*)/);
         if (advantageMatch) {
             result["利点"] = advantageMatch[1].trim();
             currentSection = "利点";
@@ -2783,7 +2785,7 @@ function parsePlaceJson_JP(text) {
         }
 
         // 8) **SNS**:
-        const snsMatch = line.match(/^\*\*SNS\**: ?(.*)/);
+        const snsMatch = line.match(/^\*\*SNS\*\*: ?(.*)/);
         if (snsMatch) {
             result["SNS"] = snsMatch[1].trim();
             currentSection = "SNS";
@@ -2791,7 +2793,7 @@ function parsePlaceJson_JP(text) {
         }
     
         // 9) **기타**:
-        const etcMatch = line.match(/^\*\*その他情報\**: ?(.*)/);
+        const etcMatch = line.match(/^\*\*その他情報\*\*: ?(.*)/);
         if (etcMatch) {
             result["その他情報"] = etcMatch[1].trim();
             currentSection = "その他情報";
@@ -2895,7 +2897,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 1) **장소:**
-        const placeMatch = line.match(/^\*\*地点\**: (.*)/);
+        const placeMatch = line.match(/^\*\*地点\*\*: (.*)/);
         if (placeMatch) {
             result["地点"] = placeMatch[1].trim();
             currentSection = "地点"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
@@ -2903,7 +2905,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 2) **주소**:
-        const addressMatch = line.match(/^\-\s*\*\*地址\**: (.*)/);
+        const addressMatch = line.match(/^\-\s*\*\*地址\*\*: (.*)/);
         if (addressMatch) {
             result["地址"] = addressMatch[1].trim();
             currentSection = "地址";
@@ -2911,7 +2913,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 3) **전화 번호**:
-        const phoneMatch = line.match(/^\-\s*\*\*电话号码\**: (.*)/);
+        const phoneMatch = line.match(/^\-\s*\*\*电话号码\*\*: (.*)/);
         if (phoneMatch) {
             result["电话号码"] = phoneMatch[1].trim();
             currentSection = "电话号码";
@@ -2919,7 +2921,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 4) **영업 시간**: (여러 줄에 걸쳐 있을 수 있음)
-        const timeMatch = line.match(/^\-\s*\*\*营业时间\**: (.*)/);
+        const timeMatch = line.match(/^\-\s*\*\*营业时间\*\*: (.*)/);
         if (timeMatch) {
             // 첫 줄에도 내용이 있으면 배열에 넣는다
             const firstContent = timeMatch[1].trim();
@@ -2931,7 +2933,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 5) **정보**: 
-        const infoMatch = line.match(/^\*\*详情\**: ?(.*)/);
+        const infoMatch = line.match(/^\*\*详情\*\*: ?(.*)/);
         if (infoMatch) {
             result["详情"] = infoMatch[1].trim(); // 첫 줄
             currentSection = "详情";
@@ -2939,7 +2941,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 6) **메뉴**:
-        const menuMatch = line.match(/^\*\*推荐菜单\**: ?(.*)/);
+        const menuMatch = line.match(/^\*\*推荐菜单\*\*: ?(.*)/);
         if (menuMatch) {
             // 메뉴에 바로 내용이 있을 수도 있지만 보통은 없고, 
             // 어쨌든 currentSection="메뉴"로 설정
@@ -2948,7 +2950,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 7) **장점**:
-        const advantageMatch = line.match(/^\*\*优点\**: ?(.*)/);
+        const advantageMatch = line.match(/^\*\*优点\*\*: ?(.*)/);
         if (advantageMatch) {
             result["优点"] = advantageMatch[1].trim();
             currentSection = "优点";
@@ -2956,7 +2958,7 @@ function parsePlaceJson_CN(text) {
         }
 
         // 8) **SNS**:
-        const snsMatch = line.match(/^\*\*社交媒体\**: ?(.*)/);
+        const snsMatch = line.match(/^\*\*社交媒体\*\*: ?(.*)/);
         if (snsMatch) {
             result["社交媒体"] = snsMatch[1].trim();
             currentSection = "社交媒体";
@@ -2964,7 +2966,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 9) **기타**:
-        const etcMatch = line.match(/^\*\*其他信息\**: ?(.*)/);
+        const etcMatch = line.match(/^\*\*其他信息\*\*: ?(.*)/);
         if (etcMatch) {
             result["其他信息"] = etcMatch[1].trim();
             currentSection = "其他信息";
@@ -3068,7 +3070,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 1) **장소:**
-        const placeMatch = line.match(/^\*\*Place:\** (.*)/);
+        const placeMatch = line.match(/^\*\*Place:\*\* (.*)/);
         if (placeMatch) {
             result["Place"] = placeMatch[1].trim();
             currentSection = "Place"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
@@ -3076,7 +3078,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 2) **주소**:
-        const addressMatch = line.match(/^\-\s*\*\*Address\**: (.*)/);
+        const addressMatch = line.match(/^\-\s*\*\*Address\*\*: (.*)/);
         if (addressMatch) {
             result["Address"] = addressMatch[1].trim();
             currentSection = "Address";
@@ -3084,7 +3086,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 3) **전화 번호**:
-        const phoneMatch = line.match(/^\-\s*\*\*Phone Number\**: (.*)/);
+        const phoneMatch = line.match(/^\-\s*\*\*Phone Number\*\*: (.*)/);
         if (phoneMatch) {
             result["Phone Number"] = phoneMatch[1].trim();
             currentSection = "Phone Number";
@@ -3092,7 +3094,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 4) **영업 시간**: (여러 줄에 걸쳐 있을 수 있음)
-        const timeMatch = line.match(/^\-\s*\*\*Opening Hours\**: (.*)/);
+        const timeMatch = line.match(/^\-\s*\*\*Opening Hours\*\*: (.*)/);
         if (timeMatch) {
             // 첫 줄에도 내용이 있으면 배열에 넣는다
             const firstContent = timeMatch[1].trim();
@@ -3104,7 +3106,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 5) **정보**: 
-        const infoMatch = line.match(/^\*\*Details\**: ?(.*)/);
+        const infoMatch = line.match(/^\*\*Details\*\*: ?(.*)/);
         if (infoMatch) {
             result["Details"] = infoMatch[1].trim(); // 첫 줄
             currentSection = "Details";
@@ -3112,7 +3114,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 6) **메뉴**:
-        const menuMatch = line.match(/^\*\*Recommended Menu\**: ?(.*)/);
+        const menuMatch = line.match(/^\*\*Recommended Menu\*\*: ?(.*)/);
         if (menuMatch) {
             // 메뉴에 바로 내용이 있을 수도 있지만 보통은 없고, 
             // 어쨌든 currentSection="메뉴"로 설정
@@ -3121,7 +3123,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 7) **장점**:
-        const advantageMatch = line.match(/^\*\*Advantages\**: ?(.*)/);
+        const advantageMatch = line.match(/^\*\*Advantages\*\*: ?(.*)/);
         if (advantageMatch) {
             result["Advantages"] = advantageMatch[1].trim();
             currentSection = "Advantages";
@@ -3137,7 +3139,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 9) **기타**:
-        const etcMatch = line.match(/^\*\*Additional Information\**: ?(.*)/);
+        const etcMatch = line.match(/^\*\*Additional Information\*\*: ?(.*)/);
         if (etcMatch) {
             result["Additional Information"] = etcMatch[1].trim();
             currentSection = "Additional Information";
@@ -3480,13 +3482,13 @@ async function generatePlaceContent(jsonData) {
     }
     if (panelTitle) {
         if (jsonData["장소"]) {
-            panelTitle.textContent = jsonData["장소"];
+            panelTitle.innerHTML = jsonData["장소"];
         } else if (jsonData["場所"]) {
-            panelTitle.textContent = jsonData["場所"];
+            panelTitle.innerHTML = jsonData["場所"];
         } else if (jsonData["地点"]) {
-            panelTitle.textContent = jsonData["地点"];
+            panelTitle.innerHTML = jsonData["地点"];
         } else if (jsonData["Place"]) {
-            panelTitle.textContent = jsonData["Place"];
+            panelTitle.innerHTML = jsonData["Place"];
         }
     }
 
@@ -3498,13 +3500,13 @@ async function generatePlaceContent(jsonData) {
         // <h3>장소 정보</h3>
         const heading = document.createElement("h3");
         if (countryId == "KR" ) {
-            heading.textContent = "장소 정보";
+            heading.innerHTML = "장소 정보";
         } else if (countryId == "JP") {
-            heading.textContent = "場所情報";
+            heading.innerHTML = "場所情報";
         } else if (countryId == "CN") {
-            heading.textContent = "地点信息";    
+            heading.innerHTML = "地点信息";    
         } else if (countryId == "US") {
-            heading.textContent = "Place Info";
+            heading.innerHTML = "Place Info";
         }
         section.appendChild(heading);
 
@@ -3514,13 +3516,13 @@ async function generatePlaceContent(jsonData) {
         
         nameParagraph.appendChild(nameStrong);
         if (countryId == "KR") {
-            nameStrong.textContent = "이름: "; 
+            nameStrong.innerHTML = "이름: "; 
         } else if (countryId == "JP") {
-            nameStrong.textContent = "名: ";
+            nameStrong.innerHTML = "名: ";
         } else if (countryId == "CN") {
-            nameStrong.textContent = "名字: ";
+            nameStrong.innerHTML = "名字: ";
         } else if (countryId == "US") {
-            nameStrong.textContent = "Name: ";
+            nameStrong.innerHTML = "Name: ";
         }
 
         if (jsonData["장소"]) {
@@ -3544,13 +3546,13 @@ async function generatePlaceContent(jsonData) {
 
         addressParagraph.appendChild(addressStrong);
         if (countryId == "KR") {
-            addressStrong.textContent = "주소: ";
+            addressStrong.innerHTML = "주소: ";
         } else if (countryId == "JP") {
-            addressStrong.textContent = "住所: "; 
+            addressStrong.innerHTML = "住所: "; 
         } else if (countryId == "CN") {
-            addressStrong.textContent = "地址: ";
+            addressStrong.innerHTML = "地址: ";
         } else if (countryId == "US") {
-            addressStrong.textContent = "Address: ";            
+            addressStrong.innerHTML = "Address: ";            
         }        
 
         if (jsonData["주소"]) {
@@ -3574,13 +3576,13 @@ async function generatePlaceContent(jsonData) {
 
         descriptionParagraph.appendChild(descriptionStrong);
         if (countryId == "KR") {
-            descriptionStrong.textContent = "정보: ";
+            descriptionStrong.innerHTML = "정보: ";
         } else if (countryId == "JP") {
-            descriptionStrong.textContent = "詳細: ";
+            descriptionStrong.innerHTML = "詳細: ";
         } else if (countryId == "CN") {
-            descriptionStrong.textContent = "详情: ";
+            descriptionStrong.innerHTML = "详情: ";
         } else if (countryId == "US") {
-            descriptionStrong.textContent = "Details: ";
+            descriptionStrong.innerHTML = "Details: ";
         }        
 
         if (jsonData["정보"]) {
