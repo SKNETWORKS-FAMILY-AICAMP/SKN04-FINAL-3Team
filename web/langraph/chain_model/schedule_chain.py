@@ -1,7 +1,7 @@
-from prompts.prompt_schedule_kr import prompt_schedule_kr
-from prompts.prompt_schedule_chi import prompt_schedule_chi
-from prompts.prompt_schedule_eng import prompt_schedule_eng
-from prompts.prompt_schedule_ja import prompt_schedule_ja
+from langraph.prompts.prompt_schedule_kr import prompt_schedule_kr
+from langraph.prompts.prompt_schedule_chi import prompt_schedule_chi
+from langraph.prompts.prompt_schedule_eng import prompt_schedule_eng
+from langraph.prompts.prompt_schedule_ja import prompt_schedule_ja
 
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser

@@ -43,7 +43,7 @@ SECRET_KEY = "django-insecure-)ml)-$v^=g02rac821m4rtnu%4tw9#1u_*@a%*$81%m9z2v@b0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '43.201.171.106']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '43.201.171.106','*']
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # 개발용 로컬 호스트
@@ -211,12 +211,22 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 # STATIC_URL = "static/"
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+# STATIC_URL = '/static/'
+# STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # 추가적으로, static 파일들을 어디서 찾을지 지정할 수 있습니다.
+# STATICFILES_DIRS = [
+#     BASE_DIR / "main/static",
+# ]
+
+# STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+# settings.py
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# 필요하다면, 개발용 정적파일 폴더만 지정
 STATICFILES_DIRS = [
-    BASE_DIR / "main/static",  # 프로젝트 루트에 있는 static 디렉토리
+    os.path.join(BASE_DIR, 'main', 'static'),  # 필요 시
 ]
 
 # Default primary key field type

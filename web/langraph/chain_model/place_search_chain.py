@@ -1,7 +1,7 @@
-from prompts.prompt_place_search_chi import prompt_place_search_chi
-from prompts.prompt_place_search_ja import prompt_place_search_ja
-from prompts.prompt_place_search_kr import prompt_place_search_kr
-from prompts.prompt_place_search_eng import prompt_place_search_eng
+from langraph.prompts.prompt_place_search_chi import prompt_place_search_chi
+from langraph.prompts.prompt_place_search_ja import prompt_place_search_ja
+from langraph.prompts.prompt_place_search_kr import prompt_place_search_kr
+from langraph.prompts.prompt_place_search_eng import prompt_place_search_eng
 
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
