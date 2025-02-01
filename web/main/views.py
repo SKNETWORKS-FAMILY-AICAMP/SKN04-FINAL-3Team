@@ -1096,10 +1096,14 @@ def get_bookmark(request):
 
     bookmark_list = []
     for bookmark in bookmarks:
+        bookmark_places = BookmarkList.objects.filter(bookmark=bookmark, bookmarkplace__isnull=False)
+        place_names = [bp.bookmarkplace.name for bp in bookmark_places if bp.bookmarkplace]
+
         bookmark_list.append({
             "id": bookmark.bookmark,
             "title": bookmark.title,
             "created_at": bookmark.created_at,
+            "name": place_names,
         })
 
     return JsonResponse({"success": True, "bookmarks": bookmark_list})
