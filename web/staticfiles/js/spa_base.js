@@ -1526,15 +1526,15 @@ document.addEventListener("spaContentLoaded", async function () {
         if (isLoading) return; // 로딩 중일 때 메시지 전송 방지
 
         const message = inputBar.value.trim(); // 사용자가 입력한 메시지
-        
+        const urlParams = new URLSearchParams(window.location.search);
+        const chatId = urlParams.get("chat_id");
         let chatHistory = "";
         if (message === "") return;
 
         const result = await saveChatToDB(`<나>${message}`);
         if (result) {
+            const chatId = result;
             try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const chatId = urlParams.get("chat_id");    
                 const response = await fetch(`/app/partials/planner/get_chat/?chat_id=${chatId}`, {
                     method: "GET",
                     headers: {
@@ -1587,7 +1587,7 @@ document.addEventListener("spaContentLoaded", async function () {
             }
         } else {
             const chatContainer = document.querySelector(".chat-container");
-            if (chatContainer) {
+            if (isLoggedIn && chatContainer) {
                 const errorBubble = document.createElement("div");
                 errorBubble.className = "error-bubble";
                 errorBubble.innerHTML = "채팅 내역이 꽉 찼습니다! 이 채팅은 저장되지 않습니다.<br>기존 채팅 내역을 사용해주세요.<br>현재 채팅에는 글 초기화 버튼이 작동하지 않습니다.";
@@ -1705,6 +1705,7 @@ document.addEventListener("spaContentLoaded", async function () {
             let buffer = ""; // 청크를 임시로 저장할 버퍼
             let botBubble = document.createElement("div"); // 새 말풍선을 생성
             botBubble.className = "bubble left-bubble";
+            
             botBubble.textContent = "";
             botBubble.classList.add("bubble", "left-bubble");
             document.querySelector(".loading-bubble").remove(); // 로딩 채팅 창 없애기
@@ -1725,7 +1726,7 @@ document.addEventListener("spaContentLoaded", async function () {
             botBubble.addEventListener("click", function (event) {
                 const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
                 const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
-
+                
                 if (botBubble.className.includes("left-bubble")) {
                     // 서식을 유지한 상태로 출력
                     const panelTitle = document.getElementById("panel-title");
@@ -1827,7 +1828,7 @@ async function saveChatToDB(chatContent) {
     localStorage.removeItem('chatMessage');
     const urlParams = new URLSearchParams(window.location.search);
     const chatId = urlParams.get("chat_id");
-    if (!chatId) return;
+    if (!chatId && !isLoggedIn) return;
 
     return fetch("/app/partials/planner/save_chat/", {
         method: "POST",
@@ -1886,6 +1887,7 @@ async function saveChatToDB(chatContent) {
     });
 }
 
+// 사장된 함수 (250120)
 function typeText(element, text, loadingBubble, speed = 5) {
     let index = 0;
 
@@ -1910,6 +1912,8 @@ function typeText(element, text, loadingBubble, speed = 5) {
         } else {
             // 애니메이션 종료 후 로딩 상태 해제
             isLoading = false;
+            inputBar.disabled = false; // 입력창 활성화
+            inputBar.focus();
         }
     }
     typeNextChar();
@@ -2013,8 +2017,7 @@ function parseAndDisplayChatContent(chatContent) {
                     } else if (!isEmptyJson(jsonData8)) {
                         jsonPlaceData = jsonData8;
                     }
-                    if (jsonScheduleData.length !== 0) {
-                        
+                    if (jsonScheduleData.length !== 0) {                        
                         generateDayButtons(jsonScheduleData);
                         generateDynamicPlanContent(jsonScheduleData);
                         getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonScheduleData));
@@ -4152,7 +4155,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
 
                     // 2) Enter: 제목 저장, ESC: 취소
                     changeBookmarkTitle.addEventListener("keydown", async function (e) {
-                        if (event.key === "Enter") {
+                        if (e.key === "Enter") {
                             const newTitle = changeBookmarkTitle.value.trim();
                             
                             if (!newTitle) {
@@ -4169,10 +4172,44 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                             title.style.display = "block"; // 기존 텍스트 표시
                             changeBookmarkTitle.style.display = "none"; // 입력창 숨김
                         } 
-                        else if (event.key === "Escape") {
+                        else if (e.key === "Escape") {
                             title.style.display = "block"; // 기존 텍스트 표시
                             changeBookmarkTitle.style.display = "none";  // 입력창 숨김
                         }                    
+                    });
+
+                    //기존 즐겨찾기 항목 버튼들 추가
+                    data.bookmarks.forEach(bookmark => {
+                        const createLi = document.createElement('li');                            
+                        const milliseconds = new Date(bookmark['created_at']).getTime();
+                        const colorValue = milliseconds % 0xFFFFFF; 
+                        const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
+                        createLi.className = "bookmark_item";
+                        createLi.id = bookmark['id'];
+                        createLi.style.cursor = "pointer";
+                        console.log("1:", bookmark['title'], ",", bookmark['name']);
+                        console.log("2:", bookmark['name'].includes(panelTitle.textContent.trim()));
+                        innerHtml = `
+                            <div style="background-color: ${hexColor}">
+                                <span style="font-size: 17px; color: white;">☆</span>
+                            </div>
+                            <p>${bookmark['title']}</p>
+                            <button>
+                                ${bookmark['name'] && bookmark['name'].includes(panelTitle.textContent.trim()) 
+                                    ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
+                                    : '<span style="font-size: 27px; color: white;">+</span>'
+                                }
+                            </button>
+                        `;      
+                        // ${bookmarkID === bookmark['id']}
+                        createLi.innerHTML = innerHtml;
+                        
+                        createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        bookmarklistPanel.appendChild(createLi);
                     });
                 }
                 else if (isSchedule) {
@@ -4228,38 +4265,38 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                     else {
                         title.textContent = panelTitle.textContent;
                     }
-                } 
 
-                //기존 즐겨찾기 항목 버튼들 추가
-                data.bookmarks.forEach(bookmark => {
-                    const createLi = document.createElement('li');                            
-                    const milliseconds = new Date(bookmark['created_at']).getTime();
-                    const colorValue = milliseconds % 0xFFFFFF; 
-                    const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
-                    createLi.className = "bookmark_item";
-                    createLi.id = bookmark['id'];
-                    createLi.style.cursor = "pointer";
-                    innerHtml = `
-                        <div style="background-color: ${hexColor}">
-                            <span style="font-size: 17px; color: white;">☆</span>
-                        </div>
-                        <p>${bookmark['title']}</p>
-                        <button>
-                            ${bookmarkID === bookmark['id'] 
-                                ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
-                                : '<span style="font-size: 27px; color: white;">+</span>'
-                            }
-                        </button>
-                    `;                            
-                    createLi.innerHTML = innerHtml;
-                    
-                    createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    bookmarklistPanel.appendChild(createLi);
-                });
+                    //기존 즐겨찾기 항목 버튼들 추가
+                    data.bookmarks.forEach(bookmark => {
+                        const createLi = document.createElement('li');                            
+                        const milliseconds = new Date(bookmark['created_at']).getTime();
+                        const colorValue = milliseconds % 0xFFFFFF; 
+                        const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
+                        createLi.className = "bookmark_item";
+                        createLi.id = bookmark['id'];
+                        createLi.style.cursor = "pointer";
+                        innerHtml = `
+                            <div style="background-color: ${hexColor}">
+                                <span style="font-size: 17px; color: white;">☆</span>
+                            </div>
+                            <p>${bookmark['title']}</p>
+                            <button>
+                                ${bookmarkID === bookmark['id'] 
+                                    ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
+                                    : '<span style="font-size: 27px; color: white;">+</span>'
+                                }
+                            </button>
+                        `;                            
+                        createLi.innerHTML = innerHtml;
+                        
+                        createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        bookmarklistPanel.appendChild(createLi);
+                    });
+                } 
                 
                 //새 즐겨찾기 항목 만드는 버튼 추가                        
                 const createLi = document.createElement('li');
@@ -4300,7 +4337,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                             inputElem.focus();
 
                             // Enter로 확정
-                            inputElem.addEventListener("keydown", function (e) {
+                            inputElem.addEventListener("keydown", async function (e) {
                                 if (e.key === "Enter") {
                                     e.preventDefault();
                                     const textValue = inputElem.value.trim();
@@ -4311,26 +4348,24 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                         const inputItem = document.querySelector(`.bookmarklist-panel .folder-item`);
                                         const items = document.querySelectorAll('.bookmarklist-panel ul li');                                                                             
                                         inputElem.remove();
-
-                                        // 서버로 AJAX 호출
-                                        fetch("/app/partials/favorites/add/", {
-                                            method: "POST",
-                                            headers: {
-                                                "Content-Type": "application/json",
-                                                "X-CSRFToken": getCSRFToken()
-                                            },
-                                            body: JSON.stringify({
-                                                title: textValue,
-                                                is_place: isPlace,
-                                            })
-                                        })
-                                        .then(response => {
+                                        console.log("GO!");
+                                        try {
+                                            const response = await fetch("/app/partials/favorites/add/", {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type": "application/json",
+                                                    "X-CSRFToken": getCSRFToken()
+                                                },
+                                                body: JSON.stringify({
+                                                    title: textValue,
+                                                    is_place: isPlace,
+                                                })
+                                            });
                                             if (!response.ok) {
                                                 throw new Error(`HTTP error! status: ${response.status}`);
                                             }
-                                            return response.json();
-                                        })
-                                        .then((data) => {
+                                            
+                                            const data = await response.json();
                                             if (data.success) {
                                                 const createLi = document.createElement('li');                            
                                                 const milliseconds = Date.now();
@@ -4360,22 +4395,13 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                                     case "US": alert('Failed to create favorite item'); break;
                                                 }
                                             }
-                                        })
-                                        .catch((err) => {
-                                            console.error("서버 통신 오류:", err);
-                                        });
+                                        } catch {
+                                            console.error("!");
+                                        }
                                     }                                    
                                 }
                             });
                         }
-
-                        // addFolderEventHandler(
-                        //     "plus-place",
-                        //     "#placesSection",
-                        //     "새 폴더 이름 입력 (Enter)",
-                        //     true,
-                        //     { light: "/static/images/folder_light.png", dark: "/static/images/folder_dark.png" }
-                        // );
                     })
                     createLi.classList.remove("button_inactive");
                     createLi.classList.add("button_active");

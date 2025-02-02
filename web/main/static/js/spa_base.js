@@ -1705,6 +1705,7 @@ document.addEventListener("spaContentLoaded", async function () {
             let buffer = ""; // 청크를 임시로 저장할 버퍼
             let botBubble = document.createElement("div"); // 새 말풍선을 생성
             botBubble.className = "bubble left-bubble";
+            
             botBubble.textContent = "";
             botBubble.classList.add("bubble", "left-bubble");
             document.querySelector(".loading-bubble").remove(); // 로딩 채팅 창 없애기
@@ -1725,7 +1726,7 @@ document.addEventListener("spaContentLoaded", async function () {
             botBubble.addEventListener("click", function (event) {
                 const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
                 const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
-
+                
                 if (botBubble.className.includes("left-bubble")) {
                     // 서식을 유지한 상태로 출력
                     const panelTitle = document.getElementById("panel-title");
@@ -2016,8 +2017,7 @@ function parseAndDisplayChatContent(chatContent) {
                     } else if (!isEmptyJson(jsonData8)) {
                         jsonPlaceData = jsonData8;
                     }
-                    if (jsonScheduleData.length !== 0) {
-                        
+                    if (jsonScheduleData.length !== 0) {                        
                         generateDayButtons(jsonScheduleData);
                         generateDynamicPlanContent(jsonScheduleData);
                         getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonScheduleData));
@@ -4337,7 +4337,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                             inputElem.focus();
 
                             // Enter로 확정
-                            inputElem.addEventListener("keydown", function (e) {
+                            inputElem.addEventListener("keydown", async function (e) {
                                 if (e.key === "Enter") {
                                     e.preventDefault();
                                     const textValue = inputElem.value.trim();
@@ -4348,26 +4348,24 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                         const inputItem = document.querySelector(`.bookmarklist-panel .folder-item`);
                                         const items = document.querySelectorAll('.bookmarklist-panel ul li');                                                                             
                                         inputElem.remove();
-
-                                        // 서버로 AJAX 호출
-                                        fetch("/app/partials/favorites/add/", {
-                                            method: "POST",
-                                            headers: {
-                                                "Content-Type": "application/json",
-                                                "X-CSRFToken": getCSRFToken()
-                                            },
-                                            body: JSON.stringify({
-                                                title: textValue,
-                                                is_place: isPlace,
-                                            })
-                                        })
-                                        .then(response => {
+                                        console.log("GO!");
+                                        try {
+                                            const response = await fetch("/app/partials/favorites/add/", {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type": "application/json",
+                                                    "X-CSRFToken": getCSRFToken()
+                                                },
+                                                body: JSON.stringify({
+                                                    title: textValue,
+                                                    is_place: isPlace,
+                                                })
+                                            });
                                             if (!response.ok) {
                                                 throw new Error(`HTTP error! status: ${response.status}`);
                                             }
-                                            return response.json();
-                                        })
-                                        .then((data) => {
+                                            
+                                            const data = await response.json();
                                             if (data.success) {
                                                 const createLi = document.createElement('li');                            
                                                 const milliseconds = Date.now();
@@ -4397,10 +4395,9 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                                     case "US": alert('Failed to create favorite item'); break;
                                                 }
                                             }
-                                        })
-                                        .catch((err) => {
-                                            console.error("서버 통신 오류:", err);
-                                        });
+                                        } catch {
+                                            console.error("!");
+                                        }
                                     }                                    
                                 }
                             });
