@@ -368,8 +368,7 @@ document.addEventListener("spaContentLoaded", async function () {
     
     // 1) Planner Panel
     const plannerPanel = document.getElementById("plannerPanel");
-    if (plannerPanel) {
-        console.log("[Planner] panel detected!");                
+    if (plannerPanel) {               
         const resetButton = document.getElementById("resetButton");
         const plannerTitle = document.getElementById("planner-title");
         const changeTitle = document.getElementById("change-title");
@@ -623,8 +622,6 @@ document.addEventListener("spaContentLoaded", async function () {
     // 2) Chatting Panel
     const chattingPanel = document.getElementById("chattingPanel");
     if (chattingPanel) {
-        console.log("[Chatting] panel detected!");
-
         const chatList = document.querySelector(".chat-list");
 
         function updateChatListScroll() {
@@ -705,10 +702,6 @@ document.addEventListener("spaContentLoaded", async function () {
     // 3) Favorites Panel
     const favoritesPanel = document.getElementById("favoritesPanel");
     if (favoritesPanel) {
-        console.log("[Favorites] favoritesPanel detected!");
-        // --------------------------------
-        // (A) 탭 전환 로직
-        // --------------------------------
         const backBtn = document.getElementById('backBtn');
         const bookmarkTitle = document.getElementById('bookmark_title');
         const placeBtn = document.getElementById('placeBtn');
@@ -1187,7 +1180,6 @@ document.addEventListener("spaContentLoaded", async function () {
     // 4) Settings Panel
     const settingsPanel= document.getElementById("settingsPanel");
     if (settingsPanel) {
-        console.log("[settings] panel detected!");
         const lightBox = document.getElementById('light');
         const darkBox = document.getElementById('dark');
         const lightRadio = document.querySelector("input[name='theme'][value='light']");
@@ -1282,8 +1274,6 @@ document.addEventListener("spaContentLoaded", async function () {
     // 5) Profile Panel
     const profilePanel = document.getElementById("profilePanel");
     if (profilePanel) {
-        console.log("[profile] panel detected!");
-
         const profileImage = document.getElementById("profile-image");
         const popup = document.getElementById("image-popup");
         const popupImages = document.querySelectorAll(".popup-image");
@@ -2723,9 +2713,7 @@ function parsePlaceJson_JP(text) {
     
         // 1) **장소:**
         const placeMatch = line.match(/^\*\*場所\*\*: (.*)/);
-        console.log("line:", line, ",pl:", placeMatch);
         if (placeMatch) {
-            console.log("place:", placeMatch[1].trim());
             result["場所"] = placeMatch[1].trim();
             currentSection = "場所"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
             return;

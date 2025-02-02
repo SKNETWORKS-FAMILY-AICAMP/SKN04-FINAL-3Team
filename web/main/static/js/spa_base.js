@@ -2726,9 +2726,7 @@ function parsePlaceJson_JP(text) {
     
         // 1) **장소:**
         const placeMatch = line.match(/^\*\*場所\*\*: (.*)/);
-        console.log("line:", line, ",pl:", placeMatch);
         if (placeMatch) {
-            console.log("place:", placeMatch[1].trim());
             result["場所"] = placeMatch[1].trim();
             currentSection = "場所"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
             return;
