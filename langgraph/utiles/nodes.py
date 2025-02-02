@@ -8,6 +8,7 @@ from chain_model.translation_question import translation_question
 from chain_model.error_handle_chain import error_handle_chain
 from chain_model.is_schedule_error import schedule_error_chain
 from chain_model.schedule_change_chain import schedule_change_chain
+from chain_model.over_ten_day_chain import over_ten_day_chain
 from utiles.load_retriever import retriever_naver_yongsan, retriever_naver_jongro, retriever_naver_gangnam, retriever_naver_Junggu
 from utiles.load_retriever import retriever_naver_yongsan_search, retriever_naver_jongro_search, retriever_naver_gangnam_search, retriever_naver_Junggu_search
 from utiles.load_retriever import retriever_opendata_yongsan, retriever_opendata_jongro, retriever_opendata_gangnam, retriever_opendata_junggu
@@ -239,6 +240,15 @@ def llm_Schedule_answer(state: GraphState) -> GraphState:
         num_retriever_search = 5
     elif len(location) == 4:
         num_retriever_search = 4
+
+    if len(location) == 1:
+        num_retriever_search_opendata = 5
+    elif len(location) == 2:
+        num_retriever_search_opendata = 4
+    elif len(location) == 3:
+        num_retriever_search_opendata = 3
+    elif len(location) == 4:
+        num_retriever_search_opendata = 2
     
     try : day = ast.literal_eval(day_str)
     except : return {'day_error' : 1}
@@ -260,93 +270,143 @@ def llm_Schedule_answer(state: GraphState) -> GraphState:
     junggu = '중구'
 
     chain = schedule_chain(language)
+    place_yongsan = state["context_naver_yongsan"]
+    place_jongro = state["context_naver_jongro"]
+    place_gangman = state["context_naver_gangnam"]
+    place_junggu = state["context_naver_Junggu"]
+    place_opendata_yongsan = state["context_opendata_yongsan"]
+    place_opendata_jongro = state["context_opendata_jongro"]
+    place_opendata_gangnam = state["context_opendata_gangnam"]
+    place_opendata_junggu = state["context_opendata_Junggu"]
 
-    for i in range(1, day+1):
-        if yongsan in location:
-            place_yongsan = state["context_naver_yongsan"]
-            selected = random.sample(place_yongsan, num_retriever_search)
-            if language == '영어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
-            elif language == '한국어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
-            elif language == '일본어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in selected]) 
-            elif language == '중국어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in selected]) 
-            place_list.extend(selected)
-            place_list.extend(random.sample(state["context_opendata_yongsan"], num_retriever_search))
+    if int(day_str) < 11 :
 
-        if jongro in location:
-            place_jongro = state["context_naver_jongro"]
-            selected = random.sample(place_jongro, num_retriever_search)
-            if language == '영어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
-            elif language == '한국어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
-            elif language == '일본어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in selected]) 
-            elif language == '중국어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in selected]) 
-            place_list.extend(selected)
-            place_list.extend(random.sample(state["context_opendata_jongro"], num_retriever_search))
+        for i in range(1, day+1):
+            if yongsan in location:      
+                if len(place_yongsan) < num_retriever_search:
+                    break
+                selected = random.sample(place_yongsan, num_retriever_search)
 
-        if gangman in location:
-            place_gangman = state["context_naver_gangnam"]
-            selected = random.sample(place_gangman, num_retriever_search)
-            if language == '영어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
-            elif language == '한국어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
-            elif language == '일본어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in selected]) 
-            elif language == '중국어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in selected]) 
-            place_list.extend(selected)
-            place_list.extend(random.sample(state["context_opendata_gangnam"], num_retriever_search))
+                for item in selected:
+                    place_yongsan.remove(item)
 
-        if junggu in location:
-            place_junggu = state["context_naver_Junggu"]
-            selected = random.sample(place_junggu, num_retriever_search)
-            if language == '영어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
-            elif language == '한국어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
-            elif language == '일본어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in selected]) 
-            elif language == '중국어':
-                additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in selected]) 
-            place_list.extend(selected)
-            place_list.extend(random.sample(state["context_opendata_Junggu"], num_retriever_search))
+                if language == '영어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '한국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '일본어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in selected]) 
+                elif language == '중국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in selected]) 
+                place_list.extend(selected)
 
-        #검색된 문서를 형식화합니다.(프롬프트 입력으로 넣어주기 위함)
-        place_list_text = "\n".join(
-        [
-            f"<content>{doc.page_content}</content>"
-            for doc in place_list
-        ]
-        )
+                selected_opened = random.sample(place_opendata_yongsan, num_retriever_search_opendata)
+                for item in selected_opened:
+                    place_opendata_yongsan.remove(item)
+                place_list.extend(selected_opened)
 
-        additional_text = "\n".join(
-        [
-            f"<additional>{doc}</additional>"
-            for doc in additional_list
-        ]
-        )
+            if jongro in location:
+                if len(place_jongro) < num_retriever_search:
+                    print("남은 요소가 부족합니다.")
+                    break
+                selected = random.sample(place_jongro, num_retriever_search)
 
-        # 체인을 호출하여 답변을 생성합니다.
+                for item in selected:
+                    place_jongro.remove(item)
+                if language == '영어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '한국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '일본어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in selected]) 
+                elif language == '중국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in selected]) 
+                place_list.extend(selected)
+                selected_opened = random.sample(place_opendata_jongro, num_retriever_search_opendata)
+                for item in selected_opened:
+                    place_opendata_jongro.remove(item)
+                place_list.extend(selected_opened)
+
+            if gangman in location:
+                if len(place_gangman) < num_retriever_search:
+                    print("남은 요소가 부족합니다.")
+                    break
+                selected = random.sample(place_gangman, num_retriever_search)
+
+                for item in selected:
+                    place_gangman.remove(item)         
+                if language == '영어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '한국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '일본어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in selected]) 
+                elif language == '중국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in selected]) 
+                place_list.extend(selected)
+                selected_opened = random.sample(place_opendata_gangnam, num_retriever_search_opendata)
+                for item in selected_opened:
+                    place_opendata_gangnam.remove(item)
+                place_list.extend(selected_opened)
+
+            if junggu in location:
+                if len(place_junggu) < num_retriever_search:
+                    print("남은 요소가 부족합니다.")
+                    break
+                selected = random.sample(place_junggu, num_retriever_search)
+
+                for item in selected:
+                    place_junggu.remove(item)   
+                if language == '영어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '한국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 영문이름 : ' + i.metadata.get('store_name_english') + ', 영문주소 : ' + i.metadata.get('address_english') for i in selected]) 
+                elif language == '일본어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 일본어이름 : ' + i.metadata.get('store_name_japanese') + ', 일본어주소 : ' + i.metadata.get('address_japanese') for i in selected]) 
+                elif language == '중국어':
+                    additional_list.extend(['장소이름 : ' + i.metadata.get('store_name') + ', 좌표 : ' + i.metadata.get('coordinates') + ', 중국어이름 : ' + i.metadata.get('store_name_chinese') + ', 중국어주소 : ' + i.metadata.get('address_chinese') for i in selected]) 
+                place_list.extend(selected)
+                selected_opened = random.sample(place_opendata_junggu, num_retriever_search_opendata)
+                for item in selected_opened:
+                    place_opendata_junggu.remove(item)
+                place_list.extend(selected_opened)
+
+            #검색된 문서를 형식화합니다.(프롬프트 입력으로 넣어주기 위함)
+            place_list_text = "\n".join(
+            [
+                f"<content>{doc.page_content}</content>"
+                for doc in place_list
+            ]
+            )
+
+            additional_text = "\n".join(
+            [
+                f"<additional>{doc}</additional>"
+                for doc in additional_list
+            ]
+            )
+
+            # 체인을 호출하여 답변을 생성합니다.
+            response = chain.invoke(
+                {
+                    "question": latest_question,
+                    "context": place_list_text,
+                    "chat_history": state["pre_chat"],
+                    "day" : i,
+                    "language" : language,
+                    "additional" : additional_text
+                }
+            )
+            place_list.clear()
+            response_list.append(response)
+            print('\n')
+    else:
+        chain = over_ten_day_chain()
         response = chain.invoke(
             {
-                "question": latest_question,
-                "context": place_list_text,
-                "chat_history": state["pre_chat"],
-                "day" : i,
                 "language" : language,
-                "additional" : additional_text
             }
         )
-        place_list.clear()
-        response_list.append(response)
-        print('\n')
 
     response_list_text = "\n".join(
     [
@@ -372,7 +432,7 @@ def llm_Schedule_change_answer(state: GraphState) -> GraphState:
     location = ast.literal_eval(location_str)
 
     if len(location) == 1:
-        num_retriever_search = 10
+        num_retriever_search = 8
     elif len(location) == 2:
         num_retriever_search = 7
     elif len(location) == 3:
