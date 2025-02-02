@@ -1,5 +1,6 @@
 from langraph.utiles.load_data import load_bm25, load_faiss_index, load_faiss_metadata, load_documents
 from langraph.utiles.BM25_retriever import HybridBM25FaissRetriever
+
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 import os
@@ -36,7 +37,7 @@ retriever_naver_gangnam = HybridBM25FaissRetriever(
     faiss_index=faiss_index_gangnam,
     documents=documents_gangnam,
     metadata_list=metadata_list_gangnam,
-    top_k=25
+    top_k=100
 )
 
 retriever_naver_jongro = HybridBM25FaissRetriever(
@@ -44,7 +45,7 @@ retriever_naver_jongro = HybridBM25FaissRetriever(
     faiss_index=faiss_index_jongro,
     documents=documents_jongro,
     metadata_list=metadata_list_jongro,
-    top_k=25
+    top_k=100
 )
 
 retriever_naver_yongsan = HybridBM25FaissRetriever(
@@ -52,7 +53,7 @@ retriever_naver_yongsan = HybridBM25FaissRetriever(
     faiss_index=faiss_index_yongsan,
     documents=documents_yongsan,
     metadata_list=metadata_list_yongsan,
-    top_k=25
+    top_k=100
 )
 
 retriever_naver_Junggu = HybridBM25FaissRetriever(
@@ -60,7 +61,7 @@ retriever_naver_Junggu = HybridBM25FaissRetriever(
     faiss_index=faiss_index_junggu,
     documents=documents_junggu,
     metadata_list=metadata_list_junggu,
-    top_k=25
+    top_k=100
 )
 
 retriever_naver_gangnam_search = HybridBM25FaissRetriever(
