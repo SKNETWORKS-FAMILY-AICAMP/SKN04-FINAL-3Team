@@ -38,7 +38,7 @@ LOGIN_URL = '/login/'  # 로그인하지 않은 경우 리다이렉트할 경로
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-)ml)-$v^=g02rac821m4rtnu%4tw9#1u_*@a%*$81%m9z2v@b0"
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
