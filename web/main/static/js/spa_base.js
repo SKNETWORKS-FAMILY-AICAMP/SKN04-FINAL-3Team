@@ -1526,15 +1526,15 @@ document.addEventListener("spaContentLoaded", async function () {
         if (isLoading) return; // 로딩 중일 때 메시지 전송 방지
 
         const message = inputBar.value.trim(); // 사용자가 입력한 메시지
-        
+        const urlParams = new URLSearchParams(window.location.search);
+        const chatId = urlParams.get("chat_id");
         let chatHistory = "";
         if (message === "") return;
 
         const result = await saveChatToDB(`<나>${message}`);
         if (result) {
+            const chatId = result;
             try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const chatId = urlParams.get("chat_id");    
                 const response = await fetch(`/app/partials/planner/get_chat/?chat_id=${chatId}`, {
                     method: "GET",
                     headers: {
@@ -1587,7 +1587,7 @@ document.addEventListener("spaContentLoaded", async function () {
             }
         } else {
             const chatContainer = document.querySelector(".chat-container");
-            if (chatContainer) {
+            if (isLoggedIn && chatContainer) {
                 const errorBubble = document.createElement("div");
                 errorBubble.className = "error-bubble";
                 errorBubble.innerHTML = "채팅 내역이 꽉 찼습니다! 이 채팅은 저장되지 않습니다.<br>기존 채팅 내역을 사용해주세요.<br>현재 채팅에는 글 초기화 버튼이 작동하지 않습니다.";
@@ -1827,7 +1827,7 @@ async function saveChatToDB(chatContent) {
     localStorage.removeItem('chatMessage');
     const urlParams = new URLSearchParams(window.location.search);
     const chatId = urlParams.get("chat_id");
-    if (!chatId) return;
+    if (!chatId && !isLoggedIn) return;
 
     return fetch("/app/partials/planner/save_chat/", {
         method: "POST",
@@ -1886,6 +1886,7 @@ async function saveChatToDB(chatContent) {
     });
 }
 
+// 사장된 함수 (250120)
 function typeText(element, text, loadingBubble, speed = 5) {
     let index = 0;
 
@@ -1910,6 +1911,8 @@ function typeText(element, text, loadingBubble, speed = 5) {
         } else {
             // 애니메이션 종료 후 로딩 상태 해제
             isLoading = false;
+            inputBar.disabled = false; // 입력창 활성화
+            inputBar.focus();
         }
     }
     typeNextChar();
