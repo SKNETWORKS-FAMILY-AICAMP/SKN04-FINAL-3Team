@@ -1,4 +1,4 @@
-from prompts.prompt_error_handle import prompt_error_handle
+from langraph.prompts.prompt_error_handle import prompt_error_handle
 
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser

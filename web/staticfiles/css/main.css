@@ -74,29 +74,30 @@ body {
 
 .language-section {
     position: absolute;
-    bottom: 20px;
-    right: 20px;
+    top: 30px;
+    left: 20px;
     display: flex;
     align-items: center;
     gap: 10px;
-    width: 80px;
+    width: 160px;
     height: 25px;
+}
+
+.language-section select {
+    width: 120px;
+    font-size: 16px;
+    padding: 5px;
+    margin-top: 5px;
 }
 
 /* 프로필 섹션 스타일 */
 .profile-section {
     position: absolute;
     top: 20px;
-    right: 40px;
+    right: 20px;
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-.profile-section select {
-    width: 200px;
-    font-size: 16px;
-    padding: 5px;
 }
 
 .profile-section span {
@@ -204,3 +205,13 @@ body {
     text-align: center;
 }
 
+.research-helper {
+    color: black;
+    font-size: 18px; 
+    text-align: center; 
+    font-weight: bold;
+    margin-top: 20px;
+    width: fit-content;
+    margin: 0 auto;
+    white-space: pre-line;
+}

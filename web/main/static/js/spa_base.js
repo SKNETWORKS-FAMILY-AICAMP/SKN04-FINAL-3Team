@@ -910,7 +910,7 @@ document.addEventListener("spaContentLoaded", async function () {
                                         document.querySelectorAll(".place-item").forEach(folder => {                                                
                                             folder.style.backgroundColor = ""; // 원래 색으로 복원 (CSS 초기값)
                                         });
-                                        document.getElementById("getBookmarkListBtn").textContent = "★";
+                                        document.getElementById("getBookmarkListBtn").textContent = "☆";
                                         itemDiv.style.backgroundColor = "#999";
 
                                         const bookmarkId = this.id; // folder-item의 ID 값
@@ -958,12 +958,34 @@ document.addEventListener("spaContentLoaded", async function () {
                                                 getBookmarkListBtn.setAttribute("json_data", null);
                                                 const placeSection = document.createElement("div");
                                                 placeSection.className = "place-section";
-                                                placeSection.innerHTML = `
-                                                    <h3>장소 정보</h3>
-                                                    <p><strong>이름:</strong> ${data.name}</p>
-                                                    <p><strong>주소:</strong> ${data.address}</p>
-                                                    <p><strong>설명:</strong> ${data.description || "설명이 없습니다."}</p>
-                                                `;
+                                                let innerhtml = "";
+                                                switch (countryId) {
+                                                    case "KR": innerhtml = `
+                                                        <h3>장소 정보</h3>
+                                                        <p><strong>이름:</strong> ${data.name}</p>
+                                                        <p><strong>주소:</strong> ${data.address}</p>
+                                                        <p><strong>설명:</strong> ${data.description || "설명이 없습니다."}</p>
+                                                    `; break;
+                                                    case "JP": innerhtml = `
+                                                        <h3>場所情報</h3>
+                                                        <p><strong>名:</strong> ${data.name}</p>
+                                                        <p><strong>住所:</strong> ${data.address}</p>
+                                                        <p><strong>細目:</strong> ${data.description || "説明がありません。"}</p>
+                                                    `; break;
+                                                    case "CN": innerhtml = `
+                                                        <h3>地点信息</h3>
+                                                        <p><strong>名字:</strong> ${data.name}</p>
+                                                        <p><strong>地址:</strong> ${data.address}</p>
+                                                        <p><strong>详细内容:</strong> ${data.description || "没有可用的描述 。"}</p>
+                                                    `; break;
+                                                    case "US": innerhtml = `
+                                                        <h3>Location information</h3>
+                                                        <p><strong>Name:</strong> ${data.name}</p>
+                                                        <p><strong>Address:</strong> ${data.address}</p>
+                                                        <p><strong>Details:</strong> ${data.description || "There is no description."}</p>
+                                                    `; break;
+                                                }
+                                                placeSection.innerHTML = innerhtml;
                                                 mapPanelContent.appendChild(placeSection);
                                                 if (data.longitude && data.latitude && data.name) {
                                                     const markerData = [];
@@ -1050,7 +1072,7 @@ document.addEventListener("spaContentLoaded", async function () {
                                             folder.style.backgroundColor = ""; // 원래 색으로 복원 (CSS 초기값)
                                         });
 
-                                        document.getElementById("getBookmarkListBtn").textContent = "★";
+                                        document.getElementById("getBookmarkListBtn").textContent = "☆";
                                         itemDiv.style.backgroundColor = "#999";
 
                                         const bookmarkId = this.id; // folder-item의 ID 값
@@ -1100,7 +1122,12 @@ document.addEventListener("spaContentLoaded", async function () {
                                                 generateDynamicPlanContent(jsonData);
                                             } else {
                                                 const noDataMessage = document.createElement("p");
-                                                noDataMessage.textContent = "해당 데이터가 없습니다.";
+                                                switch (countryId) {
+                                                    case "KR": noDataMessage.textContent = "해당 데이터가 없습니다."; break;
+                                                    case "JP": noDataMessage.textContent = "該当データがありません。"; break;
+                                                    case "CN": noDataMessage.textContent = "相应数据不存在。"; break;
+                                                    case "US": noDataMessage.textContent = "There is no data."; break;
+                                                }
                                                 mapPanelContent.appendChild(noDataMessage);
                                             }
                                         } catch (error) {
@@ -1127,8 +1154,8 @@ document.addEventListener("spaContentLoaded", async function () {
                                         itemDiv.remove();
 
                                         //DB에서도 해당 데이터 제거
-                                        console.log("bookmarkplace_id:", row.bookmark); //bm_00001
-                                        console.log("data:", row.id); 
+                                        // console.log("bookmarkplace_id:", row.bookmark); //bm_00001
+                                        // console.log("data:", row.id); 
                                         deleteBookmarklist(row);
                                     });
 
@@ -1558,6 +1585,58 @@ document.addEventListener("spaContentLoaded", async function () {
             } catch {
                 console.error("/app/partials/planner/get_chat/ failed");
             }
+        } else {
+            const chatContainer = document.querySelector(".chat-container");
+            if (chatContainer) {
+                const errorBubble = document.createElement("div");
+                errorBubble.className = "error-bubble";
+                errorBubble.innerHTML = "채팅 내역이 꽉 찼습니다! 이 채팅은 저장되지 않습니다.<br>기존 채팅 내역을 사용해주세요.<br>현재 채팅에는 글 초기화 버튼이 작동하지 않습니다.";
+                errorBubble.style.position = "relative";
+                errorBubble.style.padding = "10px";
+                errorBubble.style.margin = "10px 0";
+                errorBubble.style.backgroundColor = "#ffcccc";
+                errorBubble.style.color = "#900";
+                errorBubble.style.border = "1px solid #f00";
+                errorBubble.style.borderRadius = "5px";
+                errorBubble.style.fontSize = "14px";
+
+                // 이미 말풍선이 존재하면 추가하지 않음
+                if (!chatContainer.querySelector(".error-bubble")) {
+                    chatContainer.insertBefore(errorBubble, chatContainer.firstChild); // 맨 위에 추가
+                }
+            }
+            // 로딩 상태로 설정
+            isLoading = true;
+            inputBar.disabled = true; // 입력창 비활성화
+
+            // 사용자의 메시지를 채팅창에 추가
+            const userMessage = document.createElement("div");
+            userMessage.className = "bubble right-bubble";
+            userMessage.innerHTML = message.replace(/\n/g, "<br>");
+            chatMessages.appendChild(userMessage);                
+
+            inputBar.value = ""; // 입력창 초기화
+
+            const loadingBubble = document.createElement("div");
+            loadingBubble.classList.add("bubble", "left-bubble", "loading-bubble");
+            loadingBubble.innerHTML = `
+                <div class="loader">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+            chatMessages.appendChild(loadingBubble);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            if (activeAbortController) {
+                activeAbortController.abort();
+            }
+            // 새로운 AbortController 생성
+            activeAbortController = new AbortController();
+            const { signal } = activeAbortController;
+            chatHistory = parse_chat_history(chatHistory);
+            fetchGPTResponse(message, signal, chatHistory);
         }
     }
 
@@ -1650,7 +1729,7 @@ document.addEventListener("spaContentLoaded", async function () {
                 if (botBubble.className.includes("left-bubble")) {
                     // 서식을 유지한 상태로 출력
                     const panelTitle = document.getElementById("panel-title");
-                    panelTitle.textContent = "";
+                    panelTitle.innerHTML = "";
                     const formattedMessage = messageContent
                         .replace(/<br\s*\/?>/gi, "\n") // <br> 태그를 줄바꿈으로 변환
                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
@@ -1748,6 +1827,7 @@ async function saveChatToDB(chatContent) {
     localStorage.removeItem('chatMessage');
     const urlParams = new URLSearchParams(window.location.search);
     const chatId = urlParams.get("chat_id");
+    if (!chatId) return;
 
     return fetch("/app/partials/planner/save_chat/", {
         method: "POST",
@@ -1771,35 +1851,14 @@ async function saveChatToDB(chatContent) {
         if (!data.success) {
             console.error("Failed to save chat to DB:", data.error);
             if (data.error === "채팅 내역이 꽉 찼습니다!") {
-                // chat-container에 에러 메시지 말풍선 추가
-                const chatContainer = document.querySelector(".chat-container");
-                if (chatContainer) {
-                    const errorBubble = document.createElement("div");
-                    errorBubble.className = "error-bubble";
-                    errorBubble.innerHTML = "채팅 내역이 꽉 찼습니다! 이 채팅은 저장되지 않습니다.<br>기존 채팅 내역을 사용해주세요.<br>현재 채팅에는 글 초기화 버튼이 작동하지 않습니다.";
-                    errorBubble.style.position = "relative";
-                    errorBubble.style.padding = "10px";
-                    errorBubble.style.margin = "10px 0";
-                    errorBubble.style.backgroundColor = "#ffcccc";
-                    errorBubble.style.color = "#900";
-                    errorBubble.style.border = "1px solid #f00";
-                    errorBubble.style.borderRadius = "5px";
-                    errorBubble.style.fontSize = "14px";
-
-                    // 이미 말풍선이 존재하면 추가하지 않음
-                    if (!chatContainer.querySelector(".error-bubble")) {
-                        chatContainer.insertBefore(errorBubble, chatContainer.firstChild); // 맨 위에 추가
-                    }
-                } else {
-                    console.error("chat-container element not found.");
-                }
+                console.log("채팅 내역이 꽉 찼습니다!");
             }
 
             return null;
         } 
         else {
             if (data.chatting_id) {
-                console.log("chat id:", data.chatting_id, "Chat saved successfully:", data.message || "Success", chatContent);
+                // console.log("chat id:", data.chatting_id, "Chat saved successfully:", data.message || "Success", chatContent);
                 // 기존의 chat_id가 있었다면 URL을 업데이트
                 const newUrl = new URL(window.location.href);
                 newUrl.searchParams.set("chat_id", data.chatting_id); 
@@ -1809,7 +1868,7 @@ async function saveChatToDB(chatContent) {
                 return data.chatting_id;
             }
             if (data.new_chat_id) {
-                console.log("chat id:", data.chatting_id, "New Chat ID:", data.message || "Success", chatContent);
+                // console.log("chat id:", data.chatting_id, "New Chat ID:", data.message || "Success", chatContent);
                 // 새 chat_id가 생성되었다면 URL을 업데이트
                 const newChatId = data.new_chat_id;
                 const newUrl = new URL(window.location.href);
@@ -1917,7 +1976,7 @@ function parseAndDisplayChatContent(chatContent) {
                 const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
                 if (bubble.className.includes("left-bubble")) {
                     const panelTitle = document.getElementById("panel-title");
-                    panelTitle.textContent = "";
+                    panelTitle.innerHTML = "";
 
                     // 서식을 유지한 상태로 출력
                     const formattedMessage = messageContent
@@ -1932,7 +1991,7 @@ function parseAndDisplayChatContent(chatContent) {
                     const jsonData6 = parsePlaceJson_JP(formattedMessage);
                     const jsonData7 = parsePlaceJson_CN(formattedMessage);
                     const jsonData8 = parsePlaceJson_US(formattedMessage);
-
+                    
                     let jsonScheduleData = [];
                     if (Array.isArray(jsonData1) && jsonData1.length > 0) {
                         jsonScheduleData = jsonData1;
@@ -2490,7 +2549,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 1) **장소:**
-        const placeMatch = line.match(/^\*\*장소:\** (.*)/);
+        const placeMatch = line.match(/^\*\*장소:\*\* (.*)/);
         if (placeMatch) {
             result["장소"] = placeMatch[1].trim();
             currentSection = "장소"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
@@ -2498,7 +2557,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 2) **주소**:
-        const addressMatch = line.match(/^\-\s*\*\*주소\**: (.*)/);
+        const addressMatch = line.match(/^\-\s*\*\*주소\*\*: (.*)/);
         if (addressMatch) {
             result["주소"] = addressMatch[1].trim();
             currentSection = "주소";
@@ -2506,7 +2565,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 3) **전화 번호**:
-        const phoneMatch = line.match(/^\-\s*\*\*전화 번호\**: (.*)/);
+        const phoneMatch = line.match(/^\-\s*\*\*전화 번호\*\*: (.*)/);
         if (phoneMatch) {
             result["전화 번호"] = phoneMatch[1].trim();
             currentSection = "전화 번호";
@@ -2514,7 +2573,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 4) **영업 시간**: (여러 줄에 걸쳐 있을 수 있음)
-        const timeMatch = line.match(/^\-\s*\*\*영업 시간\**: (.*)/);
+        const timeMatch = line.match(/^\-\s*\*\*영업 시간\*\*: (.*)/);
         if (timeMatch) {
             // 첫 줄에도 내용이 있으면 배열에 넣는다
             const firstContent = timeMatch[1].trim();
@@ -2526,7 +2585,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 5) **정보**: 
-        const infoMatch = line.match(/^\*\*정보\**: ?(.*)/);
+        const infoMatch = line.match(/^\*\*정보\*\*: ?(.*)/);
         if (infoMatch) {
             result["정보"] = infoMatch[1].trim(); // 첫 줄
             currentSection = "정보";
@@ -2534,7 +2593,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 6) **메뉴**:
-        const menuMatch = line.match(/^\*\*메뉴\**: ?(.*)/);
+        const menuMatch = line.match(/^\*\*메뉴\*\*: ?(.*)/);
         if (menuMatch) {
             // 메뉴에 바로 내용이 있을 수도 있지만 보통은 없고, 
             // 어쨌든 currentSection="메뉴"로 설정
@@ -2543,7 +2602,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 7) **장점**:
-        const advantageMatch = line.match(/^\*\*장점\**: ?(.*)/);
+        const advantageMatch = line.match(/^\*\*장점\*\*: ?(.*)/);
         if (advantageMatch) {
             result["장점"] = advantageMatch[1].trim();
             currentSection = "장점";
@@ -2551,7 +2610,7 @@ function parsePlaceJson_KR(text) {
         }
 
         // 8) **SNS**:
-        const snsMatch = line.match(/^\*\*SNS\**: ?(.*)/);
+        const snsMatch = line.match(/^\*\*SNS\*\*: ?(.*)/);
         if (snsMatch) {
             result["SNS"] = snsMatch[1].trim();
             currentSection = "SNS";
@@ -2559,7 +2618,7 @@ function parsePlaceJson_KR(text) {
         }
     
         // 9) **기타**:
-        const etcMatch = line.match(/^\*\*기타\**: ?(.*)/);
+        const etcMatch = line.match(/^\*\*기타\*\*: ?(.*)/);
         if (etcMatch) {
             result["기타"] = etcMatch[1].trim();
             currentSection = "기타";
@@ -2663,15 +2722,17 @@ function parsePlaceJson_JP(text) {
         }
     
         // 1) **장소:**
-        const placeMatch = line.match(/^\*\*場所:\** (.*)/);
+        const placeMatch = line.match(/^\*\*場所\*\*: (.*)/);
+        console.log("line:", line, ",pl:", placeMatch);
         if (placeMatch) {
+            console.log("place:", placeMatch[1].trim());
             result["場所"] = placeMatch[1].trim();
             currentSection = "場所"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
             return;
         }
     
         // 2) **주소**:
-        const addressMatch = line.match(/^\-\s*\*\*住所\**: (.*)/);
+        const addressMatch = line.match(/^\-\s*\*\*住所\*\*: (.*)/);
         if (addressMatch) {
             result["住所"] = addressMatch[1].trim();
             currentSection = "住所";
@@ -2679,7 +2740,7 @@ function parsePlaceJson_JP(text) {
         }
     
         // 3) **전화 번호**:
-        const phoneMatch = line.match(/^\-\s*\*\*電話番号\**: (.*)/);
+        const phoneMatch = line.match(/^\-\s*\*\*電話番号\*\*: (.*)/);
         if (phoneMatch) {
             result["電話番号"] = phoneMatch[1].trim();
             currentSection = "電話番号";
@@ -2687,7 +2748,7 @@ function parsePlaceJson_JP(text) {
         }
     
         // 4) **영업 시간**: (여러 줄에 걸쳐 있을 수 있음)
-        const timeMatch = line.match(/^\-\s*\*\*営業時間\**: (.*)/);
+        const timeMatch = line.match(/^\-\s*\*\*営業時間\*\*: (.*)/);
         if (timeMatch) {
             // 첫 줄에도 내용이 있으면 배열에 넣는다
             const firstContent = timeMatch[1].trim();
@@ -2699,7 +2760,7 @@ function parsePlaceJson_JP(text) {
         }
     
         // 5) **정보**: 
-        const infoMatch = line.match(/^\*\*詳細\**: ?(.*)/);
+        const infoMatch = line.match(/^\*\*詳細\*\*: ?(.*)/);
         if (infoMatch) {
             result["詳細"] = infoMatch[1].trim(); // 첫 줄
             currentSection = "詳細";
@@ -2707,7 +2768,7 @@ function parsePlaceJson_JP(text) {
         }
     
         // 6) **메뉴**:
-        const menuMatch = line.match(/^\*\*おすすめメニュー\**: ?(.*)/);
+        const menuMatch = line.match(/^\*\*おすすめメニュー\*\*: ?(.*)/);
         if (menuMatch) {
             // 메뉴에 바로 내용이 있을 수도 있지만 보통은 없고, 
             // 어쨌든 currentSection="메뉴"로 설정
@@ -2716,7 +2777,7 @@ function parsePlaceJson_JP(text) {
         }
     
         // 7) **장점**:
-        const advantageMatch = line.match(/^\*\*利点\**: ?(.*)/);
+        const advantageMatch = line.match(/^\*\*利点\*\*: ?(.*)/);
         if (advantageMatch) {
             result["利点"] = advantageMatch[1].trim();
             currentSection = "利点";
@@ -2724,7 +2785,7 @@ function parsePlaceJson_JP(text) {
         }
 
         // 8) **SNS**:
-        const snsMatch = line.match(/^\*\*SNS\**: ?(.*)/);
+        const snsMatch = line.match(/^\*\*SNS\*\*: ?(.*)/);
         if (snsMatch) {
             result["SNS"] = snsMatch[1].trim();
             currentSection = "SNS";
@@ -2732,7 +2793,7 @@ function parsePlaceJson_JP(text) {
         }
     
         // 9) **기타**:
-        const etcMatch = line.match(/^\*\*その他情報\**: ?(.*)/);
+        const etcMatch = line.match(/^\*\*その他情報\*\*: ?(.*)/);
         if (etcMatch) {
             result["その他情報"] = etcMatch[1].trim();
             currentSection = "その他情報";
@@ -2836,7 +2897,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 1) **장소:**
-        const placeMatch = line.match(/^\*\*地点\**: (.*)/);
+        const placeMatch = line.match(/^\*\*地点\*\*: (.*)/);
         if (placeMatch) {
             result["地点"] = placeMatch[1].trim();
             currentSection = "地点"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
@@ -2844,7 +2905,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 2) **주소**:
-        const addressMatch = line.match(/^\-\s*\*\*地址\**: (.*)/);
+        const addressMatch = line.match(/^\-\s*\*\*地址\*\*: (.*)/);
         if (addressMatch) {
             result["地址"] = addressMatch[1].trim();
             currentSection = "地址";
@@ -2852,7 +2913,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 3) **전화 번호**:
-        const phoneMatch = line.match(/^\-\s*\*\*电话号码\**: (.*)/);
+        const phoneMatch = line.match(/^\-\s*\*\*电话号码\*\*: (.*)/);
         if (phoneMatch) {
             result["电话号码"] = phoneMatch[1].trim();
             currentSection = "电话号码";
@@ -2860,7 +2921,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 4) **영업 시간**: (여러 줄에 걸쳐 있을 수 있음)
-        const timeMatch = line.match(/^\-\s*\*\*营业时间\**: (.*)/);
+        const timeMatch = line.match(/^\-\s*\*\*营业时间\*\*: (.*)/);
         if (timeMatch) {
             // 첫 줄에도 내용이 있으면 배열에 넣는다
             const firstContent = timeMatch[1].trim();
@@ -2872,7 +2933,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 5) **정보**: 
-        const infoMatch = line.match(/^\*\*详情\**: ?(.*)/);
+        const infoMatch = line.match(/^\*\*详情\*\*: ?(.*)/);
         if (infoMatch) {
             result["详情"] = infoMatch[1].trim(); // 첫 줄
             currentSection = "详情";
@@ -2880,7 +2941,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 6) **메뉴**:
-        const menuMatch = line.match(/^\*\*推荐菜单\**: ?(.*)/);
+        const menuMatch = line.match(/^\*\*推荐菜单\*\*: ?(.*)/);
         if (menuMatch) {
             // 메뉴에 바로 내용이 있을 수도 있지만 보통은 없고, 
             // 어쨌든 currentSection="메뉴"로 설정
@@ -2889,7 +2950,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 7) **장점**:
-        const advantageMatch = line.match(/^\*\*优点\**: ?(.*)/);
+        const advantageMatch = line.match(/^\*\*优点\*\*: ?(.*)/);
         if (advantageMatch) {
             result["优点"] = advantageMatch[1].trim();
             currentSection = "优点";
@@ -2897,7 +2958,7 @@ function parsePlaceJson_CN(text) {
         }
 
         // 8) **SNS**:
-        const snsMatch = line.match(/^\*\*社交媒体\**: ?(.*)/);
+        const snsMatch = line.match(/^\*\*社交媒体\*\*: ?(.*)/);
         if (snsMatch) {
             result["社交媒体"] = snsMatch[1].trim();
             currentSection = "社交媒体";
@@ -2905,7 +2966,7 @@ function parsePlaceJson_CN(text) {
         }
     
         // 9) **기타**:
-        const etcMatch = line.match(/^\*\*其他信息\**: ?(.*)/);
+        const etcMatch = line.match(/^\*\*其他信息\*\*: ?(.*)/);
         if (etcMatch) {
             result["其他信息"] = etcMatch[1].trim();
             currentSection = "其他信息";
@@ -3009,7 +3070,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 1) **장소:**
-        const placeMatch = line.match(/^\*\*Place:\** (.*)/);
+        const placeMatch = line.match(/^\*\*Place:\*\* (.*)/);
         if (placeMatch) {
             result["Place"] = placeMatch[1].trim();
             currentSection = "Place"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
@@ -3017,7 +3078,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 2) **주소**:
-        const addressMatch = line.match(/^\-\s*\*\*Address\**: (.*)/);
+        const addressMatch = line.match(/^\-\s*\*\*Address\*\*: (.*)/);
         if (addressMatch) {
             result["Address"] = addressMatch[1].trim();
             currentSection = "Address";
@@ -3025,7 +3086,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 3) **전화 번호**:
-        const phoneMatch = line.match(/^\-\s*\*\*Phone Number\**: (.*)/);
+        const phoneMatch = line.match(/^\-\s*\*\*Phone Number\*\*: (.*)/);
         if (phoneMatch) {
             result["Phone Number"] = phoneMatch[1].trim();
             currentSection = "Phone Number";
@@ -3033,7 +3094,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 4) **영업 시간**: (여러 줄에 걸쳐 있을 수 있음)
-        const timeMatch = line.match(/^\-\s*\*\*Opening Hours\**: (.*)/);
+        const timeMatch = line.match(/^\-\s*\*\*Opening Hours\*\*: (.*)/);
         if (timeMatch) {
             // 첫 줄에도 내용이 있으면 배열에 넣는다
             const firstContent = timeMatch[1].trim();
@@ -3045,7 +3106,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 5) **정보**: 
-        const infoMatch = line.match(/^\*\*Details\**: ?(.*)/);
+        const infoMatch = line.match(/^\*\*Details\*\*: ?(.*)/);
         if (infoMatch) {
             result["Details"] = infoMatch[1].trim(); // 첫 줄
             currentSection = "Details";
@@ -3053,7 +3114,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 6) **메뉴**:
-        const menuMatch = line.match(/^\*\*Recommended Menu\**: ?(.*)/);
+        const menuMatch = line.match(/^\*\*Recommended Menu\*\*: ?(.*)/);
         if (menuMatch) {
             // 메뉴에 바로 내용이 있을 수도 있지만 보통은 없고, 
             // 어쨌든 currentSection="메뉴"로 설정
@@ -3062,7 +3123,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 7) **장점**:
-        const advantageMatch = line.match(/^\*\*Advantages\**: ?(.*)/);
+        const advantageMatch = line.match(/^\*\*Advantages\*\*: ?(.*)/);
         if (advantageMatch) {
             result["Advantages"] = advantageMatch[1].trim();
             currentSection = "Advantages";
@@ -3078,7 +3139,7 @@ function parsePlaceJson_US(text) {
         }
     
         // 9) **기타**:
-        const etcMatch = line.match(/^\*\*Additional Information\**: ?(.*)/);
+        const etcMatch = line.match(/^\*\*Additional Information\*\*: ?(.*)/);
         if (etcMatch) {
             result["Additional Information"] = etcMatch[1].trim();
             currentSection = "Additional Information";
@@ -3376,7 +3437,7 @@ async function getCoordinates(addresses) {
     const markerData = [];
     const promises = addresses.map(async ({ address, title }) => {
         if (!address) return; // address가 없는 경우 건너뜀
-
+        
         const coordinates = await fetchCoordinates(address);
         if (coordinates) {
             const [lat, lng] = coordinates;
@@ -3387,8 +3448,14 @@ async function getCoordinates(addresses) {
             });
         }
     });
-
+    
     await Promise.all(promises); // 모든 비동기 작업이 완료될 때까지 대기
+    
+    markerData.sort((a, b) => {
+        return addresses.findIndex(item => item.title === a.title) - 
+               addresses.findIndex(item => item.title === b.title);
+    });
+    
     return markerData;
 }
 
@@ -3415,13 +3482,13 @@ async function generatePlaceContent(jsonData) {
     }
     if (panelTitle) {
         if (jsonData["장소"]) {
-            panelTitle.textContent = jsonData["장소"];
+            panelTitle.innerHTML = jsonData["장소"];
         } else if (jsonData["場所"]) {
-            panelTitle.textContent = jsonData["場所"];
+            panelTitle.innerHTML = jsonData["場所"];
         } else if (jsonData["地点"]) {
-            panelTitle.textContent = jsonData["地点"];
+            panelTitle.innerHTML = jsonData["地点"];
         } else if (jsonData["Place"]) {
-            panelTitle.textContent = jsonData["Place"];
+            panelTitle.innerHTML = jsonData["Place"];
         }
     }
 
@@ -3432,15 +3499,14 @@ async function generatePlaceContent(jsonData) {
 
         // <h3>장소 정보</h3>
         const heading = document.createElement("h3");
-        console.log("countryId:", countryId);
         if (countryId == "KR" ) {
-            heading.textContent = "장소 정보";
+            heading.innerHTML = "장소 정보";
         } else if (countryId == "JP") {
-            heading.textContent = "場所情報";
+            heading.innerHTML = "場所情報";
         } else if (countryId == "CN") {
-            heading.textContent = "地点信息";    
+            heading.innerHTML = "地点信息";    
         } else if (countryId == "US") {
-            heading.textContent = "Place Info";
+            heading.innerHTML = "Place Info";
         }
         section.appendChild(heading);
 
@@ -3450,13 +3516,13 @@ async function generatePlaceContent(jsonData) {
         
         nameParagraph.appendChild(nameStrong);
         if (countryId == "KR") {
-            nameStrong.textContent = "이름: "; 
+            nameStrong.innerHTML = "이름: "; 
         } else if (countryId == "JP") {
-            nameStrong.textContent = "名: ";
+            nameStrong.innerHTML = "名: ";
         } else if (countryId == "CN") {
-            nameStrong.textContent = "名字: ";
+            nameStrong.innerHTML = "名字: ";
         } else if (countryId == "US") {
-            nameStrong.textContent = "Name: ";
+            nameStrong.innerHTML = "Name: ";
         }
 
         if (jsonData["장소"]) {
@@ -3480,13 +3546,13 @@ async function generatePlaceContent(jsonData) {
 
         addressParagraph.appendChild(addressStrong);
         if (countryId == "KR") {
-            addressStrong.textContent = "주소: ";
+            addressStrong.innerHTML = "주소: ";
         } else if (countryId == "JP") {
-            addressStrong.textContent = "住所: "; 
+            addressStrong.innerHTML = "住所: "; 
         } else if (countryId == "CN") {
-            addressStrong.textContent = "地址: ";
+            addressStrong.innerHTML = "地址: ";
         } else if (countryId == "US") {
-            addressStrong.textContent = "Address: ";            
+            addressStrong.innerHTML = "Address: ";            
         }        
 
         if (jsonData["주소"]) {
@@ -3510,13 +3576,13 @@ async function generatePlaceContent(jsonData) {
 
         descriptionParagraph.appendChild(descriptionStrong);
         if (countryId == "KR") {
-            descriptionStrong.textContent = "정보: ";
+            descriptionStrong.innerHTML = "정보: ";
         } else if (countryId == "JP") {
-            descriptionStrong.textContent = "詳細: ";
+            descriptionStrong.innerHTML = "詳細: ";
         } else if (countryId == "CN") {
-            descriptionStrong.textContent = "详情: ";
+            descriptionStrong.innerHTML = "详情: ";
         } else if (countryId == "US") {
-            descriptionStrong.textContent = "Details: ";
+            descriptionStrong.innerHTML = "Details: ";
         }        
 
         if (jsonData["정보"]) {
@@ -3635,6 +3701,11 @@ async function generateDynamicPlanContent(jsonData) {
         },
     ];
 
+    const indexes = [
+        "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩",
+        "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳",
+    ]
+
     function extractParenthesisContent(str) {
         const match = str.match(/\((.*?)\)/); // 정규식을 사용하여 첫 번째 괄호 안의 내용 추출
         return match ? match[1] : str; // 매칭된 값이 있으면 반환, 없으면 null 반환
@@ -3642,6 +3713,7 @@ async function generateDynamicPlanContent(jsonData) {
     
     async function renderDayContent(day) {
         // JSON 데이터에서 주소 정보 추출
+        let index = 0;
         const addresses = [];
         Object.keys(day.meals).forEach(mealType => {
             const mealData = day.meals[mealType];
@@ -3746,7 +3818,7 @@ async function generateDynamicPlanContent(jsonData) {
 
                     if (name && address) {
                         const listItem = document.createElement('p');
-                        listItem.innerHTML = `<strong>${name}</strong> (${address})`;
+                        listItem.innerHTML = `${indexes[index]} <strong>${name}</strong> (${address})`;
 
                         const buttonContainer = document.createElement('div');
                         buttonContainer.className = "button-container";
@@ -3808,6 +3880,7 @@ async function generateDynamicPlanContent(jsonData) {
                         buttonContainer.appendChild(deleteButton);
                         listItem.appendChild(buttonContainer);
                         mealSection.appendChild(listItem);
+                        index++;
                     }
                 }
             });
@@ -3827,7 +3900,7 @@ async function generateDynamicPlanContent(jsonData) {
     // 버튼 생성 및 이벤트 바인딩
     generateDayButtons(jsonData, (day) => {
         markerData = []; // 새로운 일차 선택 시 기존 마커 데이터 초기화
-        console.log("Day object passed to renderDayContent:", day);
+        // console.log("Day object passed to renderDayContent:", day);
         renderDayContent(day); // 선택된 일차의 데이터 렌더링
     });
 }
@@ -4079,7 +4152,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
 
                     // 2) Enter: 제목 저장, ESC: 취소
                     changeBookmarkTitle.addEventListener("keydown", async function (e) {
-                        if (event.key === "Enter") {
+                        if (e.key === "Enter") {
                             const newTitle = changeBookmarkTitle.value.trim();
                             
                             if (!newTitle) {
@@ -4096,10 +4169,44 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                             title.style.display = "block"; // 기존 텍스트 표시
                             changeBookmarkTitle.style.display = "none"; // 입력창 숨김
                         } 
-                        else if (event.key === "Escape") {
+                        else if (e.key === "Escape") {
                             title.style.display = "block"; // 기존 텍스트 표시
                             changeBookmarkTitle.style.display = "none";  // 입력창 숨김
                         }                    
+                    });
+
+                    //기존 즐겨찾기 항목 버튼들 추가
+                    data.bookmarks.forEach(bookmark => {
+                        const createLi = document.createElement('li');                            
+                        const milliseconds = new Date(bookmark['created_at']).getTime();
+                        const colorValue = milliseconds % 0xFFFFFF; 
+                        const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
+                        createLi.className = "bookmark_item";
+                        createLi.id = bookmark['id'];
+                        createLi.style.cursor = "pointer";
+                        console.log("1:", bookmark['title'], ",", bookmark['name']);
+                        console.log("2:", bookmark['name'].includes(panelTitle.textContent.trim()));
+                        innerHtml = `
+                            <div style="background-color: ${hexColor}">
+                                <span style="font-size: 17px; color: white;">☆</span>
+                            </div>
+                            <p>${bookmark['title']}</p>
+                            <button>
+                                ${bookmark['name'] && bookmark['name'].includes(panelTitle.textContent.trim()) 
+                                    ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
+                                    : '<span style="font-size: 27px; color: white;">+</span>'
+                                }
+                            </button>
+                        `;      
+                        // ${bookmarkID === bookmark['id']}
+                        createLi.innerHTML = innerHtml;
+                        
+                        createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        bookmarklistPanel.appendChild(createLi);
                     });
                 }
                 else if (isSchedule) {
@@ -4109,7 +4216,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                         changeBookmarkTitle.value = title.textContent;
                         changeBookmarkTitle.style.display = "block"; // 입력창 표시
                         title.style.display = "none"; // 기존 텍스트 숨김
-                        console.log("title:", changeBookmarkTitle);
+                        // console.log("title:", changeBookmarkTitle);
                         changeBookmarkTitle.focus();
                     });
 
@@ -4155,38 +4262,38 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                     else {
                         title.textContent = panelTitle.textContent;
                     }
-                } 
 
-                //기존 즐겨찾기 항목 버튼들 추가
-                data.bookmarks.forEach(bookmark => {
-                    const createLi = document.createElement('li');                            
-                    const milliseconds = new Date(bookmark['created_at']).getTime();
-                    const colorValue = milliseconds % 0xFFFFFF; 
-                    const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
-                    createLi.className = "bookmark_item";
-                    createLi.id = bookmark['id'];
-                    createLi.style.cursor = "pointer";
-                    innerHtml = `
-                        <div style="background-color: ${hexColor}">
-                            <span style="font-size: 17px; color: white;">★</span>
-                        </div>
-                        <p>${bookmark['title']}</p>
-                        <button>
-                            ${bookmarkID === bookmark['id'] 
-                                ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
-                                : '<span style="font-size: 27px; color: white;">+</span>'
-                            }
-                        </button>
-                    `;                            
-                    createLi.innerHTML = innerHtml;
-                    
-                    createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    bookmarklistPanel.appendChild(createLi);
-                });
+                    //기존 즐겨찾기 항목 버튼들 추가
+                    data.bookmarks.forEach(bookmark => {
+                        const createLi = document.createElement('li');                            
+                        const milliseconds = new Date(bookmark['created_at']).getTime();
+                        const colorValue = milliseconds % 0xFFFFFF; 
+                        const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
+                        createLi.className = "bookmark_item";
+                        createLi.id = bookmark['id'];
+                        createLi.style.cursor = "pointer";
+                        innerHtml = `
+                            <div style="background-color: ${hexColor}">
+                                <span style="font-size: 17px; color: white;">☆</span>
+                            </div>
+                            <p>${bookmark['title']}</p>
+                            <button>
+                                ${bookmarkID === bookmark['id'] 
+                                    ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
+                                    : '<span style="font-size: 27px; color: white;">+</span>'
+                                }
+                            </button>
+                        `;                            
+                        createLi.innerHTML = innerHtml;
+                        
+                        createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        bookmarklistPanel.appendChild(createLi);
+                    });
+                } 
                 
                 //새 즐겨찾기 항목 만드는 버튼 추가                        
                 const createLi = document.createElement('li');
@@ -4267,7 +4374,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                                 createLi.id = data['id'];
                                                 innerHtml = `
                                                     <div style="background-color: ${hexColor}">
-                                                        <span style="font-size: 17px; color: white;">★</span>
+                                                        <span style="font-size: 17px; color: white;">☆</span>
                                                     </div>
                                                     <p>${textValue}</p>
                                                     <button>
@@ -4295,14 +4402,6 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                 }
                             });
                         }
-
-                        // addFolderEventHandler(
-                        //     "plus-place",
-                        //     "#placesSection",
-                        //     "새 폴더 이름 입력 (Enter)",
-                        //     true,
-                        //     { light: "/static/images/folder_light.png", dark: "/static/images/folder_dark.png" }
-                        // );
                     })
                     createLi.classList.remove("button_inactive");
                     createLi.classList.add("button_active");
@@ -4399,29 +4498,31 @@ function addToBookmark(li, span, isPlace, name, address) {
         })
     }
 
-    span.textContent = "✔";
-    span.style.fontSize = "17px";
-    span.style.color = "#5454ea";
+    if (span.textContent == "+") {
+        span.textContent = "✔";
+        span.style.fontSize = "17px";
+        span.style.color = "#5454ea";
 
-    fetch("/app/partials/favorites/add_bookmarklist/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCSRFToken(), // Django CSRF 토큰 필요
-        },
-        body: body,
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log("Bookmark list added successfully!");
-        } else {
-            console.error("Error:", data.error || data.message);
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-    });
+        fetch("/app/partials/favorites/add_bookmarklist/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCSRFToken(), // Django CSRF 토큰 필요
+            },
+            body: body,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log("Bookmark list added successfully!");
+            } else {
+                console.error("Error:", data.error || data.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+    }    
 }
 
 function editPanelTitle() {

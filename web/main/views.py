@@ -86,9 +86,10 @@ def get_or_create_chat_id(request):
             if chat_count >= 10:
                 # 데이터가 10개 이상이면 경고 메시지와 함께 chatting 페이지로 리다이렉트
                 return JsonResponse({
-                    "success": False,
+                    "success": True,
                     "error": "채팅 내역이 꽉 찼습니다!",
-                    "redirect_url": "/app/chatting/"
+                    # "redirect_url": "/app/chatting/",
+                    # "chat_id": "",
                 })
 
             # 마지막 chat_id 가져오기
@@ -231,6 +232,7 @@ def login_process(request):
     if request.method == 'POST':
         username = request.POST.get('username','').strip()
         password = request.POST.get('password','').strip()
+        countries = get_nationalities()
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
@@ -239,6 +241,7 @@ def login_process(request):
         else:
             # 로그인 실패 -> 다시 login.html
             return render(request, 'login.html', {
+                'countries': countries,
                 'error': '아이디나 비밀번호가 올바르지 않습니다.'
             })
     else:
@@ -1093,10 +1096,14 @@ def get_bookmark(request):
 
     bookmark_list = []
     for bookmark in bookmarks:
+        bookmark_places = BookmarkList.objects.filter(bookmark=bookmark, bookmarkplace__isnull=False)
+        place_names = [bp.bookmarkplace.name for bp in bookmark_places if bp.bookmarkplace]
+
         bookmark_list.append({
             "id": bookmark.bookmark,
             "title": bookmark.title,
             "created_at": bookmark.created_at,
+            "name": place_names,
         })
 
     return JsonResponse({"success": True, "bookmarks": bookmark_list})

@@ -1,4 +1,4 @@
-from prompts.prompt_schedule_change import prompt_schedule_change
+from langraph.prompts.prompt_schedule_change import prompt_schedule_change
 
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
