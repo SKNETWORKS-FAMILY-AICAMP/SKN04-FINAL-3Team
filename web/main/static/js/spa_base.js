@@ -4175,18 +4175,18 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                 if (isPlace) {          
                     //장소 이름을 그대로 제목으로 짓기
                     if (address) {
-                        addressTitle.textContent = address;
+                        addressTitle.innerHTML = address;
                     }
                     else if (document.querySelectorAll(".place-section p")[1]) {
-                        addressTitle.textContent = document.querySelectorAll(".place-section p")[1].textContent.split(": ")[1];
+                        addressTitle.innerHTML = document.querySelectorAll(".place-section p")[1].textContent.split(": ")[1];
                     }
                     // else { // 채팅 내역에서 장소를 즐겨찾기 등록하는 케이스
                     // }
                     if (name) {
-                        title.textContent = name;
+                        title.innerHTML = name;
                     }
                     else if (document.querySelector("#panel-title").textContent.trim()) {
-                        title.textContent = document.querySelector("#panel-title").textContent.trim();
+                        title.innerHTML = document.querySelector("#panel-title").textContent.trim();
                     }
                     // else { // 채팅 내역에서 장소를 즐겨찾기 등록하는 케이스
                     // } 
@@ -4212,7 +4212,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                 return;
                             }
                             
-                            title.textContent = newTitle;
+                            title.innerHTML = newTitle;
                             title.style.display = "block"; // 기존 텍스트 표시
                             changeBookmarkTitle.style.display = "none"; // 입력창 숨김
                         } 
@@ -4280,7 +4280,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                 return;
                             }
                             
-                            title.textContent = newTitle;
+                            title.innerHTML = newTitle;
                             title.style.display = "block"; // 기존 텍스트 표시
                             changeBookmarkTitle.style.display = "none"; // 입력창 숨김
                         } 
@@ -4302,10 +4302,10 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                         const milliseconds = now.getTime();
                         // const curDate = `${year}.${month}.${day} ${hours}:${minutes}:${seconds}`;
                         const curDate = `${milliseconds.toString(16)}`;
-                        title.textContent = "일정 " + curDate;
+                        title.innerHTML = "일정 " + curDate;
                     }
                     else {
-                        title.textContent = panelTitle.textContent;
+                        title.innerHTML = panelTitle.textContent;
                     }
 
                     //기존 즐겨찾기 항목 버튼들 추가
