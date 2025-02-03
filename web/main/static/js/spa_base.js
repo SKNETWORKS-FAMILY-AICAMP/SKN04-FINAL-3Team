@@ -4372,7 +4372,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                                 const colorValue = milliseconds % 0xFFFFFF; 
                                                 const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
                                                 createLi.className = "bookmark_item";
-                                                createLi.id = data['id'];
+                                                createLi.id = data['folderId'];
                                                 innerHtml = `
                                                     <div style="background-color: ${hexColor}">
                                                         <span style="font-size: 17px; color: white;">☆</span>
@@ -4386,6 +4386,11 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                                     </button>
                                                 `;                            
                                                 createLi.innerHTML = innerHtml;
+                                                createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                                                createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                                                createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                                                createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                                                createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
                                                 document.querySelector('.bookmarklist-panel ul').insertBefore(createLi, add_bookmark_list_btn);
                                             } else {
                                                 switch (countryId) {
