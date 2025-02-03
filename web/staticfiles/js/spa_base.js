@@ -368,7 +368,8 @@ document.addEventListener("spaContentLoaded", async function () {
     
     // 1) Planner Panel
     const plannerPanel = document.getElementById("plannerPanel");
-    if (plannerPanel) {               
+    if (plannerPanel) {
+        console.log("[Planner] panel detected!");                
         const resetButton = document.getElementById("resetButton");
         const plannerTitle = document.getElementById("planner-title");
         const changeTitle = document.getElementById("change-title");
@@ -622,6 +623,8 @@ document.addEventListener("spaContentLoaded", async function () {
     // 2) Chatting Panel
     const chattingPanel = document.getElementById("chattingPanel");
     if (chattingPanel) {
+        console.log("[Chatting] panel detected!");
+
         const chatList = document.querySelector(".chat-list");
 
         function updateChatListScroll() {
@@ -702,6 +705,10 @@ document.addEventListener("spaContentLoaded", async function () {
     // 3) Favorites Panel
     const favoritesPanel = document.getElementById("favoritesPanel");
     if (favoritesPanel) {
+        console.log("[Favorites] favoritesPanel detected!");
+        // --------------------------------
+        // (A) 탭 전환 로직
+        // --------------------------------
         const backBtn = document.getElementById('backBtn');
         const bookmarkTitle = document.getElementById('bookmark_title');
         const placeBtn = document.getElementById('placeBtn');
@@ -781,10 +788,17 @@ document.addEventListener("spaContentLoaded", async function () {
         // --------------------------------
         
         const plusPlace = document.getElementById("plus-place");
+        let newTitle = "";
+        switch (countryId) {
+            case "KR": newTitle = `새 폴더 이름 입력 (Enter)`; break;
+            case "JP": newTitle = `新しいフォルダ名の入力 (Enter)`; break;
+            case "CN": newTitle = `输入新文件夹名称 (Enter)`; break;
+            case "US": newTitle = `Enter a new folder name (Enter)`; break;
+        }                
         addFolderEventHandler(
             "plus-place",
             "#placesSection",
-            "새 폴더 이름 입력 (Enter)",
+            newTitle,
             true,
             { light: "/static/images/folder_light.png", dark: "/static/images/folder_dark.png" }
         );
@@ -797,7 +811,7 @@ document.addEventListener("spaContentLoaded", async function () {
         addFolderEventHandler(
             "plus-schedule",
             "#scheduleSection",
-            "새 일정 이름 입력 (Enter)",
+            newTitle,
             false,
             { light: "/static/images/schedule_light.png", dark: "/static/images/schedule_dark.png" }
         );
@@ -979,6 +993,10 @@ document.addEventListener("spaContentLoaded", async function () {
                                                     `; break;
                                                 }
                                                 placeSection.innerHTML = innerhtml;
+                                                placeSection.style.cursor = "pointer";
+                                                placeSection.addEventListener('click', () => {
+                                                    focusOnMarker(0, true);
+                                                });
                                                 mapPanelContent.appendChild(placeSection);
                                                 if (data.longitude && data.latitude && data.name) {
                                                     const markerData = [];
@@ -1180,6 +1198,7 @@ document.addEventListener("spaContentLoaded", async function () {
     // 4) Settings Panel
     const settingsPanel= document.getElementById("settingsPanel");
     if (settingsPanel) {
+        console.log("[settings] panel detected!");
         const lightBox = document.getElementById('light');
         const darkBox = document.getElementById('dark');
         const lightRadio = document.querySelector("input[name='theme'][value='light']");
@@ -1274,6 +1293,8 @@ document.addEventListener("spaContentLoaded", async function () {
     // 5) Profile Panel
     const profilePanel = document.getElementById("profilePanel");
     if (profilePanel) {
+        console.log("[profile] panel detected!");
+
         const profileImage = document.getElementById("profile-image");
         const popup = document.getElementById("image-popup");
         const popupImages = document.querySelectorAll(".popup-image");
@@ -1516,15 +1537,15 @@ document.addEventListener("spaContentLoaded", async function () {
         if (isLoading) return; // 로딩 중일 때 메시지 전송 방지
 
         const message = inputBar.value.trim(); // 사용자가 입력한 메시지
-        
+        const urlParams = new URLSearchParams(window.location.search);
+        const chatId = urlParams.get("chat_id");
         let chatHistory = "";
         if (message === "") return;
 
         const result = await saveChatToDB(`<나>${message}`);
         if (result) {
+            const chatId = result;
             try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const chatId = urlParams.get("chat_id");    
                 const response = await fetch(`/app/partials/planner/get_chat/?chat_id=${chatId}`, {
                     method: "GET",
                     headers: {
@@ -1577,7 +1598,7 @@ document.addEventListener("spaContentLoaded", async function () {
             }
         } else {
             const chatContainer = document.querySelector(".chat-container");
-            if (chatContainer) {
+            if (isLoggedIn && chatContainer) {
                 const errorBubble = document.createElement("div");
                 errorBubble.className = "error-bubble";
                 errorBubble.innerHTML = "채팅 내역이 꽉 찼습니다! 이 채팅은 저장되지 않습니다.<br>기존 채팅 내역을 사용해주세요.<br>현재 채팅에는 글 초기화 버튼이 작동하지 않습니다.";
@@ -1695,6 +1716,7 @@ document.addEventListener("spaContentLoaded", async function () {
             let buffer = ""; // 청크를 임시로 저장할 버퍼
             let botBubble = document.createElement("div"); // 새 말풍선을 생성
             botBubble.className = "bubble left-bubble";
+            
             botBubble.textContent = "";
             botBubble.classList.add("bubble", "left-bubble");
             document.querySelector(".loading-bubble").remove(); // 로딩 채팅 창 없애기
@@ -1715,7 +1737,7 @@ document.addEventListener("spaContentLoaded", async function () {
             botBubble.addEventListener("click", function (event) {
                 const messageContent = this.innerHTML.trim(); // 메시지 내용 가져오기
                 const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
-
+                
                 if (botBubble.className.includes("left-bubble")) {
                     // 서식을 유지한 상태로 출력
                     const panelTitle = document.getElementById("panel-title");
@@ -1725,9 +1747,9 @@ document.addEventListener("spaContentLoaded", async function () {
                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
                     const jsonData1 = parseScheduleJson_KR(formattedMessage);
-                    const jsonData2 = parseItineraryToJson_JP(formattedMessage);
-                    const jsonData3 = parseItineraryToJson_CN(formattedMessage);
-                    const jsonData4 = parseItineraryToJson_US(formattedMessage);
+                    const jsonData2 = parseScheduleJson_JP(formattedMessage);
+                    const jsonData3 = parseScheduleJson_CN(formattedMessage);
+                    const jsonData4 = parseScheduleJson_US(formattedMessage);
                     const jsonData5 = parsePlaceJson_KR(formattedMessage);
                     const jsonData6 = parsePlaceJson_JP(formattedMessage);
                     const jsonData7 = parsePlaceJson_CN(formattedMessage);
@@ -1817,7 +1839,7 @@ async function saveChatToDB(chatContent) {
     localStorage.removeItem('chatMessage');
     const urlParams = new URLSearchParams(window.location.search);
     const chatId = urlParams.get("chat_id");
-    if (!chatId) return;
+    if (!chatId && !isLoggedIn) return;
 
     return fetch("/app/partials/planner/save_chat/", {
         method: "POST",
@@ -1876,6 +1898,7 @@ async function saveChatToDB(chatContent) {
     });
 }
 
+// 사장된 함수 (250120)
 function typeText(element, text, loadingBubble, speed = 5) {
     let index = 0;
 
@@ -1900,6 +1923,8 @@ function typeText(element, text, loadingBubble, speed = 5) {
         } else {
             // 애니메이션 종료 후 로딩 상태 해제
             isLoading = false;
+            inputBar.disabled = false; // 입력창 활성화
+            inputBar.focus();
         }
     }
     typeNextChar();
@@ -1974,9 +1999,9 @@ function parseAndDisplayChatContent(chatContent) {
                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
                     const jsonData1 = parseScheduleJson_KR(formattedMessage);
-                    const jsonData2 = parseItineraryToJson_JP(formattedMessage);
-                    const jsonData3 = parseItineraryToJson_CN(formattedMessage);
-                    const jsonData4 = parseItineraryToJson_US(formattedMessage);
+                    const jsonData2 = parseScheduleJson_JP(formattedMessage);
+                    const jsonData3 = parseScheduleJson_CN(formattedMessage);
+                    const jsonData4 = parseScheduleJson_US(formattedMessage);
                     const jsonData5 = parsePlaceJson_KR(formattedMessage);
                     const jsonData6 = parsePlaceJson_JP(formattedMessage);
                     const jsonData7 = parsePlaceJson_CN(formattedMessage);
@@ -2003,8 +2028,7 @@ function parseAndDisplayChatContent(chatContent) {
                     } else if (!isEmptyJson(jsonData8)) {
                         jsonPlaceData = jsonData8;
                     }
-                    if (jsonScheduleData.length !== 0) {
-                        
+                    if (jsonScheduleData.length !== 0) {                        
                         generateDayButtons(jsonScheduleData);
                         generateDynamicPlanContent(jsonScheduleData);
                         getBookmarkListBtn.setAttribute("json_data", JSON.stringify(jsonScheduleData));
@@ -2155,7 +2179,7 @@ function parseScheduleJson_KR(text) {
     return result;
 }
 
-function parseItineraryToJson_JP(text) {
+function parseScheduleJson_JP(text) {
     text = text.replace(/([^\n])(\s*- \*\*\d+日目\*\*:)/g, "$1\n$2");
     const lines = text.split("\n");
     const result = [];
@@ -2274,7 +2298,7 @@ function parseItineraryToJson_JP(text) {
     return result;
 }
 
-function parseItineraryToJson_CN(text) {
+function parseScheduleJson_CN(text) {
     text = text.replace(/([^\n])(\s*- \*\*第\d+天\*\*:)/g, "$1\n$2");
     const lines = text.split("\n");
     const result = [];
@@ -2393,7 +2417,7 @@ function parseItineraryToJson_CN(text) {
     return result;
 }
 
-function parseItineraryToJson_US(text) {
+function parseScheduleJson_US(text) {
     text = text.replace(/([^\n])(\s*- \*\*Day \d+\*\*:)/g, "$1\n$2");
     const lines = text.split("\n");
     const result = [];
@@ -2713,7 +2737,9 @@ function parsePlaceJson_JP(text) {
     
         // 1) **장소:**
         const placeMatch = line.match(/^\*\*場所\*\*: (.*)/);
+        console.log("line:", line, ",pl:", placeMatch);
         if (placeMatch) {
+            console.log("place:", placeMatch[1].trim());
             result["場所"] = placeMatch[1].trim();
             currentSection = "場所"; // 혹시 이후 줄들도 장소에 포함시키고 싶다면 사용
             return;
@@ -3497,6 +3523,10 @@ async function generatePlaceContent(jsonData) {
             heading.innerHTML = "Place Info";
         }
         section.appendChild(heading);
+        section.style.cursor = "pointer";
+        section.addEventListener('click', () => {
+            focusOnMarker(0, true);
+        });
 
         // <p><strong>이름:</strong> 용산전자상가</p>
         const nameParagraph = document.createElement("p");
@@ -3617,7 +3647,10 @@ async function generateDynamicPlanContent(jsonData) {
 
     // 마커 데이터를 저장하는 배열
     let markerData = [];
-
+    const indexes = [
+        "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩",
+        "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳",
+    ]
     const languageMappings = [
         {
             locationKey: "식사 장소",
@@ -3688,11 +3721,7 @@ async function generateDynamicPlanContent(jsonData) {
             shoppingMallNameKey: "Shopping Mall Name",
         },
     ];
-
-    const indexes = [
-        "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩",
-        "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳",
-    ]
+    
 
     function extractParenthesisContent(str) {
         const match = str.match(/\((.*?)\)/); // 정규식을 사용하여 첫 번째 괄호 안의 내용 추출
@@ -3806,7 +3835,12 @@ async function generateDynamicPlanContent(jsonData) {
 
                     if (name && address) {
                         const listItem = document.createElement('p');
+                        const fixedIndex = index;
+                        listItem.style.cursor = "pointer";
                         listItem.innerHTML = `${indexes[index]} <strong>${name}</strong> (${address})`;
+                        listItem.addEventListener('click', () => {
+                            focusOnMarker(fixedIndex, false);
+                        });
 
                         const buttonContainer = document.createElement('div');
                         buttonContainer.className = "button-container";
@@ -3973,6 +4007,37 @@ function generateDayButtons(jsonData, renderDayContentCallback) {
     }
 }
 
+function focusOnMarker(index, isPlace=false) {
+    if (!map || !isMapInitialized) {
+        console.error("Map is not initialized yet!");
+        return;
+    }
+
+    if (!window.currentMarkers || window.currentMarkers.length === 0 ||
+        index < 0 || index >= window.currentMarkers.length) {
+        switch (countryId) {
+            case "KR": alert("마커가 없습니다!"); break;
+            case "JP": alert("マーカーがありません！"); break;
+            case "CN": alert("无标记 ！"); break;
+            case "US": alert("No marker!"); break;            
+        }
+        return;
+    }
+
+    if (isPlace) {
+        // 지도 범위를 업데이트
+        const bounds = new naver.maps.LatLngBounds();
+        markerData.forEach(marker => bounds.extend(marker.position));
+        map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+    }
+    else {
+        const targetMarker = window.currentMarkers[index]; // 해당 인덱스의 마커 가져오기
+        const markerPosition = targetMarker.getPosition(); // 마커의 위치 가져오기
+        map.setCenter(markerPosition); // 지도 중심 이동
+        map.setZoom(15); // 줌 레벨 조정 (필요에 따라 변경 가능)
+    }
+}
+
 function addMarkersToMap(markerData) {
     if (!map || !isMapInitialized) {
         console.error("Map is not initialized yet!");
@@ -4054,7 +4119,8 @@ function addMarkersToMap(markerData) {
 
 async function fetchCoordinates(address) {
     // Proxy API 엔드포인트 URL 설정 (Django 백엔드의 엔드포인트 예시)
-    const url = `http://127.0.0.1:8000/proxy/geocode/?address=${encodeURIComponent(address)}`;
+    const baseUrl = window.location.origin;
+    const url = `${baseUrl}/proxy/geocode/?address=${encodeURIComponent(address)}`;
 
     try {
         const response = await fetch(url); // Fetch 요청 전송
@@ -4116,18 +4182,18 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                 if (isPlace) {          
                     //장소 이름을 그대로 제목으로 짓기
                     if (address) {
-                        addressTitle.textContent = address;
+                        addressTitle.innerHTML = address;
                     }
                     else if (document.querySelectorAll(".place-section p")[1]) {
-                        addressTitle.textContent = document.querySelectorAll(".place-section p")[1].textContent.split(": ")[1];
+                        addressTitle.innerHTML = document.querySelectorAll(".place-section p")[1].textContent.split(": ")[1];
                     }
                     // else { // 채팅 내역에서 장소를 즐겨찾기 등록하는 케이스
                     // }
                     if (name) {
-                        title.textContent = name;
+                        title.innerHTML = name;
                     }
                     else if (document.querySelector("#panel-title").textContent.trim()) {
-                        title.textContent = document.querySelector("#panel-title").textContent.trim();
+                        title.innerHTML = document.querySelector("#panel-title").textContent.trim();
                     }
                     // else { // 채팅 내역에서 장소를 즐겨찾기 등록하는 케이스
                     // } 
@@ -4140,7 +4206,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
 
                     // 2) Enter: 제목 저장, ESC: 취소
                     changeBookmarkTitle.addEventListener("keydown", async function (e) {
-                        if (event.key === "Enter") {
+                        if (e.key === "Enter") {
                             const newTitle = changeBookmarkTitle.value.trim();
                             
                             if (!newTitle) {
@@ -4153,14 +4219,46 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                 return;
                             }
                             
-                            title.textContent = newTitle;
+                            title.innerHTML = newTitle;
                             title.style.display = "block"; // 기존 텍스트 표시
                             changeBookmarkTitle.style.display = "none"; // 입력창 숨김
                         } 
-                        else if (event.key === "Escape") {
+                        else if (e.key === "Escape") {
                             title.style.display = "block"; // 기존 텍스트 표시
                             changeBookmarkTitle.style.display = "none";  // 입력창 숨김
                         }                    
+                    });
+
+                    //기존 즐겨찾기 항목 버튼들 추가
+                    data.bookmarks.forEach(bookmark => {
+                        const createLi = document.createElement('li');                            
+                        const milliseconds = new Date(bookmark['created_at']).getTime();
+                        const colorValue = milliseconds % 0xFFFFFF; 
+                        const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
+                        createLi.className = "bookmark_item";
+                        createLi.id = bookmark['id'];
+                        createLi.style.cursor = "pointer";
+                        innerHtml = `
+                            <div style="background-color: ${hexColor}">
+                                <span style="font-size: 17px; color: white;">☆</span>
+                            </div>
+                            <p>${bookmark['title']}</p>
+                            <button>
+                                ${bookmark['name'] && bookmark['name'].includes(panelTitle.textContent.trim()) 
+                                    ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
+                                    : '<span style="font-size: 27px; color: white;">+</span>'
+                                }
+                            </button>
+                        `;      
+                        // ${bookmarkID === bookmark['id']}
+                        createLi.innerHTML = innerHtml;
+                        
+                        createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        bookmarklistPanel.appendChild(createLi);
                     });
                 }
                 else if (isSchedule) {
@@ -4189,7 +4287,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                 return;
                             }
                             
-                            title.textContent = newTitle;
+                            title.innerHTML = newTitle;
                             title.style.display = "block"; // 기존 텍스트 표시
                             changeBookmarkTitle.style.display = "none"; // 입력창 숨김
                         } 
@@ -4211,54 +4309,58 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                         const milliseconds = now.getTime();
                         // const curDate = `${year}.${month}.${day} ${hours}:${minutes}:${seconds}`;
                         const curDate = `${milliseconds.toString(16)}`;
-                        title.textContent = "일정 " + curDate;
+                        title.innerHTML = "일정 " + curDate;
                     }
                     else {
-                        title.textContent = panelTitle.textContent;
+                        title.innerHTML = panelTitle.textContent;
                     }
-                } 
 
-                //기존 즐겨찾기 항목 버튼들 추가
-                data.bookmarks.forEach(bookmark => {
-                    const createLi = document.createElement('li');                            
-                    const milliseconds = new Date(bookmark['created_at']).getTime();
-                    const colorValue = milliseconds % 0xFFFFFF; 
-                    const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
-                    createLi.className = "bookmark_item";
-                    createLi.id = bookmark['id'];
-                    createLi.style.cursor = "pointer";
-                    innerHtml = `
-                        <div style="background-color: ${hexColor}">
-                            <span style="font-size: 17px; color: white;">☆</span>
-                        </div>
-                        <p>${bookmark['title']}</p>
-                        <button>
-                            ${bookmarkID === bookmark['id'] 
-                                ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
-                                : '<span style="font-size: 27px; color: white;">+</span>'
-                            }
-                        </button>
-                    `;                            
-                    createLi.innerHTML = innerHtml;
-                    
-                    createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                    bookmarklistPanel.appendChild(createLi);
-                });
+                    //기존 즐겨찾기 항목 버튼들 추가
+                    data.bookmarks.forEach(bookmark => {
+                        const createLi = document.createElement('li');                            
+                        const milliseconds = new Date(bookmark['created_at']).getTime();
+                        const colorValue = milliseconds % 0xFFFFFF; 
+                        const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
+                        createLi.className = "bookmark_item";
+                        createLi.id = bookmark['id'];
+                        createLi.style.cursor = "pointer";
+                        innerHtml = `
+                            <div style="background-color: ${hexColor}">
+                                <span style="font-size: 17px; color: white;">☆</span>
+                            </div>
+                            <p>${bookmark['title']}</p>
+                            <button>
+                                ${bookmarkID === bookmark['id'] 
+                                    ? '<span style="font-size: 17px; color: #5454ea;">✔</span>' 
+                                    : '<span style="font-size: 27px; color: white;">+</span>'
+                                }
+                            </button>
+                        `;                            
+                        createLi.innerHTML = innerHtml;
+                        
+                        createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                        bookmarklistPanel.appendChild(createLi);
+                    });
+                } 
                 
                 //새 즐겨찾기 항목 만드는 버튼 추가                        
                 const createLi = document.createElement('li');
                 createLi.className = "bookmark_item";
                 createLi.id = "add_bookmark_list_btn";   
-                innerHtml = `
-                    <div>
-                        <span>+</span>
-                    </div>
-                    <p>새 즐겨찾기 항목</p>
-                `;              
+                const innerhtml = `<div>
+                    <span>+</span>
+                </div>
+                <p>`;
+                switch (countryId) {
+                    case "KR": innerHtml = innerhtml + `새 즐겨찾기 항목</p>`; break;
+                    case "JP": innerHtml = innerhtml + `新しいブックマーク項目</p>`; break;
+                    case "CN": innerHtml = innerhtml + `新建书签条目</p>`; break;
+                    case "US": innerHtml = innerhtml + `New Bookmark Item</p>`; break;
+                }
 
                 //10개 미만이면 활성화, 그 이상이면 비활성화 
                 if (bookmarklistPanel.childNodes.length < 10) {
@@ -4288,7 +4390,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                             inputElem.focus();
 
                             // Enter로 확정
-                            inputElem.addEventListener("keydown", function (e) {
+                            inputElem.addEventListener("keydown", async function (e) {
                                 if (e.key === "Enter") {
                                     e.preventDefault();
                                     const textValue = inputElem.value.trim();
@@ -4299,33 +4401,31 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                         const inputItem = document.querySelector(`.bookmarklist-panel .folder-item`);
                                         const items = document.querySelectorAll('.bookmarklist-panel ul li');                                                                             
                                         inputElem.remove();
-
-                                        // 서버로 AJAX 호출
-                                        fetch("/app/partials/favorites/add/", {
-                                            method: "POST",
-                                            headers: {
-                                                "Content-Type": "application/json",
-                                                "X-CSRFToken": getCSRFToken()
-                                            },
-                                            body: JSON.stringify({
-                                                title: textValue,
-                                                is_place: isPlace,
-                                            })
-                                        })
-                                        .then(response => {
+                                        console.log("GO!");
+                                        try {
+                                            const response = await fetch("/app/partials/favorites/add/", {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type": "application/json",
+                                                    "X-CSRFToken": getCSRFToken()
+                                                },
+                                                body: JSON.stringify({
+                                                    title: textValue,
+                                                    is_place: isPlace,
+                                                })
+                                            });
                                             if (!response.ok) {
                                                 throw new Error(`HTTP error! status: ${response.status}`);
                                             }
-                                            return response.json();
-                                        })
-                                        .then((data) => {
+                                            
+                                            const data = await response.json();
                                             if (data.success) {
                                                 const createLi = document.createElement('li');                            
                                                 const milliseconds = Date.now();
                                                 const colorValue = milliseconds % 0xFFFFFF; 
                                                 const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
                                                 createLi.className = "bookmark_item";
-                                                createLi.id = data['id'];
+                                                createLi.id = data['folderId'];
                                                 innerHtml = `
                                                     <div style="background-color: ${hexColor}">
                                                         <span style="font-size: 17px; color: white;">☆</span>
@@ -4339,6 +4439,11 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                                     </button>
                                                 `;                            
                                                 createLi.innerHTML = innerHtml;
+                                                createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                                                createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                                                createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                                                createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                                                createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
                                                 document.querySelector('.bookmarklist-panel ul').insertBefore(createLi, add_bookmark_list_btn);
                                             } else {
                                                 switch (countryId) {
@@ -4348,22 +4453,13 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                                     case "US": alert('Failed to create favorite item'); break;
                                                 }
                                             }
-                                        })
-                                        .catch((err) => {
-                                            console.error("서버 통신 오류:", err);
-                                        });
+                                        } catch {
+                                            console.error("!");
+                                        }
                                     }                                    
                                 }
                             });
                         }
-
-                        // addFolderEventHandler(
-                        //     "plus-place",
-                        //     "#placesSection",
-                        //     "새 폴더 이름 입력 (Enter)",
-                        //     true,
-                        //     { light: "/static/images/folder_light.png", dark: "/static/images/folder_dark.png" }
-                        // );
                     })
                     createLi.classList.remove("button_inactive");
                     createLi.classList.add("button_active");
@@ -4390,10 +4486,6 @@ async function getBookmarkList(is_place="", name=``, address=``) {
             case "US": alert('There is no data to save in your favorites.'); break;
         }
     }
-}
-
-function addClickEvent() {
-    
 }
 
 async function deleteBookmarklist(row) {
