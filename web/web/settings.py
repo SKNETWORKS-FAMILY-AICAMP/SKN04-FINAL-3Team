@@ -43,7 +43,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '43.201.171.106','www.seoulogue.com', 'seoulogue.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '43.201.171.106','www.seoulogue.com', 'seoulogue.com', 'www.seoulogue.com:8000', 'seoulogue.com:8000']
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # 개발용 로컬 호스트
