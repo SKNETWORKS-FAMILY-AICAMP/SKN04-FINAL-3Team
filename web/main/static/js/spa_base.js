@@ -986,6 +986,10 @@ document.addEventListener("spaContentLoaded", async function () {
                                                     `; break;
                                                 }
                                                 placeSection.innerHTML = innerhtml;
+                                                placeSection.style.cursor = "pointer";
+                                                placeSection.addEventListener('click', () => {
+                                                    focusOnMarker(0, true);
+                                                });
                                                 mapPanelContent.appendChild(placeSection);
                                                 if (data.longitude && data.latitude && data.name) {
                                                     const markerData = [];
@@ -3514,7 +3518,7 @@ async function generatePlaceContent(jsonData) {
         section.appendChild(heading);
         section.style.cursor = "pointer";
         section.addEventListener('click', () => {
-            focusOnMarker(0);
+            focusOnMarker(0, true);
         });
 
         // <p><strong>이름:</strong> 용산전자상가</p>
@@ -3828,7 +3832,7 @@ async function generateDynamicPlanContent(jsonData) {
                         listItem.style.cursor = "pointer";
                         listItem.innerHTML = `${indexes[index]} <strong>${name}</strong> (${address})`;
                         listItem.addEventListener('click', () => {
-                            focusOnMarker(fixedIndex);
+                            focusOnMarker(fixedIndex, false);
                         });
 
                         const buttonContainer = document.createElement('div');
@@ -3996,7 +4000,7 @@ function generateDayButtons(jsonData, renderDayContentCallback) {
     }
 }
 
-function focusOnMarker(index) {
+function focusOnMarker(index, isPlace=false) {
     if (!map || !isMapInitialized) {
         console.error("Map is not initialized yet!");
         return;
@@ -4013,10 +4017,18 @@ function focusOnMarker(index) {
         return;
     }
 
-    // 지도 범위를 업데이트
-    const bounds = new naver.maps.LatLngBounds();
-    markerData.forEach(marker => bounds.extend(marker.position));
-    map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+    if (isPlace) {
+        // 지도 범위를 업데이트
+        const bounds = new naver.maps.LatLngBounds();
+        markerData.forEach(marker => bounds.extend(marker.position));
+        map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+    }
+    else {
+        const targetMarker = window.currentMarkers[index]; // 해당 인덱스의 마커 가져오기
+        const markerPosition = targetMarker.getPosition(); // 마커의 위치 가져오기
+        map.setCenter(markerPosition); // 지도 중심 이동
+        map.setZoom(15); // 줌 레벨 조정 (필요에 따라 변경 가능)
+    }
 }
 
 function addMarkersToMap(markerData) {
