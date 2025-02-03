@@ -788,10 +788,17 @@ document.addEventListener("spaContentLoaded", async function () {
         // --------------------------------
         
         const plusPlace = document.getElementById("plus-place");
+        let newTitle = "";
+        switch (countryId) {
+            case "KR": newTitle = `새 폴더 이름 입력 (Enter)`; break;
+            case "JP": newTitle = `新しいフォルダ名の入力 (Enter)`; break;
+            case "CN": newTitle = `输入新文件夹名称 (Enter)`; break;
+            case "US": newTitle = `Enter a new folder name (Enter)`; break;
+        }                
         addFolderEventHandler(
             "plus-place",
             "#placesSection",
-            "새 폴더 이름 입력 (Enter)",
+            newTitle,
             true,
             { light: "/static/images/folder_light.png", dark: "/static/images/folder_dark.png" }
         );
@@ -804,7 +811,7 @@ document.addEventListener("spaContentLoaded", async function () {
         addFolderEventHandler(
             "plus-schedule",
             "#scheduleSection",
-            "새 일정 이름 입력 (Enter)",
+            newTitle,
             false,
             { light: "/static/images/schedule_light.png", dark: "/static/images/schedule_dark.png" }
         );

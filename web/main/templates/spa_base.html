@@ -97,7 +97,13 @@
                             color: white; outline: none; border: 1px solid; font-size: 20px;
                             max-width: 330px; min-width: 200px;"
                     maxlength="50">
-                <h6 style="text-align: center; margin: 0;">(Double click the title to edit)</h6>
+                <h6 style="text-align: center; margin: 0;">
+                    {% if settings.country_id == "KR" %}(두 번 클릭하여 제목 편집)
+                    {% elif settings.country_id == "JP" %}(ダブルクリックしてタイトルを編集します)
+                    {% elif settings.country_id == "CN" %}(双击编辑标题)
+                    {% elif settings.country_id == "US" %}(Double click the title to edit)
+                    {% endif %}
+                </h6>
             </div>
             <ul>
 
