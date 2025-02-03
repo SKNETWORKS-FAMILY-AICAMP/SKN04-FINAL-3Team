@@ -183,7 +183,7 @@ function updateLanguage(selectedCountryId) {
     ];
 
     const translations_for_search_helper = {
-        US: "Search example: Can you make a schedule for 2 nights and 3 days in Yongsan-gu, \n Jung-gu, Jongno-gu, and Gangnam-gu?",
+        US: "Search example: Can you make a schedule for 3 days in Yongsan-gu, \n Jung-gu, Jongno-gu, and Gangnam-gu?",
         KR: "검색 예제: 용산구/중구/종로구/강남구의 2박 3일동안 일정을 만들어줘.",
         JP: "検索例: 龍山区/中区/鍾路区/江南区の2泊3日の日程を作ってくれる？",
         CN: "搜索示例: 龙山区/中区/钟路区/江南区能帮我安排3天2夜的日程吗？",

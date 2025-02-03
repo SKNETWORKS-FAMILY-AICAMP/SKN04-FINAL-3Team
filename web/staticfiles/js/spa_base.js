@@ -788,10 +788,17 @@ document.addEventListener("spaContentLoaded", async function () {
         // --------------------------------
         
         const plusPlace = document.getElementById("plus-place");
+        let newTitle = "";
+        switch (countryId) {
+            case "KR": newTitle = `새 폴더 이름 입력 (Enter)`; break;
+            case "JP": newTitle = `新しいフォルダ名の入力 (Enter)`; break;
+            case "CN": newTitle = `输入新文件夹名称 (Enter)`; break;
+            case "US": newTitle = `Enter a new folder name (Enter)`; break;
+        }                
         addFolderEventHandler(
             "plus-place",
             "#placesSection",
-            "새 폴더 이름 입력 (Enter)",
+            newTitle,
             true,
             { light: "/static/images/folder_light.png", dark: "/static/images/folder_dark.png" }
         );
@@ -804,7 +811,7 @@ document.addEventListener("spaContentLoaded", async function () {
         addFolderEventHandler(
             "plus-schedule",
             "#scheduleSection",
-            "새 일정 이름 입력 (Enter)",
+            newTitle,
             false,
             { light: "/static/images/schedule_light.png", dark: "/static/images/schedule_dark.png" }
         );
@@ -986,6 +993,10 @@ document.addEventListener("spaContentLoaded", async function () {
                                                     `; break;
                                                 }
                                                 placeSection.innerHTML = innerhtml;
+                                                placeSection.style.cursor = "pointer";
+                                                placeSection.addEventListener('click', () => {
+                                                    focusOnMarker(0, true);
+                                                });
                                                 mapPanelContent.appendChild(placeSection);
                                                 if (data.longitude && data.latitude && data.name) {
                                                     const markerData = [];
@@ -1736,9 +1747,9 @@ document.addEventListener("spaContentLoaded", async function () {
                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
                     const jsonData1 = parseScheduleJson_KR(formattedMessage);
-                    const jsonData2 = parseItineraryToJson_JP(formattedMessage);
-                    const jsonData3 = parseItineraryToJson_CN(formattedMessage);
-                    const jsonData4 = parseItineraryToJson_US(formattedMessage);
+                    const jsonData2 = parseScheduleJson_JP(formattedMessage);
+                    const jsonData3 = parseScheduleJson_CN(formattedMessage);
+                    const jsonData4 = parseScheduleJson_US(formattedMessage);
                     const jsonData5 = parsePlaceJson_KR(formattedMessage);
                     const jsonData6 = parsePlaceJson_JP(formattedMessage);
                     const jsonData7 = parsePlaceJson_CN(formattedMessage);
@@ -1988,9 +1999,9 @@ function parseAndDisplayChatContent(chatContent) {
                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
                     const jsonData1 = parseScheduleJson_KR(formattedMessage);
-                    const jsonData2 = parseItineraryToJson_JP(formattedMessage);
-                    const jsonData3 = parseItineraryToJson_CN(formattedMessage);
-                    const jsonData4 = parseItineraryToJson_US(formattedMessage);
+                    const jsonData2 = parseScheduleJson_JP(formattedMessage);
+                    const jsonData3 = parseScheduleJson_CN(formattedMessage);
+                    const jsonData4 = parseScheduleJson_US(formattedMessage);
                     const jsonData5 = parsePlaceJson_KR(formattedMessage);
                     const jsonData6 = parsePlaceJson_JP(formattedMessage);
                     const jsonData7 = parsePlaceJson_CN(formattedMessage);
@@ -2168,7 +2179,7 @@ function parseScheduleJson_KR(text) {
     return result;
 }
 
-function parseItineraryToJson_JP(text) {
+function parseScheduleJson_JP(text) {
     text = text.replace(/([^\n])(\s*- \*\*\d+日目\*\*:)/g, "$1\n$2");
     const lines = text.split("\n");
     const result = [];
@@ -2287,7 +2298,7 @@ function parseItineraryToJson_JP(text) {
     return result;
 }
 
-function parseItineraryToJson_CN(text) {
+function parseScheduleJson_CN(text) {
     text = text.replace(/([^\n])(\s*- \*\*第\d+天\*\*:)/g, "$1\n$2");
     const lines = text.split("\n");
     const result = [];
@@ -2406,7 +2417,7 @@ function parseItineraryToJson_CN(text) {
     return result;
 }
 
-function parseItineraryToJson_US(text) {
+function parseScheduleJson_US(text) {
     text = text.replace(/([^\n])(\s*- \*\*Day \d+\*\*:)/g, "$1\n$2");
     const lines = text.split("\n");
     const result = [];
@@ -3512,6 +3523,10 @@ async function generatePlaceContent(jsonData) {
             heading.innerHTML = "Place Info";
         }
         section.appendChild(heading);
+        section.style.cursor = "pointer";
+        section.addEventListener('click', () => {
+            focusOnMarker(0, true);
+        });
 
         // <p><strong>이름:</strong> 용산전자상가</p>
         const nameParagraph = document.createElement("p");
@@ -3632,7 +3647,10 @@ async function generateDynamicPlanContent(jsonData) {
 
     // 마커 데이터를 저장하는 배열
     let markerData = [];
-
+    const indexes = [
+        "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩",
+        "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳",
+    ]
     const languageMappings = [
         {
             locationKey: "식사 장소",
@@ -3703,11 +3721,7 @@ async function generateDynamicPlanContent(jsonData) {
             shoppingMallNameKey: "Shopping Mall Name",
         },
     ];
-
-    const indexes = [
-        "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩",
-        "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳",
-    ]
+    
 
     function extractParenthesisContent(str) {
         const match = str.match(/\((.*?)\)/); // 정규식을 사용하여 첫 번째 괄호 안의 내용 추출
@@ -3821,7 +3835,12 @@ async function generateDynamicPlanContent(jsonData) {
 
                     if (name && address) {
                         const listItem = document.createElement('p');
+                        const fixedIndex = index;
+                        listItem.style.cursor = "pointer";
                         listItem.innerHTML = `${indexes[index]} <strong>${name}</strong> (${address})`;
+                        listItem.addEventListener('click', () => {
+                            focusOnMarker(fixedIndex, false);
+                        });
 
                         const buttonContainer = document.createElement('div');
                         buttonContainer.className = "button-container";
@@ -3988,6 +4007,37 @@ function generateDayButtons(jsonData, renderDayContentCallback) {
     }
 }
 
+function focusOnMarker(index, isPlace=false) {
+    if (!map || !isMapInitialized) {
+        console.error("Map is not initialized yet!");
+        return;
+    }
+
+    if (!window.currentMarkers || window.currentMarkers.length === 0 ||
+        index < 0 || index >= window.currentMarkers.length) {
+        switch (countryId) {
+            case "KR": alert("마커가 없습니다!"); break;
+            case "JP": alert("マーカーがありません！"); break;
+            case "CN": alert("无标记 ！"); break;
+            case "US": alert("No marker!"); break;            
+        }
+        return;
+    }
+
+    if (isPlace) {
+        // 지도 범위를 업데이트
+        const bounds = new naver.maps.LatLngBounds();
+        markerData.forEach(marker => bounds.extend(marker.position));
+        map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+    }
+    else {
+        const targetMarker = window.currentMarkers[index]; // 해당 인덱스의 마커 가져오기
+        const markerPosition = targetMarker.getPosition(); // 마커의 위치 가져오기
+        map.setCenter(markerPosition); // 지도 중심 이동
+        map.setZoom(15); // 줌 레벨 조정 (필요에 따라 변경 가능)
+    }
+}
+
 function addMarkersToMap(markerData) {
     if (!map || !isMapInitialized) {
         console.error("Map is not initialized yet!");
@@ -4069,7 +4119,8 @@ function addMarkersToMap(markerData) {
 
 async function fetchCoordinates(address) {
     // Proxy API 엔드포인트 URL 설정 (Django 백엔드의 엔드포인트 예시)
-    const url = `http://127.0.0.1:8000/proxy/geocode/?address=${encodeURIComponent(address)}`;
+    const baseUrl = window.location.origin;
+    const url = `${baseUrl}/proxy/geocode/?address=${encodeURIComponent(address)}`;
 
     try {
         const response = await fetch(url); // Fetch 요청 전송
@@ -4131,18 +4182,18 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                 if (isPlace) {          
                     //장소 이름을 그대로 제목으로 짓기
                     if (address) {
-                        addressTitle.textContent = address;
+                        addressTitle.innerHTML = address;
                     }
                     else if (document.querySelectorAll(".place-section p")[1]) {
-                        addressTitle.textContent = document.querySelectorAll(".place-section p")[1].textContent.split(": ")[1];
+                        addressTitle.innerHTML = document.querySelectorAll(".place-section p")[1].textContent.split(": ")[1];
                     }
                     // else { // 채팅 내역에서 장소를 즐겨찾기 등록하는 케이스
                     // }
                     if (name) {
-                        title.textContent = name;
+                        title.innerHTML = name;
                     }
                     else if (document.querySelector("#panel-title").textContent.trim()) {
-                        title.textContent = document.querySelector("#panel-title").textContent.trim();
+                        title.innerHTML = document.querySelector("#panel-title").textContent.trim();
                     }
                     // else { // 채팅 내역에서 장소를 즐겨찾기 등록하는 케이스
                     // } 
@@ -4168,7 +4219,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                 return;
                             }
                             
-                            title.textContent = newTitle;
+                            title.innerHTML = newTitle;
                             title.style.display = "block"; // 기존 텍스트 표시
                             changeBookmarkTitle.style.display = "none"; // 입력창 숨김
                         } 
@@ -4187,8 +4238,6 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                         createLi.className = "bookmark_item";
                         createLi.id = bookmark['id'];
                         createLi.style.cursor = "pointer";
-                        console.log("1:", bookmark['title'], ",", bookmark['name']);
-                        console.log("2:", bookmark['name'].includes(panelTitle.textContent.trim()));
                         innerHtml = `
                             <div style="background-color: ${hexColor}">
                                 <span style="font-size: 17px; color: white;">☆</span>
@@ -4238,7 +4287,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                 return;
                             }
                             
-                            title.textContent = newTitle;
+                            title.innerHTML = newTitle;
                             title.style.display = "block"; // 기존 텍스트 표시
                             changeBookmarkTitle.style.display = "none"; // 입력창 숨김
                         } 
@@ -4260,10 +4309,10 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                         const milliseconds = now.getTime();
                         // const curDate = `${year}.${month}.${day} ${hours}:${minutes}:${seconds}`;
                         const curDate = `${milliseconds.toString(16)}`;
-                        title.textContent = "일정 " + curDate;
+                        title.innerHTML = "일정 " + curDate;
                     }
                     else {
-                        title.textContent = panelTitle.textContent;
+                        title.innerHTML = panelTitle.textContent;
                     }
 
                     //기존 즐겨찾기 항목 버튼들 추가
@@ -4302,12 +4351,16 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                 const createLi = document.createElement('li');
                 createLi.className = "bookmark_item";
                 createLi.id = "add_bookmark_list_btn";   
-                innerHtml = `
-                    <div>
-                        <span>+</span>
-                    </div>
-                    <p>새 즐겨찾기 항목</p>
-                `;              
+                const innerhtml = `<div>
+                    <span>+</span>
+                </div>
+                <p>`;
+                switch (countryId) {
+                    case "KR": innerHtml = innerhtml + `새 즐겨찾기 항목</p>`; break;
+                    case "JP": innerHtml = innerhtml + `新しいブックマーク項目</p>`; break;
+                    case "CN": innerHtml = innerhtml + `新建书签条目</p>`; break;
+                    case "US": innerHtml = innerhtml + `New Bookmark Item</p>`; break;
+                }
 
                 //10개 미만이면 활성화, 그 이상이면 비활성화 
                 if (bookmarklistPanel.childNodes.length < 10) {
@@ -4372,7 +4425,7 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                                 const colorValue = milliseconds % 0xFFFFFF; 
                                                 const hexColor = `#${colorValue.toString(16).padStart(6, '0')}`;
                                                 createLi.className = "bookmark_item";
-                                                createLi.id = data['id'];
+                                                createLi.id = data['folderId'];
                                                 innerHtml = `
                                                     <div style="background-color: ${hexColor}">
                                                         <span style="font-size: 17px; color: white;">☆</span>
@@ -4384,13 +4437,13 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                                             : '<span style="font-size: 27px; color: white;">+</span>'
                                                         }
                                                     </button>
-                                                `;                                                    
+                                                `;                            
+                                                createLi.innerHTML = innerHtml;
                                                 createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
                                                 createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
                                                 createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
                                                 createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
                                                 createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
-                                                bookmarklistPanel.appendChild(createLi);
                                                 document.querySelector('.bookmarklist-panel ul').insertBefore(createLi, add_bookmark_list_btn);
                                             } else {
                                                 switch (countryId) {
@@ -4435,10 +4488,6 @@ async function getBookmarkList(is_place="", name=``, address=``) {
     }
 }
 
-function addClickEvent() {
-    
-}
-
 async function deleteBookmarklist(row) {
     const getBookmarkListBtn = document.getElementById("getBookmarkListBtn");
     try {
@@ -4476,7 +4525,7 @@ function addToBookmark(li, span, isPlace, name, address) {
     let body = null;
     let nameData = name || document.querySelector(".bookmarklist-panel h2").textContent;
     let addressData = address || document.querySelector(".bookmarklist-panel h3").textContent;
-    console.log("!!!");
+
     if (isPlace) {
         // getBookmarkListBtn.classList.remove('place');
         body = JSON.stringify({
