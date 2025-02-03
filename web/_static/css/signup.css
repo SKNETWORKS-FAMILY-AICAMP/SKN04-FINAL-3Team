@@ -1,0 +1,135 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap");
+
+body {
+    font-family: "Noto Sans", sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.signup-container-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    width: 100%;
+}
+
+.signup-container {
+    width: 400px;
+    height: 650px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.signup-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    line-height: 1.2;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%; /* 모든 입력 필드와 드롭다운 너비를 동일하게 설정 */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.form-group button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.form-group button:hover {
+    background-color: #0056b3;
+}
+
+.signup-container p {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.signup-container p a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.signup-container p a:hover {
+    text-decoration: underline;
+}
+
+/* 언어 선택 드롭다운 */
+.language-select {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+}
+
+.language-select select {
+    font-size: 14px;
+}
+
+.radio-group {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    margin-top: 10px;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex: 0 0 60px;
+    justify-content: center;
+}
+
+.radio-group label span {
+    line-height: 1.2;
+}
+
+#label_SignUp, #label_signup, #label_account, #label_login {
+    line-height: 1.2;
+}
+
+.alert {
+    width: 100%; 
+    margin-bottom: 15px; 
+    padding-left: 5px; 
+    color: red;
+    height: 20px;
+}

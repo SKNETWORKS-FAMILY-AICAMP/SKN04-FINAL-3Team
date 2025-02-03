@@ -1,4 +1,3 @@
-
 from langchain.prompts import PromptTemplate
 
 prompt_over_ten_day = PromptTemplate(

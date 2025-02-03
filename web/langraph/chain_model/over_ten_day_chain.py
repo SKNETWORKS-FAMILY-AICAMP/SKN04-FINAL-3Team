@@ -1,4 +1,4 @@
-from prompts.prompt_over_ten_day import prompt_over_ten_day
+from langraph.prompts.prompt_over_ten_day import prompt_over_ten_day
 
 
 from langchain_openai import ChatOpenAI
