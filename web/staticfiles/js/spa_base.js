@@ -4384,8 +4384,13 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                                             : '<span style="font-size: 27px; color: white;">+</span>'
                                                         }
                                                     </button>
-                                                `;                            
-                                                createLi.innerHTML = innerHtml;
+                                                `;                                                    
+                                                createLi.addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                                                createLi.querySelector('div').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                                                createLi.querySelector('span').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                                                createLi.querySelector('button').addEventListener('click', (event) => {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                                                createLi.querySelector('p').addEventListener('click', (event)=> {event.stopPropagation(); addToBookmark(createLi, createLi.querySelector('button span'), isPlace, name, address) });
+                                                bookmarklistPanel.appendChild(createLi);
                                                 document.querySelector('.bookmarklist-panel ul').insertBefore(createLi, add_bookmark_list_btn);
                                             } else {
                                                 switch (countryId) {
@@ -4471,7 +4476,7 @@ function addToBookmark(li, span, isPlace, name, address) {
     let body = null;
     let nameData = name || document.querySelector(".bookmarklist-panel h2").textContent;
     let addressData = address || document.querySelector(".bookmarklist-panel h3").textContent;
-
+    console.log("!!!");
     if (isPlace) {
         // getBookmarkListBtn.classList.remove('place');
         body = JSON.stringify({
