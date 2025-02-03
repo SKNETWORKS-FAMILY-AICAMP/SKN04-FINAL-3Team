@@ -4112,7 +4112,8 @@ function addMarkersToMap(markerData) {
 
 async function fetchCoordinates(address) {
     // Proxy API 엔드포인트 URL 설정 (Django 백엔드의 엔드포인트 예시)
-    const url = `http://127.0.0.1:8000/proxy/geocode/?address=${encodeURIComponent(address)}`;
+    const baseUrl = window.location.origin;
+    const url = `${baseUrl}/proxy/geocode/?address=${encodeURIComponent(address)}`;
 
     try {
         const response = await fetch(url); // Fetch 요청 전송
@@ -4343,12 +4344,16 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                 const createLi = document.createElement('li');
                 createLi.className = "bookmark_item";
                 createLi.id = "add_bookmark_list_btn";   
-                innerHtml = `
-                    <div>
-                        <span>+</span>
-                    </div>
-                    <p>새 즐겨찾기 항목</p>
-                `;              
+                const innerhtml = `<div>
+                    <span>+</span>
+                </div>
+                <p>`;
+                switch (countryId) {
+                    case "KR": innerHtml = innerhtml + `새 즐겨찾기 항목</p>`; break;
+                    case "JP": innerHtml = innerhtml + `新しいブックマーク項目</p>`; break;
+                    case "CN": innerHtml = innerhtml + `新建书签条目</p>`; break;
+                    case "US": innerHtml = innerhtml + `New Bookmark Item</p>`; break;
+                }
 
                 //10개 미만이면 활성화, 그 이상이면 비활성화 
                 if (bookmarklistPanel.childNodes.length < 10) {
