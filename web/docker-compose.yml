@@ -25,7 +25,7 @@ services:
       # - /etc/letsencrypt:/etc/letsencrypt  # Let's Encrypt 인증서 경로만 마운트
     ports:
       - "80:80"
-      # - "443:443"  # HTTPS 포트 추가
+      - "443:443"  # HTTPS 포트 추가
     depends_on:
       - app
     networks:
