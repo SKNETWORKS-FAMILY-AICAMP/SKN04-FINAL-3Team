@@ -1736,9 +1736,9 @@ document.addEventListener("spaContentLoaded", async function () {
                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
                     const jsonData1 = parseScheduleJson_KR(formattedMessage);
-                    const jsonData2 = parseItineraryToJson_JP(formattedMessage);
-                    const jsonData3 = parseItineraryToJson_CN(formattedMessage);
-                    const jsonData4 = parseItineraryToJson_US(formattedMessage);
+                    const jsonData2 = parseScheduleJson_JP(formattedMessage);
+                    const jsonData3 = parseScheduleJson_CN(formattedMessage);
+                    const jsonData4 = parseScheduleJson_US(formattedMessage);
                     const jsonData5 = parsePlaceJson_KR(formattedMessage);
                     const jsonData6 = parsePlaceJson_JP(formattedMessage);
                     const jsonData7 = parsePlaceJson_CN(formattedMessage);
@@ -1988,9 +1988,9 @@ function parseAndDisplayChatContent(chatContent) {
                         .replace(/&nbsp;/g, " ");     // &nbsp;를 공백으로 변환
 
                     const jsonData1 = parseScheduleJson_KR(formattedMessage);
-                    const jsonData2 = parseItineraryToJson_JP(formattedMessage);
-                    const jsonData3 = parseItineraryToJson_CN(formattedMessage);
-                    const jsonData4 = parseItineraryToJson_US(formattedMessage);
+                    const jsonData2 = parseScheduleJson_JP(formattedMessage);
+                    const jsonData3 = parseScheduleJson_CN(formattedMessage);
+                    const jsonData4 = parseScheduleJson_US(formattedMessage);
                     const jsonData5 = parsePlaceJson_KR(formattedMessage);
                     const jsonData6 = parsePlaceJson_JP(formattedMessage);
                     const jsonData7 = parsePlaceJson_CN(formattedMessage);
@@ -2168,7 +2168,7 @@ function parseScheduleJson_KR(text) {
     return result;
 }
 
-function parseItineraryToJson_JP(text) {
+function parseScheduleJson_JP(text) {
     text = text.replace(/([^\n])(\s*- \*\*\d+日目\*\*:)/g, "$1\n$2");
     const lines = text.split("\n");
     const result = [];
@@ -2287,7 +2287,7 @@ function parseItineraryToJson_JP(text) {
     return result;
 }
 
-function parseItineraryToJson_CN(text) {
+function parseScheduleJson_CN(text) {
     text = text.replace(/([^\n])(\s*- \*\*第\d+天\*\*:)/g, "$1\n$2");
     const lines = text.split("\n");
     const result = [];
@@ -2406,7 +2406,7 @@ function parseItineraryToJson_CN(text) {
     return result;
 }
 
-function parseItineraryToJson_US(text) {
+function parseScheduleJson_US(text) {
     text = text.replace(/([^\n])(\s*- \*\*Day \d+\*\*:)/g, "$1\n$2");
     const lines = text.split("\n");
     const result = [];
@@ -3512,6 +3512,10 @@ async function generatePlaceContent(jsonData) {
             heading.innerHTML = "Place Info";
         }
         section.appendChild(heading);
+        section.style.cursor = "pointer";
+        section.addEventListener('click', () => {
+            focusOnMarker(0);
+        });
 
         // <p><strong>이름:</strong> 용산전자상가</p>
         const nameParagraph = document.createElement("p");
@@ -3632,7 +3636,10 @@ async function generateDynamicPlanContent(jsonData) {
 
     // 마커 데이터를 저장하는 배열
     let markerData = [];
-
+    const indexes = [
+        "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩",
+        "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳",
+    ]
     const languageMappings = [
         {
             locationKey: "식사 장소",
@@ -3703,11 +3710,7 @@ async function generateDynamicPlanContent(jsonData) {
             shoppingMallNameKey: "Shopping Mall Name",
         },
     ];
-
-    const indexes = [
-        "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩",
-        "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳",
-    ]
+    
 
     function extractParenthesisContent(str) {
         const match = str.match(/\((.*?)\)/); // 정규식을 사용하여 첫 번째 괄호 안의 내용 추출
@@ -3821,7 +3824,12 @@ async function generateDynamicPlanContent(jsonData) {
 
                     if (name && address) {
                         const listItem = document.createElement('p');
+                        const fixedIndex = index;
+                        listItem.style.cursor = "pointer";
                         listItem.innerHTML = `${indexes[index]} <strong>${name}</strong> (${address})`;
+                        listItem.addEventListener('click', () => {
+                            focusOnMarker(fixedIndex);
+                        });
 
                         const buttonContainer = document.createElement('div');
                         buttonContainer.className = "button-container";
@@ -3986,6 +3994,29 @@ function generateDayButtons(jsonData, renderDayContentCallback) {
     } else {
         console.error('생성된 버튼이 없습니다.');
     }
+}
+
+function focusOnMarker(index) {
+    if (!map || !isMapInitialized) {
+        console.error("Map is not initialized yet!");
+        return;
+    }
+
+    if (!window.currentMarkers || window.currentMarkers.length === 0 ||
+        index < 0 || index >= window.currentMarkers.length) {
+        switch (countryId) {
+            case "KR": alert("마커가 없습니다!"); break;
+            case "JP": alert("マーカーがありません！"); break;
+            case "CN": alert("无标记 ！"); break;
+            case "US": alert("No marker!"); break;            
+        }
+        return;
+    }
+
+    // 지도 범위를 업데이트
+    const bounds = new naver.maps.LatLngBounds();
+    markerData.forEach(marker => bounds.extend(marker.position));
+    map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
 }
 
 function addMarkersToMap(markerData) {
@@ -4187,8 +4218,6 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                         createLi.className = "bookmark_item";
                         createLi.id = bookmark['id'];
                         createLi.style.cursor = "pointer";
-                        console.log("1:", bookmark['title'], ",", bookmark['name']);
-                        console.log("2:", bookmark['name'].includes(panelTitle.textContent.trim()));
                         innerHtml = `
                             <div style="background-color: ${hexColor}">
                                 <span style="font-size: 17px; color: white;">☆</span>
@@ -4433,10 +4462,6 @@ async function getBookmarkList(is_place="", name=``, address=``) {
             case "US": alert('There is no data to save in your favorites.'); break;
         }
     }
-}
-
-function addClickEvent() {
-    
 }
 
 async function deleteBookmarklist(row) {
