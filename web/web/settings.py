@@ -42,9 +42,16 @@ SECRET_KEY = "django-insecure-)ml)-$v^=g02rac821m4rtnu%4tw9#1u_*@a%*$81%m9z2v@b0
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
-DEBUG = os.environ.get('DEBUG', 1)
+# DEBUG = os.environ.get('DEBUG', 1)
+DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '43.201.171.106', 'www.seoulogue.com', 'seoulogue.com']
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://seoulogue.com",
+    "https://www.seoulogue.com",
+    "http://localhost:8000",  # 로컬 테스트 환경
+]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # 개발용 로컬 호스트
