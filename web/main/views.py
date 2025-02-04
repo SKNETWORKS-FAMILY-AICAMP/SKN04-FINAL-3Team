@@ -762,6 +762,7 @@ def add_folder(request):
             # 3) 최종 bookmark_id
             new_id = f"bm_{new_num_str}"
             # 4) DB에 생성
+            print("is_place_value:", is_place_value)
             new_bookmark = Bookmark.objects.create(
                 bookmark=new_id,
                 profile_id=request.user.id,

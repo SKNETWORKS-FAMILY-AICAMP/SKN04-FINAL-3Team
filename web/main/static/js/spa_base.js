@@ -4401,7 +4401,6 @@ async function getBookmarkList(is_place="", name=``, address=``) {
                                         const inputItem = document.querySelector(`.bookmarklist-panel .folder-item`);
                                         const items = document.querySelectorAll('.bookmarklist-panel ul li');                                                                             
                                         inputElem.remove();
-                                        console.log("GO!");
                                         try {
                                             const response = await fetch("/app/partials/favorites/add/", {
                                                 method: "POST",
