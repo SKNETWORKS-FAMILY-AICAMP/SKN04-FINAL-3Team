@@ -21,7 +21,10 @@ services:
     
   web:
     build: .
-    command: gunicorn web.wsgi:application --bind 0.0.0.0:8000
+    command: >
+      gunicorn myproject.wsgi:application
+      --bind 0.0.0.0:8000
+      --timeout 300           # 타임아웃 300초 (5분)
     volumes:
       - static_volume:/app/staticfiles
       - ./:/app/
