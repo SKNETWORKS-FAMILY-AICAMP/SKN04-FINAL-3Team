@@ -1,6 +1,6 @@
 # SKN04-FINAL-3Team
 
-# 🤗 팀명 : 
+# 🤗 팀명 : SeouLogue
  
 ### 🤭 팀원
 
@@ -26,64 +26,85 @@
 ### 💼 역할 분담
 
 ### 👨‍💻 박병헌
-- **모델**: pass
-- **Retriever 구축**: pass
+- **모델**
+- **Retriever 구축**
 - **README 작성** 
 ### 👨‍💻 이지수
-- **Front-end** : pass
-- **Back-end**: pass
-- **AWS 배포**: Django로 제작된 페이지를 AWS환경에서 배포
+- **Front-end** 
+- **Back-end(DB)**
+- **AWS 배포**
 
 
 ### 👩‍💻 이진섭
-- **테스트 및 산출물 관리** : pass
-
+- **Back-end**
+- **모델 평가** 
+- **README 작성** 
 
 ### 👨‍💻 오종수
-- **조장**
-: pass
+- **Front-end**
+
 ---
 
 ## 프로젝트 개요
-~~- **상세 페이지 설계서 작성**~~
-~~- **요구사항 정의서 작성**~~
-~~- **streamlit으로 구현된 페이지를 django로 이식** ~~
-~~- **AWS 배포**~~
-pass~~
+코로나 이후 국내 관광 산업은 외국인 관광객의 급격한 증가와 함께 다시금 활기를 띠고 있습니다. 2023년 방한 외래객 수는 약 1,103만 명에 이르며, 이들의 총지출액은 약 11조 원으로 추정됩니다. 이는 국내 대표 IT 기업인 네이버의 2023년 매출액(약 9조 원)보다도 많은 규모로, 외국인 관광객이 한국 경제에 미치는 영향이 상당함을 보여줍니다. 국적별 비중을 살펴보면 일본, 중국, 미국 순으로 가장 많은 관광객이 방문하고 있으며, 향후 이러한 추세는 더욱 가속화될 것으로 전망됩니다.
 
-~~이 프로젝트는 다나와 사이트에서 노트북 제품 정보를 **크롤링**하여, 사용자가 입력하는 질문에 대해 할루시네이션이 없는 답변을 제공하는 **대화형 챗봇**  streamlit 페이지를 django로 이식하여 배포까지 진행하는 프로젝트입니다.~~
+그러나 외국인 관광객들은 국내 한국어 중심의 앱 환경으로 인해 여러 불편을 겪고 있습니다. 예를 들어, 구글 맵은 한국 지도 데이터를 해외로 반출할 수 없다는 안보 관련 규제로 인해 길찾기 기능이 제대로 작동하지 않고, 네이버 지도는 다국어 지원 범위가 제한적이며 번역의 완성도가 낮아 활용도가 떨어진다는 지적이 있습니다. 카카오 맵 역시 영어 주소 인식에 어려움이 있어, 외국인이 단일 한국 토종 앱만으로 원활하게 정보를 얻기에는 한계가 있습니다. 이로 인해 많은 관광객들은 방한 전후로 여러 글로벌 앱과 국내 앱을 병행해 사용하고 있어 서비스 이용이 복잡해지는 문제가 발생합니다.
+
+본 프로젝트는 이러한 문제점을 해결하고, 방한 외국인 관광객들이 국내에서 편리하고 만족스러운 여행 경험을 할 수 있도록 통합 정보 제공 및 다국어 지원 플랫폼을 구축하는 것을 목표로 합니다. 이를 통해 국내 관광 산업의 성장에 발맞춰, 더욱더 많은 외국인 관광객들이 한국을 쉽고 즐겁게 여행할 수 있도록 돕고자 합니다.
 
 ## Data
 
-~~다나와 사이트(https://prod.danawa.com/list/?cate=112758)에서 셀레니움을 통해~~ ~~크롤링하여 노트북 데이터를 수집 하였습니다. ~~
+naver 지도 크롤링 <br>
+지역: 용산구, 강남구, 종로구, 중구 <br>
+키워드: 음식점, 카페, 술집
 <br>
-~~수집한 데이터 : 노트북 모델명, 상세 스펙, 가격~~
+<br>
+opendata<br>
+지역: 용산구, 강남구, 종로구, 중구 <br>
+한국보건산업진흥원_외국인환자 유치기관 현황: https://www.data.go.kr/data/3050000/fileData.do<br>
+서울시 의료관광허가 의료기관 정보: https://data.seoul.go.kr/dataList/OA-12973/S/1/datasetView.do <br>
+서울시 관광 음식: https://data.seoul.go.kr/dataList/OA-21054/S/1/datasetView.do<br>
+서울시 관광 명소: https://data.seoul.go.kr/dataList/OA-21050/S/1/datasetView.do<br>
+서울특별시_관광 쇼핑: https://data.seoul.go.kr/dataList/OA-21053/S/1/datasetView.do<br>
+서울특별시_관광 문화: https://data.seoul.go.kr/dataList/OA-21052/S/1/datasetView.do<br>
+서울특별시_ 관광 자연: https://data.seoul.go.kr/dataList/OA-21051/S/1/datasetView.do<br>
+서울특별시_관광거리 정보: https://data.seoul.go.kr/dataList/OA-12929/S/1/datasetView.do<br>
+서울특별시_ 관광안내소: https://data.seoul.go.kr/dataList/OA-20350/S/1/datasetView.do<br>
+관광숙박업: https://www.localdata.go.kr/data/dataView.do
+
 
 
 ## Preprocess
 
-~~csv 파일로 저장된 데이터를 document에 저장하여 metadata를 추가하고 contents에 불필요한 문자를 제거하여 정제했습니다.~~
-<br>
-~~정제된 데이터를 'text-embedding-3-small'모델을 사용하여 Faiss DB에 임베딩하여 저장했습니다.~~
-
+1.	지역별 데이터 분할<br>
+	•	수집된 데이터를 서울의 행정구(區) 단위로 분할하여 관리함으로써, 지역별 검색 및 분석의 효율성을 높였습니다.
+2.	다국어 주소 컬럼 추가<br>
+•	방문객 국적에 따라 주소 정보를 효과적으로 제공하기 위해, 각 주소를 여러 나라의 언어로 번역하여 추가 컬럼을 생성했습니다.
+3.	데이터 임베딩 및 저장<br>
+•	정제된 데이터를 기반으로 text-embedding-3-small 모델을 사용하여 임베딩을 수행한 뒤, Faiss 데이터베이스에 저장하여 고속 벡터 검색이 가능하도록 구성했습니다.<br>
+•	BM25 알고리즘도 함께 사용하여 텍스트 기반 검색에서의 검색 정확도를 높였습니다.
 ---
 
 
 
-## 기술 스텍
+## 기술 스택
 
-| Data Modeling | SCM | Front-End / Back-End | Deploy |
-|-----------------|--------|---------------------|------------------|
-| ![BeautifulSoup](https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white) ![Selenium](https://img.shields.io/badge/Selenium-43B02A?style=for-the-badge&logo=selenium&logoColor=white) ![pandas](https://img.shields.io/badge/pandas-150458?style=for-the-badge&logo=pandas&logoColor=white) <img src="https://img.shields.io/badge/langchain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white"><img src="https://img.shields.io/badge/openai-412991?style=for-the-badge&logo=openai&logoColor=white">|<img src="https://img.shields.io/badge/Git-F05032?style=flat-square&logo=git&logoColor=white"/>| <img src="https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white"> | <img src="https://img.shields.io/badge/Amazon_AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white">
+| **Category**           | **Tools**                                                                                                                                                                                                                                                                                                                                |
+|------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Data Modeling**      | ![BeautifulSoup](https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white) ![Selenium](https://img.shields.io/badge/Selenium-43B02A?style=for-the-badge&logo=selenium&logoColor=white) ![pandas](https://img.shields.io/badge/pandas-150458?style=for-the-badge&logo=pandas&logoColor=white) <img src="https://img.shields.io/badge/langchain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white"> <img src="https://img.shields.io/badge/openai-412991?style=for-the-badge&logo=openai&logoColor=white"> |
+| **SCM**                | <img src="https://img.shields.io/badge/Git-F05032?style=flat-square&logo=git&logoColor=white"/>                                                                                                                                                                                                                                           |
+| **Front-End / Back-End** | <img src="https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white">                                                                                                                                                                                                                                                                       |
+| **Deploy**             | <img src="https://img.shields.io/badge/Amazon_AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white">                                                                                                                                                                                                                                                                 |
 
 ## Prerequisites
 
 
 
-### Conda 환경 생성 및 활성화
+### Conda 환경 생성 및 활성화 ## 
 ```
-conda env create -f environment.yml
-conda activate best_laptop_env
+conda create -n myenv python=3.11
+conda activate myenv
+pip install -r requirements.txt
 ```
 ---
 
@@ -92,41 +113,56 @@ conda activate best_laptop_env
 <p>
 
 ```
-OPENAI_API_KEY ="sk-*******************************************************************"
-faiss_path ="./data/db"
+OPENAI_API_KEY=***********
+NCP_CLIENT_ID=***********
+NCP_CLIENT_SECRET=***********
+faiss_path=./data/db
+DB_NAME=postgres
+DB_USER=seoulogue
+DB_PASSWORD=***********
+DB_HOST='***********'
+DB_PORT=****
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_ENDPOINT="https://api.smith.langchain.com/"
+LANGCHAIN_API_KEY="***********"
+LANGCHAIN_PROJECT="practice"
+TAVILY_API_KEY=***********
+DJANGO_SECRET_KEY="***********"
+```
+### 네이버 API 발급 과정 
+
+네이버 클라이언트 아이디와 시크릿을 발급받아서 .env에 설정
+네이버 지도 API를 보여줄 사이트의 URL 및 도메인을 WEB 서비스 URL에 등록
+<img src="/Users/jururu/Desktop/AI/SKN04-FINAL-3Team-1/readme_img/image.png" width="300" height="250">
+
+## 서비스 페이지 로컬 실행 시
+
+### settings DATABASES 다음과 같이 변경
+
+<p>
+
+```
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',  # 데이터베이스 이름
+        'USER': 'postgres',       # PostgreSQL 사용자 이름
+        'PASSWORD': '****',   # PostgreSQL 사용자 비밀번호
+        'HOST': '127.0.0.1',           # 또는 DB 서버 IP
+        'PORT': '5432',                # 기본값
+    }
+}
 ```
 
-### .env.prod 파일 필요
+### django 실행 명령어
 ```
-DEBUG=0
-SECRET_KEY=****************************************
-DJANGO_ALLOWED_HOSTS=localhost ******************* [::1]
-SQL_ENGINE=django.db.backends.postgresql
-SQL_DATABASE=postgres
-SQL_USER=postgres
-SQL_PASSWORD=****
-SQL_HOST=best-laptop.c****************************
-SQL_PORT=5432
-```
-### .env.prod.db 파일 필요
-```
-POSTGRES_USER=************************
-POSTGRES_PASSWORD=***************************************
-POSTGRES_DB=**************************
-```
-
-
-## Usage
-
-AWS 에서 EC2 인스턴스을 만들어 다음 명령어를 입력
-```cmd
-sudo apt-get update
-sudo apt-get install docker.io docker-compose
-sudo docker-compose up -d --build
-sudo docker-compose exec web python manage.py collectstatic
-```
-```cmd
-본인이 설정한 EC2 환경의 Ip주소로 접속
+cd web
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser # 본인 계정 생성
+python manage.py collectstatic
+yes
+python manage.py runserver
 ```
 
 ## System Architecture
@@ -134,53 +170,31 @@ sudo docker-compose exec web python manage.py collectstatic
 ### 프로그램의 전체적인 구성 도표 삽입 및 설명
 
 <p>
-  <img src="readmeImage/Architecture.png" alt="이미지 설명" width="500" height="350">
+  <img src="/Users/jururu/Desktop/AI/SKN04-FINAL-3Team-1/readme_img/Architecture.png" width="500" height="250">
 </p>
 
-저희 시스템은 Selenium을 통해 크롤링한 데이터를 FAISS(Vector DB)에 임베딩하여 벡터 기반 검색을 수행합니다.   
-사용자가 입력한 질문은 retriever와 체인 모델을 거쳐, 저희가 개발한 모델로 응답이 생성됩니다.   
-최종 결과는 배포된 웹 페이지를 통해 사용자에게 직관적으로 제공됩니다.  
- 
----
-## Test Case
+## 서비스 설명
+<img src="/Users/jururu/Desktop/AI/SKN04-FINAL-3Team-1/readme_img/service_page.png" width="500" height="300">
 
-### 잘못된 질문 예시 케이스
-<img src="readmeImage\test1.png" alt="이미지 설명" width="" height="500">
-<img src="readmeImage\test2.png" alt="이미지 설명" width="" height="500">
+서비스 페이지 화면<br>
 
-### 올바른 질문 예시 케이스
-<img src="readmeImage\test3.png" alt="이미지 설명" width="" height="500">
+챗봇에게 일정 생성이나 장소 추천 등을 요청하면, 답변받은 정보를 바탕으로 지도 화면 하단에 장소 요약 목록을 확인할 수 있습니다. <br>
+
+또한 일정에 포함된 장소들은 지도 위에 마커로 표시되며, 방문 순서에 따라 번호가 매겨집니다. 생성한 일정 자체를 즐겨찾기에 등록할 수 있고, 일정에 포함된 각 장소들도 장소 즐겨찾기로 추가 가능합니다.<br>
+
+챗봇과의 대화 내용은 채팅 목록으로 저장할 수 있어, 나중에 다시 확인하거나 이어서 작업하기 편리합니다. 다만 로그인하지 않은 상태에서는 기본적인 챗봇 기능만 사용 가능하며, 즐겨찾기나 채팅 목록 저장 같은 개인화 기능은 사용할 수 없습니다.
 
 
-## 수행 결과
 
-**요구사항 정의서**
-<p>
-  <img src="readmeImage\SRS.png" alt="이미지 설명" width="" height="200">
-</p>
-
-**상세 페이지 설계서**
-<p>
-  <img src="readmeImage\detailpagestructre.png" alt="이미지 설명" width="500" height="350">
-</p>
-
-
-<br>
-**Django로 구현하여 배포한 페이지**
-<p>
-  <img src="readmeImage\page.png" alt="이미지 설명" width="500" height="350">
-</p>
-
-위의 요구사항 정의서와 상세 페이지 설계서를 반영하여 Django를 통해 Front-end와 Back-end를 구축하고 AWS를 통해 배포 하였습니다.
 
 ## 한 줄 소감
 
 
-### 👨‍💻 박병헌
+### 👨‍💻 박병헌: 
 
 ### 👨‍💻 이지수
 
-### 👩‍💻 이진섭
+### 👩‍💻 이진섭: 다른 팀원들과 함께 이렇게 오랜 기간 프로젝트를 진행한 것은 처음이었고, 때로는 의견 차이와 코딩의 어려움도 있었지만, 결국 무사히 완성하게 되어 정말 기쁘고 행복합니다.
 
 
 ### 👨‍💻 오종수
