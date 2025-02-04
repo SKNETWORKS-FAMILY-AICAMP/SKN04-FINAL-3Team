@@ -737,14 +737,17 @@ def add_folder(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
+            is_place_value = data.get("is_place", True)  # 기본값 True
+            if isinstance(is_place_value, str):  # 문자열이면 변환
+                is_place_value = is_place_value.lower() == "true"
+
             title = data.get("title", "").strip()
             if not title:
                 return JsonResponse({"success": False, "error": "No folder name provided."}, status=400)
-
-            is_place_value = data.get("is_place", True)
-
+            
             # 1) Bookmark 중 "bm_xxxxx" 형태인 것들 중, 가장 큰 번호를 찾기
             last_bm = Bookmark.objects.filter(bookmark__startswith="bm_").order_by('-bookmark').first()
+            
             if last_bm:
                 # "bm_00009" -> split("_")[1] => "00009"
                 numeric_str = last_bm.bookmark.split("_")[1]  
@@ -758,15 +761,14 @@ def add_folder(request):
             new_num_str = str(new_num).zfill(5)  
             # 3) 최종 bookmark_id
             new_id = f"bm_{new_num_str}"
-
             # 4) DB에 생성
+            print("is_place_value:", is_place_value)
             new_bookmark = Bookmark.objects.create(
                 bookmark=new_id,
-                profile=request.user,
+                profile_id=request.user.id,
                 title=title,
-                is_place=is_place_value
+                is_place=is_place_value,
             )
-
             return JsonResponse({
                 "success": True,
                 "folderId": new_bookmark.bookmark,

@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  nginx:
+    build: ./nginx
+    volumes:
+      - static_volume:/app/staticfiles
+    ports:
+      - 80:80
+    depends_on:
+      - web
+  web:
+    build: .
+    command: gunicorn web.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - static_volume:/app/staticfiles
+      - ./:/app/
+    expose:
+      - 8000
+    env_file:
+      - .env.prod
+    depends_on:
+      - db
+  db:
+    image: postgres:12.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+    env_file:
+      - .env.prod.db
+volumes:
+  postgres_data:
+  static_volume:

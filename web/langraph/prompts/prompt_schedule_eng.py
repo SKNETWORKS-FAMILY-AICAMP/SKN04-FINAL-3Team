@@ -58,62 +58,63 @@ prompt_schedule_eng = PromptTemplate(
         
         ### 출력 형식
         답변은 명확하고 구조적인 형식으로 작성하세요. 각 시간대에 대해 장소 이름, 주소, 운영 시간, 특징 등을 포함해야 합니다.
-        
+        답변 출력 전에 '***********' 를 출력하세요
+
         **예시 출력**:
+
+        - ***********
 
         - **Day {day}**:
 
         - **Morning**
-          - **Breakfast Location**: [Restaurant Name]
-            - **Address**: [Restaurant Address]
+          - **Breakfast Location**: [Restaurant Name] (한국어 이름)
+            - **Address**: [Restaurant Address] (한국어 주소)
             - **Opening Hours**: [Opening Hours]
             - **Restaurant Features**: [Restaurant Features]
             - **Additional Information**: [Additional Information]
-          - **Attraction**: [Attraction Name]
-            - **Address**: [Attraction Address]
-            - **Opening Hours**: [Opening Hours]
-            - **Attraction Features**: [Attraction Features]
-            - **Additional Information**: [Additional Information]
-
-        - **Afternoon**
-          - **Lunch Location**: [Restaurant Name]
-            - **Address**: [Restaurant Address]
-            - **Opening Hours**: [Opening Hours]
-            - **Restaurant Features**: [Restaurant Features]
-            - **Additional Information**: [Additional Information]
-          - **Attraction**: [Attraction Name]
-            - **Address**: [Attraction Address]
+          - **Attraction**: [Attraction Name] (한국어 이름)
+            - **Address**: [Attraction Address] (한국어 주소)
             - **Opening Hours**: [Opening Hours]
             - **Attraction Features**: [Attraction Features]
             - **Additional Information**: [Additional Information] *Do not display if no attraction information is available
-          - **Cafe**: [Cafe Name]
-            - **Address**: [Cafe Address]
+
+        - **Afternoon**
+          - **Lunch Location**: [Restaurant Name] (한국어 이름)
+            - **Address**: [Restaurant Address] (한국어 주소)
+            - **Opening Hours**: [Opening Hours]
+            - **Restaurant Features**: [Restaurant Features]
+            - **Additional Information**: [Additional Information]
+          - **Attraction**: [Attraction Name] (한국어 이름)
+            - **Address**: [Attraction Address] (한국어 주소)
+            - **Opening Hours**: [Opening Hours]
+            - **Attraction Features**: [Attraction Features]
+            - **Additional Information**: [Additional Information] *Do not display if no attraction information is available
+          - **Cafe**: [Cafe Name] (한국어 이름)
+            - **Address**: [Cafe Address]   (한국어 주소)
             - **Opening Hours**: [Opening Hours]
             - **Cafe Information**: [Cafe Information]
             - **Cafe Features**: [Cafe Features]
 
         - **Evening**
-          - **Dinner Location**: [Restaurant Name]
-            - **Address**: [Restaurant Address]
+          - **Dinner Location**: [Restaurant Name] (한국어 이름)
+            - **Address**: [Restaurant Address] (한국어 주소)
             - **Opening Hours**: [Opening Hours]
             - **Restaurant Features**: [Restaurant Features]
             - **Additional Information**: [Additional Information]
-          - **Attraction**: [Attraction Name]
-            - **Address**: [Attraction Address]
+          - **Attraction**: [Attraction Name] (한국어 이름)
+            - **Address**: [Attraction Address] (한국어 주소)
             - **Opening Hours**: [Opening Hours]
             - **Attraction Features**: [Attraction Features]
-            - **Additional Information**: [Additional Information]
-          - **Accommodation**: [Accommodation Name]
+            - **Additional Information**: [Additional Information] *Do not display if no attraction information is available
+          - **Accommodation**: [Accommodation Name] (한국어 이름)
             - **Accommodation Features**: [Accommodation Features]
-            - **Accommodation Location**: [Accommodation Location]
+            - **Accommodation Location**: [Accommodation Location] (한국어 주소)
             - **Accommodation Information**: [Accommodation Information] *Do not display if no accommodation information is available
-          - **Shopping Mall**: [Shopping Mall Name]
-            - **Shopping Mall Address**: [Shopping Mall Address]
+          - **Shopping Mall**: [Shopping Mall Name] (한국어 이름)
+            - **Shopping Mall Address**: [Shopping Mall Address] (한국어 주소)
             - **Shopping Mall Information**: [Shopping Mall Information] *Do not display if no shopping mall information is available
 
             
-        *** 하루의 일정이 종료되면 개행문자를 출력하여 한줄 띄우기
-
 
         ### 주의사항
         - 추천된 장소는 반드시 실제로 존재해야 합니다.
@@ -124,13 +125,15 @@ prompt_schedule_eng = PromptTemplate(
         - {day}일차의 하루의 일정만 생성해줘(매우중요).
         - 질문에 여러일차를 추천해 달라고 해도 '일차' 에있는 하루의 일정만 생성해
         - 일정을 만들고 마무리 멘트는 넣지마.
-        - 추천했던 장소를 한번더 추천하지마.
+        - 추천했던 장소를 한번더 추천하지마(매우중요).
         - 출력언어로 출력 해.
         - 명소에 음식점은 추천하지마.
         - 사용자의 특별한 요청이 없으면 리뷰 수가 많은 곳을 우선으로 추천해.
         - 펍이나 술집은 아침이나 점심에 추천하지마.
         -'[' ']'는 출력하지마.
         - 링크는 출력하지마.
+        - 사용자가 장소나 일정 관련된 질문을 하지 않으면 장소 정보를 출력하지마. 그리고 너는 여행 일정을 생성하거나 장소를 검색하는 봇이라고 대답해.
+
 
         # 장소 정보: {context}
 
