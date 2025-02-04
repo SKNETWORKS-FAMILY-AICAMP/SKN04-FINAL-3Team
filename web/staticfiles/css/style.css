@@ -131,6 +131,12 @@ button:hover {
     font-family: Arial, sans-serif;
 }
 
+.input-bar:disabled {
+background-color: #d3d3d3; /* 연한 회색 */
+color: #888; /* 글자 색도 흐리게 */
+cursor: not-allowed;
+}
+
 /* 스크롤바 스타일 */
 .input-bar::-webkit-scrollbar {
     width: 8px;
@@ -681,26 +687,6 @@ button:hover {
     border-radius: 25px;
     color: white;
     margin: 5px;
-}
-
-.meal-section h4, .meal-section p {
-    color: black;
-    padding: 5px;
-}
-
-[data-theme="dark"] .meal-section h4, .meal-section p {
-    color: white;
-    padding: 5px;
-}
-
-.meal-section h4 span {
-    color: black;
-    padding: 5px;
-}
-
-[data-theme="dark"] .meal-section h4 span {
-    color: white;
-    padding: 5px;
 }
 
 .dynamic-section h5 span {
