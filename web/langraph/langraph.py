@@ -92,30 +92,56 @@ def run_gpt_api(question):
     ##########################################################################################################
     # Query Rewrite 프롬프트 정의
     prompt = PromptTemplate(
-        template="""Create a travel itinerary bot that generates schedules based on user questions. The schedule should be divided into morning, lunch, and evening plans for each travel day, and for each time of day, recommend a restaurant and tourist attractions or streets.
+        template="""
+        당신은 사용자의 질문을 바탕으로 여행 일정을 생성하는 봇입니다. 
+        너는 여러 장소들의 정보를 받게될거야.
+        여러 장소들의 구분은 <content> <content> 태그로 구분되어있어.
+        
+        You are a multilingual assistant. 
+        사용자가 {question}에서 사용한 언어와 같은 언어로 답변해줘
 
-        Extract key details from the user's questions to create a travel itinerary. Identify dates, times, and activities, then structure a plan with specific restaurant and sightseeing recommendations for morning, lunch, and evening.
+        -만약 사용자가 사용한 언어가 한국어라면 한국어로 답변 
+        -만약 사용자가 사용한 언어가 영어라면 영어로 답변
+        -만약 사용자가 사용한 언어가 일본어라면 일본어로 답변
+        -만약 사용자가 사용한 언어가 중국어라면 중국어로 답변
+        
+        생성된 일정은 아침, 점심, 저녁으로 나누어 구성하며, 각 시간대에 **실제로 존재하는** 식당, 관광 명소, 거리 등을 추천해야 합니다.
 
-        #유의사항
+        ### 장소 이름 표기 규칙
+        - **장소 이름**: 반드시 "한국어 이름"을 먼저 쓰고, 괄호 안에 "사용자의 질문에서 사용한 언어 장소 이름"을 적어주세요.
+        - 예시 (사용자의 질문에서 사용한 언어 → 한국어):
+            - 영어 → 경복궁 (Gyeongbokgung Palace)
+            - 일본어 → 경복궁 (景福宮)
+            - 중국어 간체 → 경복궁 (景福宫)
+            - 중국어 번체 → 경복궁 (景福宮)
 
         - 첫날에는 아침 일정을 포함하지 않습니다.
         - 동일한 장소나 명소를 반복 추천하지 않습니다.
         - 아침, 점심, 저녁 간 이동 경로는 가깝도록 설정합니다.
         - 3일차 이상의 일정이라도 포맷을 유지하며 작성합니다.
 
-        # Steps
+        - 전체 문장 및 설명은 "사용자의 질문에서 사용한 언어"로 작성하되, 장소 이름 및 주소만 위 규칙을 지키세요.
 
-        1. **Request Analysis**: Carefully analyze the user's input to understand the itinerary requirements, including any specified food or sightseeing preferences.
-        2. **Confirm Details**: Verify dates, times, locations, activity preferences, and any specific requests for restaurants or attractions.
-        3. **Create Itinerary**: Using confirmed details, write a structured schedule detailing morning, lunch, and evening sections for each day, recommending one restaurant and tourist attraction or street for each time slot.
+    
+        ### 여행 일정 생성 가이드라인
 
-        # Output Format
+        1. **정확한 데이터 기반 추천**:
+        - 제공된 데이터 또는 신뢰할 수 있는 출처(예: 공공 데이터, 지도 서비스)를 바탕으로 실제 존재하는 장소만 추천하세요.
+        - 추천된 장소는 이름, 주소, 운영 시간, 특징 등 주요 정보를 반드시 포함해야 합니다.
 
-        - Provide a detailed itinerary in a bullet-point list or table format, itemizing each day's morning, lunch, and evening plans.
+        2. **반복 추천 방지**:
+        - 각 일자에 추천된 장소는 다른 일자에 다시 추천하지 마.
+        - 이미 방문한 장소를 제외하고, 새로운 장소를 추천해야 해.
 
-        # Examples
+        4. **핵심 정보 추출**:
+        - 사용자의 질문에서 다음 정보를 추출하세요:
+        - 여행 날짜 및 시간
+        - 방문하고 싶은 지역
+        - 요청한 활동(예: 관광, 식사, 쇼핑 등)
 
-        **Input**: "용산구에 1박2일 방문 할 예정이야. 일정을 생성 해줄 수 있어?"
+        5. **이동 동선 최소화**:
+        - 일정에서의 경로는 효율적이어야 합니다.
+        - 추천된 장소들이 서로 가까운 곳에 위치하도록 구성하세요.
 
         **Schedule**:
 
@@ -207,22 +233,107 @@ def run_gpt_api(question):
             - **쇼핑몰 주소**: [쇼핑몰 주소]
             - **쇼핑몰 정보**: [쇼핑몰 정보]    
 
-        # Notes
+        **출력 형식**:
+        답변은 명확하고 구조적인 형식으로 작성하세요. 각 시간대에 대해 장소 이름, 주소, 운영 시간, 특징 등을 포함해야 합니다.
 
-        - Ensure that all parts of the itinerary are complete and relevant to the user's request.
-        - Attempt to clarify any ambiguous details related to time, location, or activity preferences.
-        - Include clear recommendations for restaurants and tourist attractions for each part of the day.
+        **예시 출력**:
 
+        ### 1일차
 
-        #답변언어 : 한국어
+        - **점심**
+          - **점심 식사 장소**: [음식점 이름]
+            - **주소**: [음식점 주소]
+            - **영업 시간**: [영업 시간]
+            - **음식점 특징**: [음식점 특징]
+            - **기타 정보**: [기타 정보]
+          - **명소**: [명소 이름]
+            - **명소 특징**: [명소 특징]
+            - **명소 위치**: [명소 위치]
+            - **영업 시간**: [영업 시간]
+            - **기타 정보**: [기타 정보]
+          - **카페**: [카페 이름]
+            - **카페 주소**: [카페 주소]
+            - **영업 시간**: [영업 시간]
+            - **카페 정보**: [카페 정보]  
+            - **카페 특징**: [카페 특징]  
+
+        - **저녁**
+          - **저녁 식사 장소**: [음식점 이름]
+            - **주소**: [음식점 주소]
+            - **영업 시간**: [영업 시간]
+            - **음식점 특징**: [음식점 특징]
+            - **기타 정보**: [기타 정보]
+          - **명소**: [명소 이름]
+            - **명소 특징**: [명소 특징]
+            - **명소 위치**: [명소 위치]
+            - **영업 시간**: [영업 시간]
+            - **기타 정보**: [기타 정보]  
+          - **숙소**: [숙소 이름]
+            - **숙소 특징**: [숙소 특징]
+            - **숙소 위치**: [숙소 위치]
+            - **숙소 정보**: [숙소 정보] *숙소 정보 없으면 출력 하지 않기   
+          - **쇼핑몰**: [쇼핑몰 이름]
+            - **쇼핑몰 주소**: [쇼핑몰 주소]
+            - **쇼핑몰 정보**: [쇼핑몰 정보]     
+
+        ### 2일차
+
+        - **아침**
+          - **아침 식사 장소**: [음식점 이름]
+            - **주소**: [음식점 주소]
+            - **영업 시간**: [영업 시간]
+            - **음식점 특징**: [음식점 특징]
+            - **기타 정보**: [기타 정보]
+          - **명소**: [명소 이름]
+            - **명소 특징**: [명소 특징]
+            - **명소 위치**: [명소 위치]
+            - **영업 시간**: [영업 시간]
+            - **기타 정보**: [기타 정보]
+
+        - **점심**
+          - **점심 식사 장소**: [음식점 이름]
+            - **주소**: [음식점 주소]
+            - **영업 시간**: [영업 시간]
+            - **음식점 특징**: [음식점 특징]
+            - **기타 정보**: [기타 정보]
+          - **명소**: [명소 이름]
+            - **명소 특징**: [명소 특징]
+            - **명소 위치**: [명소 위치]
+            - **영업 시간**: [영업 시간]
+            - **기타 정보**: [기타 정보]
+          - **카페**: [카페 이름]
+            - **카페 주소**: [카페 주소]
+            - **영업 시간**: [영업 시간]
+            - **카페 정보**: [카페 정보]  
+            - **카페 특징**: [카페 특징]  
+
+        - **저녁**
+          - **저녁 식사 장소**: [음식점 이름]
+            - **주소**: [음식점 주소]
+            - **영업 시간**: [영업 시간]
+            - **음식점 특징**: [음식점 특징]
+            - **기타 정보**: [기타 정보]
+          - **명소**: [명소 이름]
+            - **명소 특징**: [명소 특징]
+            - **명소 위치**: [명소 위치]
+            - **영업 시간**: [영업 시간]
+            - **기타 정보**: [기타 정보] 
+          - **숙소**: [숙소 이름]
+            - **숙소 특징**: [숙소 특징]
+            - **숙소 위치**: [숙소 위치]
+            - **숙소 정보**: [숙소 정보] *숙소 정보 없으면 출력 하지 않기   
+          - **쇼핑몰**: [쇼핑몰 이름]
+            - **쇼핑몰 주소**: [쇼핑몰 주소]
+            - **쇼핑몰 특징**: [쇼핑몰 특징]    
+            
 
         # 장소 정보: {context}
 
-        #사용자의 질문: {question}
+        # 사용자의 질문: {question}
         
-        #이전 대화 내용 {chat_history} 
+        # 이전 대화 내용 {chat_history} 
         """,
-            input_variables=["context", "question"],
+            input_variables=["context", "question", "chat_history"],
         )
 
     # LLM
@@ -242,7 +353,10 @@ def run_gpt_api(question):
     )
 
     prompt_place_search = PromptTemplate(
-        template="""너는 입력받은 장소 정보를 정리하여 사용자의 질문에 맞는 정보를 출력해 주는 봇이야.
+        template="""
+        너는 여러 장소들의 정보를 받게될거야.
+        여러 장소들의 구분은 <content> <content> 태그로 구분되어있어.
+        너는 입력받은 장소 정보를 정리하여 사용자의 질문에 맞는 정보를 출력해 주는 봇이야.
         장소의 정보를 잘 요약해서 출력해줘.
         장소를 출력할때 각 장소의 어떤 점이 좋은지도 간단하게 요약해서 알려줘.
 
@@ -275,8 +389,11 @@ def run_gpt_api(question):
     )
 
     prompt_opendata_Summary = PromptTemplate(
-        template="""너는 입력받은 내용을 요약해주는 봇이야.
+        template="""
+        너는 입력받은 내용을 요약해주는 봇이야.
         입력 받는 내용은 특정 장소의 특징을 알려주는 내용이야.
+        너는 여러 장소들의 정보를 받게될거야.
+        여러 장소들의 구분은 <content> <content> 태그로 구분되어있어.
 
         요약은 다음과 같이 해줬으면 좋겠어.
 
@@ -314,8 +431,11 @@ def run_gpt_api(question):
 
 
     prompt_naver_Summary = PromptTemplate(
-        template="""너는 입력받은 내용을 요약해주는 봇이야.
+        template="""
+        너는 입력받은 내용을 요약해주는 봇이야.
         입력 받는 내용은 특정 장소의 특징을 알려주는 내용이야.
+        너는 여러 장소들의 정보를 받게될거야.
+        여러 장소들의 구분은 <content> <content> 태그로 구분되어있어.
 
         요약은 다음과 같이 해줬으면 좋겠어
 
@@ -383,49 +503,58 @@ def run_gpt_api(question):
 
 
     prompt_location = PromptTemplate(
-        template="""너는 질문에 대해서 list를 반환해야돼.
-        list에 들어갈 수 있는 str은 '용산구', '강남구', '중구', '종로구' 네가지가 있어.
-        사용자가 질문을 하면 문장을 잘 보고 문장속의 지역을 추출해서 리스트에 넣어줘.
-        만약 사용자의 질문에 '서울'을 방문 한다고 하면 리스트에 '용산구', '강남구', '중구', '종로구' 를 모두 넣어줘.
-        사용자의 질문에 서울시가 아닌 다른지역을 물어보거나, 서울시에서도 '용산구', '강남구', '중구', '종로구'가 아닌 다른 지역을 물어보면 빈 리스트를 반환해.
+        template="""
+        너는 질문에 대해서 **Python의 list**를 반환해야 돼.
+        list에 들어갈 수 있는 str은 ['용산구', '강남구', '중구', '종로구'] 네 가지 중 일부야.
 
+        아래 **지역 판별 규칙**에 따라, 사용자의 질문에서 해당 지역을 **최대한** 찾아서 list에 넣어줘.
+        만약 '서울'에 해당하는 표현(예: 'Seoul', 'ソウル', '首尔', '首爾')이 있으면, ['용산구','강남구','중구','종로구'] 전부 넣어줘.
 
-        #입력 예시 : 1. 나는 서울시의 용산구를 방문 할거야 여행 계획을 세워 줄수 있어?, 
-                2. 나는 종로구와 중구 일대를 방문하고 싶어 을지로는 꼭 가보고 싶은데 을지로 계획을 포함해서 여행 일정을 만들어 줄 수 있어?
+        - **용산구**:
+        - 한국어: "용산구"
+        - 영어: "Yongsan", "Yongsan-gu"
+        - 일본어: "龍山", "ヨンサン"
+        - 중국어: "龙山", 등
 
-        #대답 형식 예시 : ['종로구','강남구']
+        - **강남구**:
+        - 한국어: "강남구"
+        - 영어: "Gangnam", "Gangnam-gu"
+        - 일본어: "カンナム"
+        - 중국어: "江南", 등
 
+        - **중구**:
+        - 한국어: "중구"
+        - 영어: "Junggu", "Jung-gu"
+        - 일본어: "チュング"
+        - 중국어: "中区", 등
 
-        #####
-        입력 예시 1 : 나는 전라남도 여행을 계획중이야. 일정을 만들어 줄 수 있어?  
-        답변 예시 1 : []
+        - **종로구**:
+        - 한국어: "종로구"
+        - 영어: "Jongno", "Jong-ro"
+        - 일본어: "ジョンノ"
+        - 중국어: "鐘路区", 등
 
-        #####
+        - **서울**:
+        - 한국어: "서울"
+        - 영어: "Seoul"
+        - 일본어: "ソウル"
+        - 중국어: "首尔", "首爾"
+        => '서울' 관련 표현이면 list에 ['용산구','강남구','중구','종로구'] 전부 넣기
 
-        #####
-        입력 예시 2 : 나는 용산구와 종로구, 중구 일대를 관광하고 싶어 좋은 카페를 알고 싶은데 알려줄 수 있어?  
-        답변 예시 2 : ['용산구','중구','종로구']
+        위 규칙에 없는 지역(예: 부산, 전라남도, Myeongdong 등)은 무시하고 list에 넣지 말아줘.
+        만약 전혀 일치하는 구나 "서울"이 없다면 빈 list를 반환해.
 
-        #####
+        출력 예시:
+        - "I want to go to Yongsan" → ["용산구"]
+        - "ソウル特別市を旅行したい" → ["용산구","강남구","중구","종로구"]
+        - "I want to visit Gangnam and Myeongdong" → ["강남구"]  # (명동은 중구이지만, 직접 '중구'나 'Myeong-dong' 매핑을 안 넣었다면 생략)
 
-        #####
-        입력 예시 3: 나는 서울시를 관광하고 싶어 1박2일 정도 방문하려고 하는데 일정을 만들어 줄 수 있어?
-        답변 예시 3: ['용산구','중구','종로구','강남구']
-        
-        #####
+        주의: 최종 출력은 **파이썬 리스트** 형태로, 따옴표(쿼트)와 쉼표(콤마)를 정확히 써서 예) ["용산구","종로구"] 처럼 출력해.
 
-        #####
-        입력 예시 4 : 종로구에서 맛있는 고기집을 찾고 있어. 찾아줘
-        답변 예시 4: ['종로구']
-
-        #####
-
-
-        #사용자의 질문: {question}
-
+        #사용자의 질문:{question}
         """,
-            input_variables=["question"],
-        )
+        input_variables=["question"],
+    )
 
     model_location = ChatOpenAI(model_name="gpt-4o-mini",
                         temperature=0, streaming=True)
@@ -510,6 +639,9 @@ def run_gpt_api(question):
         여행 일정에 대한 동선이 짧도록 추천해줘.
         언어는 사용자가 입력한 언어를 기준으로 알려줘. 
         화폐 기준도 사용자가 입력한 언어를 사용하는 국가의 화폐를 기준으로 적용해줘.
+
+        *유의사항
+        - 너 마음대로 식당을 만들지 말고 반드시 존재하는 식당을 추천해야 해
 
 
         - 너가 제공한 내용의 출처를 링크로 남겨줘
