@@ -1,5 +1,5 @@
-from utiles.nodes import *
-from utiles.GraphState import GraphState
+from langraph.utiles.nodes import *
+from langraph.utiles.GraphState import GraphState
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -9,8 +9,8 @@ from langgraph.graph import END, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
 import json
 
-def run_model(question, chat_history=None):
 
+def run_model(question, chat_history=None):
         
     chat_history_json = chat_history
     ####-----노드 함수--------#####
@@ -34,7 +34,7 @@ def run_model(question, chat_history=None):
 
     # 노드 정의
     workflow.add_node("location_check", location_check)
-    workflow.add_node("location_check_schdule_change", location_check)
+    workflow.add_node("location_check_schdule_change", location_check_change)
     workflow.add_node("Schedule_day_check", Schedule_day_check)
     workflow.add_node("retrieve_document_naver", retrieve_document_naver)
     workflow.add_node("retrieve_opendata", retrieve_document_opendata)
