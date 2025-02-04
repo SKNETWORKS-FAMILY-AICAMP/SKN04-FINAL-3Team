@@ -1,5 +1,6 @@
 from langraph.chain_model.extraction_day_chain import day_chain
 from langraph.chain_model.extraction_loacation_chain import location_chain
+from langraph.chain_model.extraction_loacation_chain_change import location_chain_change
 from langraph.chain_model.extraction_schedule_or_place_chain import sch_or_place_chain
 from langraph.chain_model.place_search_chain import place_search_chain
 from langraph.chain_model.schedule_chain import schedule_chain
@@ -121,6 +122,24 @@ def location_check(state: GraphState) -> GraphState:
 
     response = chain_location.invoke(
         {"question": state["question"][-1].content}
+    )
+    try :
+        location_list = ast.literal_eval(response)
+    except :
+        return {"location_error" : 1}
+    
+    if len(location_list) == 0:
+        return {"location_error" : 1}
+    
+    return {"location": response}
+
+def location_check_change(state: GraphState) -> GraphState:
+
+    chain_location = location_chain_change()
+
+    response = chain_location.invoke(
+        {"question": state["question"][-1].content,
+         "chat_history": state["pre_chat"]}
     )
     try :
         location_list = ast.literal_eval(response)

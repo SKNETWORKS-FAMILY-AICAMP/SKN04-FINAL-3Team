@@ -34,7 +34,7 @@ def run_model(question, chat_history=None):
 
     # 노드 정의
     workflow.add_node("location_check", location_check)
-    workflow.add_node("location_check_schdule_change", location_check)
+    workflow.add_node("location_check_schdule_change", location_check_change)
     workflow.add_node("Schedule_day_check", Schedule_day_check)
     workflow.add_node("retrieve_document_naver", retrieve_document_naver)
     workflow.add_node("retrieve_opendata", retrieve_document_opendata)
