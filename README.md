@@ -134,7 +134,7 @@ DJANGO_SECRET_KEY="***********"
 네이버 클라이언트 아이디와 시크릿을 발급받아서 .env에 설정
 네이버 지도 API를 보여줄 사이트의 URL 및 도메인을 WEB 서비스 URL에 등록
 
-<img src="/Users/jururu/Desktop/AI/SKN04-FINAL-3Team-1/readme_img/image.png" width="300" height="250">
+<img src="readme_img/image.png" width="300" height="250">
 
 ## 서비스 페이지 로컬 실행 시
 
@@ -171,11 +171,11 @@ python manage.py runserver
 ### 프로그램의 전체적인 구성 도표 삽입 및 설명
 
 <p>
-  <img src="/Users/jururu/Desktop/AI/SKN04-FINAL-3Team-1/readme_img/Architecture.png" width="500" height="250">
+  <img src="readme_img/Architecture.png" width="500" height="250">
 </p>
 
 ## 서비스 설명
-<img src="/Users/jururu/Desktop/AI/SKN04-FINAL-3Team-1/readme_img/service_page.png" width="500" height="300">
+<img src="readme_img/service_page.png" width="500" height="300">
 
 서비스 페이지 화면<br>
 
